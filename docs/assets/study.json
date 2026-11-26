@@ -14,14 +14,85 @@
       "dev_n": 32,
       "dev": 0,
       "dev_final": 0,
+      "dev_correct_n": 0,
+      "dev_malformed": 26,
+      "dev_named_correct": 5,
+      "test_named_correct": 0,
       "test_n": 0,
       "test": null,
       "final_answer": null,
       "fixed": 0,
       "harmed": 1,
+      "test_review_n": 0,
+      "test_fixed": 0,
+      "test_harmed": 0,
+      "test_replay": [
+        {
+          "method": "D1",
+          "n": 0,
+          "valid": 0,
+          "invalid": 0,
+          "agreement": null,
+          "evidence_correct": 0,
+          "false_accept": 0,
+          "false_reject": 0,
+          "malformed": 0,
+          "reports": 0
+        },
+        {
+          "method": "D2",
+          "n": 0,
+          "valid": 0,
+          "invalid": 0,
+          "agreement": null,
+          "evidence_correct": 0,
+          "false_accept": 0,
+          "false_reject": 0,
+          "malformed": 0,
+          "reports": 0
+        },
+        {
+          "method": "D3",
+          "n": 0,
+          "valid": 0,
+          "invalid": 0,
+          "agreement": null,
+          "evidence_correct": 0,
+          "false_accept": 0,
+          "false_reject": 0,
+          "malformed": 0,
+          "reports": 0
+        },
+        {
+          "method": "Flat",
+          "n": 0,
+          "valid": 0,
+          "invalid": 0,
+          "agreement": null,
+          "evidence_correct": null,
+          "false_accept": 0,
+          "false_reject": 0,
+          "malformed": 0,
+          "reports": 0
+        }
+      ],
       "twins_n": 8,
       "twins": 0,
       "masked": 0,
+      "transfer_twin_n": 0,
+      "transfer_visible": null,
+      "transfer_masked": null,
+      "unseen_evidence": {
+        "n": 0,
+        "visible": null,
+        "masked": null
+      },
+      "layout_evidence": {
+        "n": 0,
+        "visible": null,
+        "masked": null
+      },
+      "evidence_sources": {},
       "twin_split": "dev",
       "paired_example": {
         "key": "36cbaf13df6c3fdc08a091f0b10ec9db5acb8fa63404320855b9e9c43e087aa0",
@@ -66,34 +137,50 @@
         {
           "method": "D1",
           "n": 32,
-          "agreement": 1,
+          "valid": 0,
+          "invalid": 32,
+          "agreement": 1.0,
+          "evidence_correct": 1,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": 31
+          "malformed": 31,
+          "reports": 32
         },
         {
           "method": "D2",
           "n": 32,
-          "agreement": 1,
+          "valid": 0,
+          "invalid": 32,
+          "agreement": 1.0,
+          "evidence_correct": 0,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": 20
+          "malformed": 20,
+          "reports": 32
         },
         {
           "method": "D3",
           "n": 32,
+          "valid": 0,
+          "invalid": 32,
           "agreement": 0.96875,
+          "evidence_correct": 0,
           "false_accept": 1,
           "false_reject": 0,
-          "malformed": 22
+          "malformed": 22,
+          "reports": 32
         },
         {
           "method": "Flat",
           "n": 32,
-          "agreement": 1,
+          "valid": 0,
+          "invalid": 32,
+          "agreement": 1.0,
+          "evidence_correct": null,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": null
+          "malformed": 87,
+          "reports": 96
         }
       ],
       "curves": [],
@@ -145,6 +232,13 @@
           "harmed": 0
         }
       ],
+      "common_example": {
+        "key": "36cbaf13df6c3fdc08a091f0b10ec9db5acb8fa63404320855b9e9c43e087aa0",
+        "expression": "(-5 * -8) - -7",
+        "actual": "s1 = 40\ns2 = 47",
+        "expected": "40,47",
+        "correct": 0
+      },
       "usage": {},
       "elapsed_seconds": null,
       "transfer": {},
@@ -153,6 +247,11 @@
     }
   ],
   "primary": {
+    "status": "pending",
+    "reason": "Incomplete matched final checkpoints or IDs",
+    "per_seed": {}
+  },
+  "flat": {
     "status": "pending",
     "reason": "Incomplete matched final checkpoints or IDs",
     "per_seed": {}

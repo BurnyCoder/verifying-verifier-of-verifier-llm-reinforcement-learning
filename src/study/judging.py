@@ -62,5 +62,9 @@ def twin(problem, index, transfer=False):
     first = render(j1)
     good = list(expected(problem, trace, [first]))
     bad = good.copy()
-    bad[2] = (-bad[2] if bad[2] else -2) if transfer else bad[2] + (1 if index % 2 else -1)
+    if transfer:
+        # Reverse every nonzero sign and move three units farther from zero. Zero maps to minus three.
+        bad[2] = abs(good[2])+3 if good[2] < 0 else -(abs(good[2])+3)
+    else:
+        bad[2] += 1 if index % 2 else -1
     return trace, first, render(good), render(bad)
