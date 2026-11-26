@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 from .analysis import paired_primary
 from .design import matrix
+from .records import named_values
 from .storage import RESULTS, ROOT, atomic, read_json, rows, write_json
 
 DOCS = ROOT / "docs"
@@ -75,6 +76,9 @@ def collect():
                          train_exact=fraction(training,"label"), train_reward=fraction(training,"reward"),
                          zero_groups=sum(len({r["reward"] for r in group}) == 1 for group in groups.values() if len(group)==4),
                          groups=len(curves), dev_n=len(dev), dev=role_acc, dev_final=fraction(dev,"final_correct"),
+                         dev_malformed=sum(r["malformed"] for r in dev),
+                         dev_named_correct=sum(r["malformed"] and named_values(r["trace"],len(r["expected_values"]))==tuple(r["expected_values"]) for r in dev),
+                         test_named_correct=sum(r["malformed"] and named_values(r["trace"],len(r["expected_values"]))==tuple(r["expected_values"]) for r in test),
                          test_n=len(test), test=fraction(test,"correct"), final_answer=fraction(test,"final_correct"),
                          fixed=sum(r["fixed"] for r in dev), harmed=sum(r["harmed"] for r in dev),
                          twins_n=len(twins), twins=fraction(twins,"visible_pair"), masked=fraction(twins,"masked_pair"),
@@ -212,6 +216,8 @@ def paper(data, date):
     if checks:
         table(["Run","Natural n","J3 fixes","J3 harms","Twin n","Visible pair","Masked pair"],
               [[r["name"],r["dev_n"],r["fixed"],r["harmed"],r["twins_n"],percent(r["twins"]),percent(r["masked"])] for r in checks])
+        first=checks[0]
+        line(f"For {first['name']}, {first['dev_malformed']} of {first['dev_n']} development responses failed the registered trace format. A secondary, post-hoc parser identified {first['dev_named_correct']} fully correct traces written as named assignments among those failures. These retain their original primary scores.")
         for r in checks[:2]:
             if r["examples"]:
                 ex=r["examples"][0]

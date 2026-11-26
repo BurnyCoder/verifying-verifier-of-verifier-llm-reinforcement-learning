@@ -5,7 +5,7 @@ import random
 import pytest
 
 from study.domain import Problem, problems, partition, shape
-from study.records import audit, expected, parse, render, solver_truth, sound, terminal
+from study.records import audit, expected, named_values, parse, render, solver_truth, sound, terminal
 from study.design import matrix, permute_groups
 
 
@@ -35,6 +35,14 @@ def test_valid_negative_values_and_repair_of_malformed_predecessor():
     assert canonical == (1, 0, -2)
     assert audit("bad", canonical, canonical) == (0, -1, 0, 1, 0, -2)
     assert terminal("nonsense", 3) == 0
+
+
+def test_secondary_named_assignments_never_change_primary_scoring():
+    p=Problem.from_expression("(4+3)*2")
+    named="s1 = 7\ns2 = 14"
+    assert named_values(named,2)==p.values and solver_truth(p,named)==(0,-1,0)
+    assert named_values("s2=7\ns2=14",2) is None
+    assert named_values("s1=7\ns2=7*2",2) is None
 
 
 def test_independent_arithmetic_and_split_routing():

@@ -7,3 +7,7 @@ The primary measurement is full-trace correctness. A solution may have the corre
 The independent-vote and recursive conditions match the number of judge calls and generation ceilings. The recursive prompts are longer. Recorded token counts and CUDA-event elapsed times permit an efficiency comparison. CUDA-event durations include idle gaps between submitted kernels. The shared backbone limits conclusions about independent model families. The evidence score covers the stated numerical certificate. Correct labels can be obtained without a faithful internal reasoning process.
 
 The checkpoint test uses a small random CPU transformer, the real TRL optimizer and the normal training CLI. It interrupts immediately after a complete group checkpoint, resumes, and compares final parameters and raw group assignments with uninterrupted training. This is a pipeline test, separate from the study outcomes.
+
+The visible and masked evidence pairs have opposite correct soundness bits. Once both reviews are masked, the two public prompts are identical. A deterministic reviewer that returns identical records on those prompts cannot earn whole-pair credit. The masked comparison tests information flow. Natural error corrections, newly introduced errors, flat voting and downstream solver accuracy are needed to judge practical value.
+
+The sampler excludes the canonical IDs of the two published worked examples, including commutatively equivalent spellings, before admitting any problem to a study split.

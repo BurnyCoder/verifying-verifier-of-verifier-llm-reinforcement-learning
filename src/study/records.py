@@ -20,6 +20,20 @@ def render(record):
     return ",".join(map(str, record))
 
 
+def named_values(text, width):
+    """Secondary analysis of one explicit sN = integer assignment per line, in listed order."""
+    lines=text.strip().splitlines()
+    if len(lines)!=width:
+        return None
+    result=[]
+    for index,line in enumerate(lines,1):
+        match=re.fullmatch(rf"\s*s{index}\s*=\s*([+-]?[0-9]{{1,14}})\s*",line)
+        if not match:
+            return None
+        result.append(int(match[1]))
+    return tuple(result)
+
+
 def solver_truth(problem, trace):
     """Provide an exact first-fault witness, including independently correct final answers."""
     predicted = parse(trace, len(problem.values))

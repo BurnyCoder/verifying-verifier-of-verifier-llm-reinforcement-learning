@@ -97,10 +97,11 @@ def problems(split, count):
     """Return a reproducible prefix of distinct canonical problems from this split."""
     streams = dict(train=1061, dev=2081, test=3023, mechanism=4021, layout=5011, long=6029)
     rng = random.Random(streams[split])
+    examples = {Problem.from_expression(e).key for e in ("(2+3)*4","(4+3)*2")}
     found = {}
     while len(found) < count:
         n = rng.randint(6, 8) if split == "long" else rng.randint(3, 5)
         problem = Problem.from_expression(_expression(rng, n))
-        if partition(problem) == split:
+        if problem.key not in examples and partition(problem) == split:
             found.setdefault(problem.key, problem)
     return tuple(found.values())
