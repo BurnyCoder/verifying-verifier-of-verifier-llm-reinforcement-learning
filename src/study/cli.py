@@ -10,13 +10,16 @@ import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from .design import Run, matrix
+from .design import PILOTS, Run, matrix
 from .storage import RESULTS, ROOT, STATE, read_json, stamp, write_json
 
 
 def run_spec(name):
     if name == "timing":
         return Run("timing")
+    if name in PILOTS:
+        from .learnability import pilot_spec
+        return pilot_spec(name)
     return next(row for row in matrix() if row.name == name)
 
 
@@ -115,13 +118,44 @@ def dashboard(port):
     server.serve_forever()
 
 
+def learnability_campaign(public):
+    """Keep calibration and positive controls on the same local GPU in a fixed order."""
+    root=RESULTS/"learnability"
+    def milestone(action,name,marker,run=None,arguments=()):
+        if not marker.is_file():
+            worker(*action,*arguments)
+        if public:
+            worker("publish","--milestone",name,*(("--run",run) if run else ()))
+        else:
+            worker("report")
+
+    with study_lock("learnability-campaign"):
+        for phase in ("screen","confirm","audit"):
+            marker=root/(phase+".json")
+            milestone(("learnability",phase),"learnability-"+phase,marker)
+            if phase=="screen" and not read_json(marker)["selected"]:
+                return
+            if phase=="confirm" and not read_json(marker)["confirmed"]:
+                return
+        for name in ("base",*PILOTS):
+            if name in PILOTS:
+                milestone(("train",),name+"-trained",RESULTS/name/"trained.json",name,("--run",name))
+            milestone(("learnability","evaluate"),"learnability-"+name+"-evaluation",
+                      root/"evaluations"/(name+".json"),arguments=("--run",name))
+        milestone(("learnability","compare"),"learnability-outcome",root/"learning.json")
+
+
 def main():
     parser=argparse.ArgumentParser(prog="study",description=__doc__)
     actions=parser.add_subparsers(dest="action",required=True)
     schedule=actions.add_parser("campaign")
     schedule.add_argument("--publish",action="store_true")
     names=[r.name for r in matrix()]
-    actions.add_parser("train").add_argument("--run",required=True,choices=["timing",*names])
+    actions.add_parser("train").add_argument("--run",required=True,choices=["timing",*PILOTS,*names])
+    calibration=actions.add_parser("learnability",description="Calibrate arithmetic and test actual solver improvement")
+    calibration.add_argument("phase",choices=["screen","confirm","audit","evaluate","compare","campaign"])
+    calibration.add_argument("--run",choices=["base",*PILOTS],default="base")
+    calibration.add_argument("--publish",action="store_true")
     evaluate=actions.add_parser("evaluate")
     evaluate.add_argument("--run",required=True,choices=["base",*names])
     evaluate.add_argument("--final",action="store_true")
@@ -141,10 +175,20 @@ def main():
             if not (RESULTS/dep/"trained.json").is_file():
                 parser.error(f"Required checkpoint is missing: {dep}")
         budget=read_json(RESULTS/"budget.json")
-        if args.run!="timing" and not budget:
+        if args.run not in ("timing",*PILOTS) and not budget:
             parser.error("Run the registered timing pilot first.")
         with study_lock("train-"+args.run):
-            train(spec,4 if args.run=="timing" else budget["updates"])
+            train(spec,4 if args.run=="timing" else 128 if args.run in PILOTS else budget["updates"])
+    elif args.action=="learnability":
+        if args.phase=="campaign":
+            learnability_campaign(args.publish)
+        else:
+            from . import learnability
+            actions={"screen":learnability.screen,"confirm":learnability.confirm,"audit":learnability.audit,
+                     "evaluate":lambda:learnability.evaluate_pilot(args.run),"compare":learnability.compare}
+            with study_lock("learnability-"+args.phase+"-"+args.run):
+                result=actions[args.phase]()
+            print(json.dumps({k:v for k,v in result.items() if k!="usage"},ensure_ascii=False),flush=True)
     elif args.action == "evaluate":
         from .evaluate import evaluate
         with study_lock("evaluate-"+args.run+("-final" if args.final else "-dev")):

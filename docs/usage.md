@@ -20,6 +20,8 @@ The campaign writes scheduled checks to each run's `monitor.jsonl`, the terminal
 
 For a fresh replication after cloning a release that already contains observations, set both `STUDY_STATE=.local/replication/checkpoints` and `STUDY_RESULTS=.local/replication/results` in the local environment, then run the ordinary campaign. The report command reads the same paths. Use a distinct pair of directories for another independent replication. Omit these two overrides to regenerate the published tables from the committed observation files.
 
+The learnability experiment runs via `uv run --extra gpu study learnability campaign`. It screens problem difficulty and prompt style on the frozen model, confirms the chosen setting, audits the three frozen judges, and trains matched exact-reward and shuffled-reward solvers. Each phase resumes from raw observations or an optimizer checkpoint. The owning account adds `--publish` to update the public repositories at every milestone. [Selection rules](../reports/learnability-preregistration.md) · [Measured learnability](../reports/learnability.md)
+
 ## Using a published adapter
 
 The model repository stores the adapter for each completed training run in `runs/RUN_ID`. Download a released directory and load its adapter on the pinned base model. The `timing` directory contains the disposable timing-policy adapter. For a solver or judge treatment select its named directory in the model repository. The study runtime loads the base with the registered NF4 configuration in `src/study/backend.py`. [Released adapters](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/main/runs) · [PEFT checkpoint format](https://huggingface.co/docs/peft/developer_guides/checkpoint)

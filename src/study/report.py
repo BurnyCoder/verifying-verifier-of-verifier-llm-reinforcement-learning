@@ -7,7 +7,8 @@ from statistics import NormalDist, mean
 from zoneinfo import ZoneInfo
 
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
-from .design import GITHUB, PAGES, matrix
+from .design import GITHUB, PAGES, PILOTS, Run, matrix
+from .learnability_report import collect_learnability, learnability_text
 from .records import named_values
 from .storage import RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
@@ -32,6 +33,13 @@ def wilson(proportion, n):
 def collect():
     """Keep live training/dev observations available. Only completed final evaluations enter tables."""
     manifest = {r.name: r for r in matrix()}
+    registered=len(manifest)
+    learning=collect_learnability(RESULTS)
+    chosen=(learning["screen"] or {}).get("selected")
+    if chosen:
+        for name in PILOTS:
+            manifest[name]=Run(name,reward="oracle" if name==PILOTS[0] else "oracle-shuffle",
+                               family=chosen["family"],prompt_style=chosen["style"])
     runs, outcomes = [], {}
     for name in ("base", *manifest):
         target = RESULTS / name
@@ -79,6 +87,7 @@ def collect():
             common_example = dict(key=e["key"], expression=e["expression"], actual=actual,
                                   expected=render(reference), correct=matched)
         runs.append(dict(name=name, role=role, reward=spec.reward if spec else "untrained",
+                         diagnostic=name in PILOTS, family=spec.family if spec else None,
                          seed=spec.seed if spec else 17, updates=trained.get("updates"), observations=len(training),
                          initial=spec.initial if spec else None, judges=spec.judges if spec else (None,)*3,
                          teacher=spec.teacher if spec else None, corpus=spec.corpus if spec else None,
@@ -107,7 +116,8 @@ def collect():
                          usage=trained.get("usage", {}), elapsed_seconds=trained.get("elapsed_seconds"),
                          transfer={s: fraction(list(rows(target/(s+".jsonl"))), "correct") for s in ("layout","long")} if final else {},
                          completed_final=bool(final), completed_development=(target/"development.json").is_file()))
-    return dict(runs=runs, primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=len(manifest),
+    return dict(runs=runs, primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=registered,
+                learnability=learning,
                 budget=read_json(RESULTS/"budget.json"), sealed=(RESULTS/"seal.json").is_file())
 
 
@@ -300,6 +310,19 @@ def paper(data, date):
               [[r["name"],r["role"],str(r["updates"] or "—"),str(r["dev_n"]),percent(r["dev"]),str(r["test_n"]),percent(r["test"])] for r in data["runs"]])
     else:
         line("No model observations have been recorded at the protocol milestone.")
+    learning=data["learnability"]
+    if learning["screen"]:
+        line("Attainable benchmark amendment","Heading2")
+        line("A development-only difficulty screen crosses arithmetic complexity with completed chat demonstrations. A separate exact-reward training control tests whether the model improves on fresh problems after optimization. The initial benchmark and the calibrated population keep distinct identities.")
+        table(["Family","Prompts","Problems","Parsed","Sample exact","Greedy exact","Mixed groups"],
+              [[c["family"],c["style"],c["problems"],percent(c["parsed"]),percent(c["sampled_exact"]),
+                percent(c["greedy_exact"]),c["mixed_groups"]] for c in learning["screen"]["cells"]])
+        selected=learning["screen"]["selected"]
+        line(f"The frozen-model rule selected {selected['family']} with {selected['style']} prompts." if selected else
+             "No candidate qualified under the frozen-model selection rule.")
+        if learning["learning"]:
+            gain=learning["learning"]["over_base"]
+            line(f"Exact-reward training changed held-out development accuracy by {100*gain['delta']:+.2f} percentage points relative to the starting solver. The paired 95% interval was [{100*gain['interval'][0]:+.2f}, {100*gain['interval'][1]:+.2f}] points. The full shuffled control is in the learnability report.")
     primary = data["primary"]
     if "delta" in primary:
         line(f"The equally weighted paired difference is {primary['delta']*100:.2f} percentage points. The conditional 95% problem-bootstrap interval is [{primary['ci'][0]*100:.2f}, {primary['ci'][1]*100:.2f}] points. The registered decision is {primary['status']}.")
@@ -396,6 +419,7 @@ def build():
     write_json(DOCS/"assets/study.json", data)
     score = scores_table(data)
     primary = data["primary"]
+    atomic(REPORTS/"learnability.md",learnability_text(data["learnability"]))
     status = "Registered primary comparison: "+primary["status"]+"."
     if "delta" in primary:
         status += f" Difference {100*primary['delta']:.2f} percentage points, conditional 95% interval [{100*primary['ci'][0]:.2f}, {100*primary['ci'][1]:.2f}]."
@@ -468,7 +492,7 @@ def build():
     atomic(experiments/"experiments.md","# Experiment index\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
     complete=sum(r["completed_final"] for r in data["runs"] if r["name"]!="base")
-    trained=sum(r["updates"] is not None for r in data["runs"])
+    trained=sum(r["updates"] is not None for r in data["runs"] if not r["diagnostic"])
     activity = []
     if data["budget"]:
         b = data["budget"]

@@ -16,3 +16,14 @@ Each solver row starts from the same untrained solver adapter for its seed excep
 | Final | Registered primary and transfer sets | All completed checkpoints | None | Final checkpoint per run, same problem IDs across compared arms |
 
 On the natural replay set report J2→J3 fixes and harms on identical traces. For the evidence intervention, generate twins from the same arithmetic instance and score responses against exact records. Report both the visible and masked conditions. Report actual model tokens, timing, zero-variance groups, malformed outputs and judge/oracle disagreement. Never fill a missing result with an assumed zero.
+
+## Learnability amendment
+
+| Phase | Model and trainable roles | Data and budget | Decision |
+|---|---|---|---|
+| Screen | Same frozen Qwen, no adapters trained | Four arithmetic families, two prompt styles, 16 problems per family, four samples and one greedy trace per problem | Select on solver success, parsing and actual mixed groups |
+| Confirm and audit | Frozen solver and frozen J1/J2/J3 | 48 new solver problems, balanced valid/invalid traces and review twins on 16 of them | Confirm learnability range and characterize reward quality |
+| Positive and shuffled controls | Separate fresh seed-17 solver adapters | 128 updates per arm, four samples per group, same prompt order | Exact complete-trace reward versus a within-group shuffle of that reward |
+| Learning validation | Frozen base and both trained solver checkpoints | Same 256 fresh problems, one greedy completion each | Paired improvement and reward-specificity intervals |
+
+These are developmental checks ahead of scaling the reward comparison. The first original solver block retains its own name, data, checkpoints and scores. [Decision thresholds](learnability-preregistration.md) · [Measurements](learnability.md)
