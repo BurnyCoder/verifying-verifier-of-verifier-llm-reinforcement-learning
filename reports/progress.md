@@ -1,3 +1,5 @@
-# Progress
+# Progress · 2026-11-26
 
-26 November 2026. Prepared the literature review, state-of-the-art review, analysis rules, run matrix and protocol README in the empty project. Model outcomes are pending. The next milestone is publishing and testing the implementation before the timing pilot. The first solver result has a 14-hour target and the full training schedule has a one-week compute target.
+0 of 32 registered training blocks have completed. 0 have completed final evaluation. Registered primary comparison: pending.
+
+The first single-seed solver has a 14-hour target. The matrix has a one-week training target. Monitoring cadence and milestone order are in the [plan](plan.md). The [experiment index](experiments/experiments.md) contains available development observations.
