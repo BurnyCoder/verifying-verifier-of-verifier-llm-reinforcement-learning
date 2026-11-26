@@ -1,0 +1,71 @@
+{
+  "time": "2026-11-26T20:53:50.221+00:00",
+  "phase": "development",
+  "weights": "047aeff61dfe6ec6590f14281392c66d8e2bc0932320e5e5f351701ca95a1792",
+  "usage": {
+    "eval_solver": {
+      "calls": 32,
+      "input_tokens": 5257,
+      "output_tokens": 182,
+      "gpu_seconds": 4.635559509277344,
+      "wall_seconds": 4.654999999998836
+    },
+    "j1": {
+      "calls": 32,
+      "input_tokens": 9052,
+      "output_tokens": 220,
+      "gpu_seconds": 5.158673583984375,
+      "wall_seconds": 5.171999999991385
+    },
+    "j2": {
+      "calls": 32,
+      "input_tokens": 14200,
+      "output_tokens": 437,
+      "gpu_seconds": 9.910039306640625,
+      "wall_seconds": 9.92099999999482
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 17164,
+      "output_tokens": 439,
+      "gpu_seconds": 12.98506201171875,
+      "wall_seconds": 12.999999999992724
+    },
+    "flat_j1": {
+      "calls": 96,
+      "input_tokens": 27156,
+      "output_tokens": 659,
+      "gpu_seconds": 15.5069541015625,
+      "wall_seconds": 15.534000000006927
+    },
+    "j3_visible": {
+      "calls": 16,
+      "input_tokens": 8584,
+      "output_tokens": 227,
+      "gpu_seconds": 7.27688623046875,
+      "wall_seconds": 7.26600000000326
+    },
+    "j3_masked": {
+      "calls": 16,
+      "input_tokens": 8492,
+      "output_tokens": 190,
+      "gpu_seconds": 5.585720703125,
+      "wall_seconds": 5.60899999999674
+    }
+  },
+  "unfinished_generation_batches": 0,
+  "evidence_sources": {
+    "development-twins.jsonl": "exact-j3"
+  },
+  "profile": {
+    "family": "two-add",
+    "style": "demonstrated",
+    "updates": 256,
+    "sources": {
+      "learnability/screen.json": "1f9a0a7e56f7179ab33b806d30ed350ce9bc18ed2e004b780e4830419cc2f910",
+      "learnability/confirm.json": "99ec496776f0f579a244af088038ec52a60affac2d0e2e3a32420e8f9702f6bb",
+      "learnability/learning.json": "ad2374b0a4b531b1f7133044d33e925e0cf161be2df2121a2af90b8659669bca",
+      "budget.json": "dedb9ff1007a5d48d6f23e376bf3d3a0852014604d5c0834643f7992c86a6574"
+    }
+  }
+}
