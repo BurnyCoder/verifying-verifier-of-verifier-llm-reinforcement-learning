@@ -58,6 +58,18 @@ def collect():
                                 false_accept=sum(a == 1 and b == 0 for a,b in bits),
                                 false_reject=sum(a == 0 and b == 1 for a,b in bits),
                                 malformed=sum(r["judge_malformed"][order] for r in dev) if order < 3 else None))
+        common_example = None
+        if dev:
+            from .domain import Problem
+            from .records import expected, render
+            e = dev[0]
+            depth = 0 if role == "solver" else int(role[1:])
+            actual = e["trace"] if depth == 0 else e["reports"][depth-1]
+            reference = (e["expected_values"] if depth == 0 else
+                         expected(Problem.from_expression(e["expression"]), e["trace"], e["reports"][:depth-1]))
+            matched = e["correct"] if depth == 0 else e["full_report_correct"][depth-1]
+            common_example = dict(key=e["key"], expression=e["expression"], actual=actual,
+                                  expected=render(reference), correct=matched)
         runs.append(dict(name=name, role=role, reward=spec.reward if spec else "untrained",
                          seed=spec.seed if spec else 17, updates=trained.get("updates"), observations=len(training),
                          train_exact=fraction(training,"label"), train_reward=fraction(training,"reward"),
@@ -67,7 +79,7 @@ def collect():
                          fixed=sum(r["fixed"] for r in dev), harmed=sum(r["harmed"] for r in dev),
                          twins_n=len(twins), twins=fraction(twins,"visible_pair"), masked=fraction(twins,"masked_pair"),
                          twin_split=twins[0]["split"] if twins else None, paired_example=twins[0] if twins else None,
-                         replay=replays, curves=curves, logs=reports, examples=examples,
+                         replay=replays, curves=curves, logs=reports, examples=examples, common_example=common_example,
                          usage=trained.get("usage", {}), elapsed_seconds=trained.get("elapsed_seconds"),
                          transfer={s: fraction(list(rows(target/(s+".jsonl"))), "correct") for s in ("layout","long")} if final else {},
                          completed_final=bool(final), completed_development=(target/"development.json").is_file()))
@@ -115,6 +127,31 @@ def figures(data):
         ax.invert_yaxis()
         fig.tight_layout()
         fig.savefig(dest/"outcomes.png", dpi=140)
+        plt.close(fig)
+    examples = [r for r in data["runs"] if r["common_example"]]
+    if examples:
+        # All rows show the same preselected development problem, regardless of the resulting grades.
+        fig, ax = plt.subplots(figsize=(11, max(2.4,.4*len(examples)+1.4)))
+        ax.axis("off")
+        ax.set_title("First development problem  ·  "+examples[0]["common_example"]["expression"],loc="left",pad=12)
+        displayed=[]
+        for r in examples:
+            e=r["common_example"]
+            output=" ".join(e["actual"].split())
+            shown=output if len(output)<=37 else output[:36]+"…"
+            displayed.append([r["name"],r["role"],shown,e["expected"],"Correct" if e["correct"] else "Incorrect"])
+        table=ax.table(cellText=displayed,colLabels=["Run","Role","Model output","Exact record","Grade"],
+                       colWidths=[.20,.10,.34,.23,.13],cellLoc="left",colLoc="left",bbox=[0,0,1,.98])
+        table.auto_set_font_size(False)
+        table.set_fontsize(9)
+        for (row,column),cell in table.get_celld().items():
+            cell.set_edgecolor("#d3dfdc")
+            if row==0:
+                cell.set_facecolor("#dceeea")
+            elif column==4:
+                cell.set_facecolor("#ddf2e7" if examples[row-1]["common_example"]["correct"] else "#f9e3d8")
+        fig.tight_layout()
+        fig.savefig(dest/"examples.png",dpi=145,bbox_inches="tight")
         plt.close(fig)
     monitored = next((r for r in data["runs"] if r["name"]=="d3-17" and r["curves"]), None)
     if monitored:
@@ -181,7 +218,7 @@ def paper(data, date):
                 line(escape(f"{r['name']}. {ex['expression']}. Solver output {ex['trace']!r}. Expected {ex['expected_values']}. Exact acceptance {ex['correct']}." ))
     else:
         line("Paired evidence interventions and natural correction counts are pending.")
-    for filename, caption in (("outcomes.png","Development complete-trace accuracy"),("training.png","Frozen three-judge solver training")):
+    for filename, caption in (("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
         asset=DOCS/"assets"/filename
         if asset.exists():
             from reportlab.lib.utils import ImageReader
@@ -228,6 +265,8 @@ def build():
     assets = "![Study architecture](docs/assets/architecture.png)\n\n"
     if (DOCS/"assets/outcomes.png").exists():
         assets += "![Development solver accuracy](docs/assets/outcomes.png)\n\n"
+    if (DOCS/"assets/examples.png").exists():
+        assets += "![Model outputs and exact labels on a common development problem](docs/assets/examples.png)\n\n"
     atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+"\n\n[Interactive results explorer](https://burnycoder.github.io/verifying-verifier-s-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
@@ -239,7 +278,8 @@ def build():
         atomic(experiments/r["name"]/"experiment.md",f"# {r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n[Machine observations](../../../results/{r['name']})\n")
         atomic(experiments/r["name"]/"learnings.md",f"# Observations from {r['name']}\n\n{obs}\n\nNatural reviews corrected {r['fixed']} and introduced {r['harmed']} solution errors among {r['dev_n']} development traces. This is a within-trace comparison.\n")
         notes.append(f"- [{r['name']}]({r['name']}/learnings.md). {obs}")
-    atomic(experiments/"experiments.md","# Experiment index\n\n"+score+"\n\nA complete trace has every intermediate integer correct. Judge accuracy requires the full evidence and decision record. [Architecture, objectives and curricula](../planned-runs.md)\n")
+    references="\n".join(f"- [{r['name']}]({r['name']}/experiment.md)" for r in data["runs"])
+    atomic(experiments/"experiments.md","# Experiment index\n\n"+score+"\n\nA complete trace has every intermediate integer correct. Judge accuracy requires the full evidence and decision record. [Architecture, objectives and curricula](../planned-runs.md)\n\n"+references+"\n")
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
     complete=sum(r["completed_final"] for r in data["runs"] if r["name"]!="base")
     trained=sum(r["updates"] is not None for r in data["runs"])
