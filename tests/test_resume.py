@@ -70,6 +70,10 @@ def test_normal_train_entry_resumes_at_complete_grpo_group(tmp_path, monkeypatch
     with pytest.raises(InterruptedError):
         cli.main()
     assert (interrupted/"state/runs/d3-17/trainer/checkpoint-1/optimizer.pt").exists()
+    # Simulate the OS stopping inside the subsequent save, before Trainer finishes its commit record.
+    torn = interrupted/"state/runs/d3-17/trainer/checkpoint-2"
+    torn.mkdir()
+    (torn/"trainer_state.json").write_text('{"global_step":', encoding="utf-8")
     storage.append(interrupted/"results/d3-17/rollouts.jsonl",{"step":1,"sample":99})
     cli.main()
     result=storage.read_json(interrupted/"results/d3-17/trained.json")

@@ -47,9 +47,12 @@ def test_lora_snapshot_and_rng_restored():
     backend.model.set_adapter("default")
     digest=frozen_fingerprint(backend.model)
     rng=torch.get_rng_state().clone()
+    gpu_rng=torch.cuda.get_rng_state().clone()
     with backend.inference("frozen","j3",29):
         torch.rand(3)
+        torch.rand(3, device="cuda")
         assert not backend.model.training and backend.model.active_adapter=="snapshot_0"
     assert torch.equal(rng,torch.get_rng_state())
+    assert torch.equal(gpu_rng,torch.cuda.get_rng_state())
     assert backend.model.training and backend.model.active_adapter=="default"
     assert digest==frozen_fingerprint(backend.model)
