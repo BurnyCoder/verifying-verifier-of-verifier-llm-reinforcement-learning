@@ -26,7 +26,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | hybrid-17 | solver | 256 | 96.9% | 32 | — | 0 |
 | shuffle-17 | solver | 256 | 15.6% | 32 | — | 0 |
 | exact-j1 | j1 | 256 | 62.5% | 32 | — | 0 |
-| exact-j2 | j2 | 256 | — | 0 | — | 0 |
+| exact-j2 | j2 | 256 | 46.9% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
