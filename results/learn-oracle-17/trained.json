@@ -1,0 +1,40 @@
+{
+  "time": "2026-11-26T14:39:12.412+00:00",
+  "run": {
+    "name": "learn-oracle-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "oracle",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 128,
+  "elapsed_seconds": 631.8119999999999,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "solver": {
+      "calls": 512,
+      "input_tokens": 84108,
+      "output_tokens": 3025,
+      "gpu_seconds": 138.44570440673837,
+      "wall_seconds": 138.6120000000028
+    },
+    "development_solver": {
+      "calls": 32,
+      "input_tokens": 5264,
+      "output_tokens": 172,
+      "gpu_seconds": 4.974273559570312,
+      "wall_seconds": 4.968000000000757
+    }
+  },
+  "unfinished_generation_batches": 0
+}
