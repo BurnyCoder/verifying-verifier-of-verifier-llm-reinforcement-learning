@@ -4,21 +4,14 @@ A small language model solves numbered arithmetic problems. A second call judges
 
 For example, a solver can give the right final answer to (4 + 3) × 2 while recording 8 in the first step. A reviewer can endorse the correct rejection and still give the wrong correction. The study distinguishes both mistakes.
 
-```mermaid
-flowchart LR
-  Q[Numbered problem] --> S[Solver trace]
-  S --> J1[Judge 1 grades the trace]
-  J1 --> J2[Judge 2 audits Judge 1]
-  J2 --> J3[Judge 3 audits Judge 2]
-  J3 --> R[Effective solution verdict]
-  R --> G[GRPO solver update]
-  Q --> O[Exact integer checker]
-  S --> O
-  O --> E[Evidence labels and evaluation]
-```
-
 <!-- RESULTS:START -->
-The protocol is registered before inference. Empirical scores will appear here from the raw result files.
+![Study architecture](docs/assets/architecture.png)
+
+Registered primary comparison: pending.
+
+Model observations are pending.
+
+[Interactive results explorer](https://burnycoder.github.io/verifying-verifier-s-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)
 <!-- RESULTS:END -->
 
 ### Experiment
