@@ -1,0 +1,3 @@
+{"time": "2026-11-26T23:16:07.623+00:00", "run": "exact-prefix3", "phase": "train", "elapsed_seconds": 300.03199999999924, "step": 32, "target_updates": 256, "remaining_seconds": 1921.7169999999678, "next_check_seconds": 900}
+{"time": "2026-11-26T23:31:07.669+00:00", "run": "exact-prefix3", "phase": "train", "elapsed_seconds": 1200.0629999999946, "step": 136, "target_updates": 256, "remaining_seconds": 1043.2032352941164, "next_check_seconds": 900}
+{"time": "2026-11-26T23:46:07.712+00:00", "run": "exact-prefix3", "phase": "train", "elapsed_seconds": 2100.1100000000006, "step": 240, "target_updates": 256, "remaining_seconds": 138.75313333333324, "next_check_seconds": 900}
