@@ -16,3 +16,5 @@ The frozen-model screen and the checkpoint comparison answer different questions
 | registered | demonstrated | 16 | 98.4% | 12.5% | 12.5% | 3 |
 
 The registered rule selected two-add with demonstrated prompts.
+
+Independent confirmation passed. On 48 problems, 99.0% of sampled outputs parsed, 54.2% were exact, and 16 groups contained both correct and incorrect answers.

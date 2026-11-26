@@ -1,0 +1,31 @@
+{
+  "time": "2026-11-26T14:25:29.095+00:00",
+  "cell": {
+    "family": "two-add",
+    "style": "demonstrated",
+    "problems": 48,
+    "samples": 192,
+    "sampled_exact": 0.5416666666666666,
+    "greedy_exact": 0.6458333333333334,
+    "parsed": 0.9895833333333334,
+    "mixed_groups": 16
+  },
+  "confirmed": true,
+  "usage": {
+    "greedy_solver": {
+      "calls": 48,
+      "input_tokens": 7885,
+      "output_tokens": 275,
+      "gpu_seconds": 10.903308898925781,
+      "wall_seconds": 10.982999999998356
+    },
+    "sampled_solver": {
+      "calls": 192,
+      "input_tokens": 31540,
+      "output_tokens": 1098,
+      "gpu_seconds": 15.406207397460939,
+      "wall_seconds": 15.422999999998865
+    }
+  },
+  "unfinished_generation_batches": 0
+}
