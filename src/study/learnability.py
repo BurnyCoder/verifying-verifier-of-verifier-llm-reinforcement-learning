@@ -7,7 +7,7 @@ from .curriculum import FAMILIES, STYLES, curriculum_problems
 from .design import PILOTS, Run
 from .evaluate import mechanisms, weights_digest
 from .judging import chain
-from .learnability_analysis import cell_metrics, choose_cell, confirmed, learning_result
+from .learnability_analysis import cell_metrics, changes_by_parse, choose_cell, confirmed, learning_result
 from .records import expected, parse, render, solver_truth, sound, terminal
 from .storage import RESULTS, Journal, append, read_json, rows, stamp, write_json
 
@@ -157,9 +157,11 @@ def evaluate_pilot(name):
 
 def compare():
     where=directory()/"evaluations"
-    samples=[{r["key"]:r["correct"] for r in rows(where/(name+".jsonl"))}
+    samples=[{r["key"]:r for r in rows(where/(name+".jsonl"))}
              if (where/(name+".json")).is_file() else {} for name in ("base",*PILOTS)]
-    result=learning_result(*samples)
+    result=learning_result(*({key:r["correct"] for key,r in records.items()} for records in samples))
     if result["status"]=="complete":
+        base, trained, shuffled = samples
+        result["by_parse"] = {"base":changes_by_parse(trained,base), "shuffled":changes_by_parse(trained,shuffled)}
         write_json(directory()/"learning.json",dict(time=stamp(),**result))
     return result

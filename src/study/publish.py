@@ -59,7 +59,9 @@ def publish(milestone, run=None):
             f"[Study, run matrix and evaluation]({GITHUB}). "
             f"[Raw data, logs and paper](https://huggingface.co/datasets/{DATA}). "
             f"[Load an adapter]({GITHUB}/blob/main/docs/usage.md#using-a-published-adapter).\n\n"
-            +(ROOT/"reports/summary.md").read_text(encoding="utf-8").replace("(preregistration.md)",f"({GITHUB}/blob/main/reports/preregistration.md)"))
+            +(ROOT/"reports/summary.md").read_text(encoding="utf-8")
+              .replace("(preregistration.md)",f"({GITHUB}/blob/main/reports/preregistration.md)")
+              .replace("(learnability.md)",f"({GITHUB}/blob/main/reports/learnability.md)"))
     api.upload_file(path_or_fileobj=card.encode(),path_in_repo="README.md",repo_id=MODELS,
                     commit_message=f"Update study card at {release}")
     if run and (adapter(run)/"adapter_config.json").is_file() and milestone.endswith("-trained"):
