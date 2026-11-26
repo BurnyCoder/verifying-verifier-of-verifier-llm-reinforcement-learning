@@ -6,6 +6,8 @@ The solver adapter starts from a fresh LoRA initialization with seed 17. Its rew
 |---|---|---:|---:|---:|---:|---:|
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
+On the fresh learning-validation cohort, 68 of 256 complete traces were correct and 256 parsed. [Individual validation records](../../../results/learnability/evaluations/learn-shuffle-17.jsonl).
+
 ### Training generation cost
 
 | Role | Calls | Input tokens | Output tokens | CUDA event seconds |

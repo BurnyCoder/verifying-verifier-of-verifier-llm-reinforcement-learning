@@ -1,0 +1,17 @@
+{
+  "time": "2026-11-26T14:57:28.561+00:00",
+  "n": 256,
+  "correct": 68,
+  "parsed": 256,
+  "weights": "664a386ccf3460543941352dd6d37ce6b822eb3c1c2c026f64a811d51ae9f730",
+  "usage": {
+    "validation_solver": {
+      "calls": 256,
+      "input_tokens": 42076,
+      "output_tokens": 1469,
+      "gpu_seconds": 32.5076083984375,
+      "wall_seconds": 32.609999999993306
+    }
+  },
+  "unfinished_generation_batches": 0
+}
