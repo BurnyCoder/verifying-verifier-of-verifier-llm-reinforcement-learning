@@ -11,7 +11,7 @@ All learned models use grouped reinforcement learning with one active LoRA adapt
 | flat-17 | solver | flat | 17 | arithmetic | 87.5% | 75.0% | — |
 | oracle-17 | solver | oracle | 17 | arithmetic | 100.0% | 100.0% | — |
 | hybrid-17 | solver | hybrid | 17 | arithmetic | 100.0% | 96.9% | — |
-| shuffle-17 | solver | shuffle | 17 | arithmetic | — | — | — |
+| shuffle-17 | solver | shuffle | 17 | arithmetic | 100.0% | 15.6% | — |
 | learn-oracle-17 | solver | oracle | 17 | arithmetic | — | — | — |
 | learn-shuffle-17 | solver | oracle-shuffle | 17 | arithmetic | — | — | — |
 
