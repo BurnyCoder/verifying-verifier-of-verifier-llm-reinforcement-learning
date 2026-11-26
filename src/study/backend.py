@@ -115,7 +115,7 @@ class Backend:
         self.model.generate = generate
 
     def prompt(self, role, problem, trace="", history=()):
-        return self.tokenizer.apply_chat_template(messages(role, problem, trace, history), tokenize=False,
+        return self.tokenizer.apply_chat_template(messages(role, problem, trace, history,style=getattr(self,"prompt_style","registered")), tokenize=False,
                                                   add_generation_prompt=True)
 
     @contextlib.contextmanager

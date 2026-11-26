@@ -97,7 +97,15 @@ async function update() {
     study = await response.json();
     const p=study.primary;
     byId("primary").textContent=p.delta == null ? "Awaiting matched final checkpoints for all registered seeds." : "Three judges minus two: "+(p.delta*100).toFixed(2)+" points. 95% interval "+p.ci.map(x=>(100*x).toFixed(2)).join(" to ")+". Decision: "+p.status+".";
-    byId("progress").textContent=study.runs.filter(r=>r.updates != null).length+" of "+study.planned+" training blocks completed. "+(study.sealed?"Checkpoint manifest sealed.":"Final test sealed during development.");
+    byId("progress").textContent=study.runs.filter(r=>r.updates != null && !r.diagnostic).length+" of "+study.planned+" registered training blocks completed. "+(study.sealed?"Checkpoint manifest sealed.":"Final test sealed during development.");
+    const cal=study.learnability;
+    byId("calibration").replaceChildren();
+    byId("readiness").textContent=cal?.screen?.selected ? "Selected "+cal.screen.selected.family+" with "+cal.screen.selected.style+" prompts." :
+      cal?.screen ? "No configuration qualified under the registered rule." : "The frozen-model difficulty screen is pending.";
+    for (const c of cal?.screen?.cells ?? []) row(byId("calibration"),[c.family,c.style,pct(c.parsed),pct(c.sampled_exact),pct(c.greedy_exact),c.mixed_groups+" / "+c.problems]);
+    const vals=Object.entries(cal?.evaluations ?? {}).filter(([,v])=>v).map(([k,v])=>k+" "+v.correct+"/"+v.n);
+    byId("learned").textContent=cal?.learning ? "Learning criterion "+(cal.learning.demonstrated?"met. ":"unmet. ")+vals.join(" · ") :
+      vals.length ? "Fresh validation outcomes · "+vals.join(" · ") : "The positive-control test compares exact-reward training with the starting solver and shuffled rewards.";
     byId("results").replaceChildren();
     for (const r of study.runs) row(byId("results"),[r.name,r.role,r.updates,pct(r.dev),r.dev_n,pct(r.test),r.test_n]);
     const current=byId("run").value || study.runs.find(r=>r.name!=="base" && r.updates==null)?.name;

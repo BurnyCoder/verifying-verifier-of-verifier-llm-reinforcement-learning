@@ -37,10 +37,10 @@ def seal():
         write_json(path, {"time": stamp(), "weights": manifest, "ordered_training_exposures": exposures})
 
 
-def batches(split, n, path, size=8):
+def batches(split, n, path, size=8, population=None):
     """Skip fully persisted IDs and retain fixed batch membership and seed on restarts."""
     seen = {r["key"] for r in rows(path)}
-    pool = problems(split, n)
+    pool = problems(split, n) if population is None else population
     for pos in range(0, n, size):
         batch = pool[pos:pos+size]
         if any(p.key not in seen for p in batch):
@@ -75,8 +75,8 @@ def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=Non
             append(path, entry)
 
 
-def mechanisms(backend, snapshot, split, n, path, transfer=False):
-    for pos, batch, seen in batches(split, n, path, size=4):
+def mechanisms(backend, snapshot, split, n, path, transfer=False, population=None):
+    for pos, batch, seen in batches(split, n, path, size=4,population=population):
         prepared, requests, masked_requests = [], [], []
         for index, p in enumerate(batch, pos):
             trace, first, good, bad = twin(p, index, transfer)
