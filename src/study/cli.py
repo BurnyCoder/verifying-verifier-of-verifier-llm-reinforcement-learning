@@ -44,7 +44,7 @@ def campaign(public):
     def stage(action, name, phase):
         milestone = f"{name}-{phase}"
         marker = RESULTS/name/(phase+".json")
-        if not marker.exists():
+        if not marker.exists() or (name == "timing" and not (RESULTS/"budget.json").exists()):
             arguments=[action,"--run",name]
             if phase == "final":
                 arguments.append("--final")

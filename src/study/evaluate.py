@@ -5,9 +5,10 @@ import hashlib
 from .backend import Backend, stream_seed
 from .design import matrix
 from .domain import problems
+from .exposures import check_exposures
 from .judging import chain, majority, twin, votes
 from .records import expected, mask_evidence, parse, solver_truth, sound, terminal
-from .storage import RESULTS, Journal, adapter, append, read_json, rows, stamp, write_json
+from .storage import RESULTS, Journal, adapter, append, atomic, read_json, rows, stamp, write_json
 
 
 def weights_digest(name):
@@ -20,15 +21,20 @@ def seal():
     """Lock the entire model manifest before releasing any test labels or scores."""
     manifest = {}
     for run in matrix():
-        if not (RESULTS / run.name / "development.json").is_file():
+        development = read_json(RESULTS / run.name / "development.json")
+        if not development:
             raise RuntimeError(f"Development milestone pending for {run.name}")
-        manifest[run.name] = weights_digest(run.name)
+        digest = weights_digest(run.name)
+        if development["weights"] != digest:
+            raise RuntimeError(f"Checkpoint changed after development evaluation for {run.name}")
+        manifest[run.name] = digest
     path = RESULTS / "seal.json"
     previous = read_json(path)
     if previous and previous["weights"] != manifest:
         raise RuntimeError("The published test seal references different checkpoints")
     if not previous:
-        write_json(path, {"time": stamp(), "weights": manifest})
+        exposures = check_exposures(RESULTS, matrix())
+        write_json(path, {"time": stamp(), "weights": manifest, "ordered_training_exposures": exposures})
 
 
 def batches(split, n, path, size=8):
@@ -41,11 +47,14 @@ def batches(split, n, path, size=8):
             yield pos, batch, seen
 
 
-def solutions(backend, run, snapshots, split, n, path, replay):
+def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=None):
     policy = run.name if run and run.role == "solver" else None
     for pos, batch, seen in batches(split, n, path):
         seed = stream_seed("eval", split, pos)
-        traces = backend.generate([backend.prompt("solver", p) for p in batch], policy, "eval_solver", seed, False)
+        if stored_traces is not None and all(p.key in stored_traces for p in batch):
+            traces = [stored_traces[p.key] for p in batch]
+        else:
+            traces = backend.generate([backend.prompt("solver", p) for p in batch], policy, "eval_solver", seed, False)
         histories = chain(backend, batch, traces, snapshots, 3, seed) if replay else [[] for _ in batch]
         ballots = votes(backend, batch, traces, seed, snapshots) if replay else [[] for _ in batch]
         for p, t, h, v in zip(batch, traces, histories, ballots, strict=True):
@@ -91,6 +100,23 @@ def mechanisms(backend, snapshot, split, n, path, transfer=False):
                               masked_pair=int(all(sound(a, b) for a,b in zip(ma,labels,strict=True)))))
 
 
+def evidence_cohort(backend, snapshot, name, phase, split, count, filename, transfer=False):
+    """Identical frozen J3, prompts and deterministic decoder yield one shared evidence measurement."""
+    reference = snapshot or "base"
+    target = RESULTS / name / filename
+    source = RESULTS / reference / filename
+    marker = read_json(RESULTS / reference / (phase+".json"))
+    if name != reference and marker and source.is_file():
+        expected_weight = weights_digest(snapshot) if snapshot else "frozen base"
+        records = list(rows(source))
+        if marker["weights"] == expected_weight and len({r["key"] for r in records}) == len(records) == count:
+            atomic(target, source.read_text(encoding="utf-8"))
+            backend.journal.event("shared_evidence_measurement", cohort=filename, source=reference, pairs=count)
+            return reference
+    mechanisms(backend, snapshot, split, count, target, transfer)
+    return name
+
+
 def evaluate(name, final=False):
     directory = RESULTS / name
     phase = "final" if final else "development"
@@ -100,28 +126,38 @@ def evaluate(name, final=False):
     run = next((r for r in matrix() if r.name == name), None)
     if not run and name != "base":
         raise ValueError(f"Unknown evaluation {name}")
-    if final:
-        frozen = read_json(RESULTS / "seal.json")
-        if not frozen or (run and frozen["weights"].get(name) != weights_digest(name)):
-            raise RuntimeError("Final evaluation requires the sealed checkpoint manifest")
     snapshots = list(run.judges if run else (None,)*3)
     if run and run.role.startswith("j"):
         snapshots[int(run.role[1:])-1] = run.name
+    if final:
+        frozen = read_json(RESULTS / "seal.json")
+        used = {s for s in snapshots if s}
+        if run:
+            used.add(name)
+        if not frozen or any(frozen["weights"].get(s) != weights_digest(s) for s in used):
+            raise RuntimeError("Final evaluation requires every participating checkpoint to match the seal")
     backend = Backend(Journal(name+"-"+phase), frozen=[*snapshots, name if run else None])
+    evidence_sources = {}
     if final:
         if not run or run.role == "solver":
             for split, count in (("test", 2048), ("layout", 128), ("long", 128)):
                 solutions(backend, run, snapshots, split, count, directory/(split+".jsonl"), False)
         if not run or run.role == "j3" or name in ("exact-prefix3", "top-prefix3", "alt-exact-solver", "alt-top-solver"):
-            mechanisms(backend, snapshots[2], "mechanism", 128, directory/"mechanism.jsonl")
-            mechanisms(backend, snapshots[2], "layout", 128, directory/"transfer-evidence.jsonl", True)
-        if run and run.role.startswith("j"):
-            solutions(backend, run, snapshots, "test", 128, directory/"judge-test.jsonl", True)
+            cohorts = (("mechanism", "mechanism.jsonl", False), ("mechanism", "unseen-evidence.jsonl", True),
+                       ("layout", "layout-evidence.jsonl", False), ("layout", "transfer-evidence.jsonl", True))
+            for split, filename, transfer in cohorts:
+                evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, split, 128, filename, transfer)
+        if name in ("base", "d3-17") or run.role.startswith("j"):
+            # Reuse the exact greedy outputs already observed on this fixed test prefix.
+            origin = directory if name == "d3-17" else RESULTS / "base"
+            stored = {r["key"]: r["trace"] for r in rows(origin / "test.jsonl")}
+            solutions(backend, run, snapshots, "test", 128, directory/"judge-test.jsonl", True, stored)
     else:
         solutions(backend, run, snapshots, "dev", 32, directory/"replay.jsonl", True)
         if not run or run.role == "j3" or run.role == "solver":
-            mechanisms(backend, snapshots[2], "dev", 8, directory/"development-twins.jsonl")
+            filename = "development-twins.jsonl"
+            evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, "dev", 8, filename)
     result = {"time": stamp(), "phase": phase, "weights": weights_digest(name) if run else "frozen base",
-              "usage": backend.totals}
+              "usage": backend.totals, "evidence_sources": evidence_sources}
     write_json(marker, result)
     return result

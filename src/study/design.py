@@ -5,6 +5,9 @@ from dataclasses import dataclass
 SEEDS = (17, 29, 43)
 BASE = "Qwen/Qwen2.5-1.5B-Instruct"
 REVISION = "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+PROJECT = "verifying-verifier-of-verifier-llm-reinforcement-learning"
+GITHUB = f"https://github.com/BurnyCoder/{PROJECT}"
+PAGES = f"https://burnycoder.github.io/{PROJECT}/"
 
 
 @dataclass(frozen=True)

@@ -6,10 +6,11 @@ from math import sqrt
 from statistics import NormalDist, mean
 from zoneinfo import ZoneInfo
 
-from .analysis import paired_primary
-from .design import matrix
+from .analysis import paired_comparison, paired_primary, replay_metrics
+from .design import GITHUB, PAGES, matrix
 from .records import named_values
 from .storage import RESULTS, ROOT, atomic, read_json, rows, write_json
+from .tables import contrast_rows, markdown, rate as percent, run_evidence
 
 DOCS = ROOT / "docs"
 REPORTS = ROOT / "reports"
@@ -17,10 +18,6 @@ REPORTS = ROOT / "reports"
 
 def fraction(records, key):
     return mean(r[key] for r in records) if records else None
-
-
-def percent(value):
-    return "—" if value is None else f"{100*value:.1f}%"
 
 
 def wilson(proportion, n):
@@ -46,6 +43,10 @@ def collect():
         dev = list(rows(target/"replay.jsonl"))
         final = read_json(target/"final.json")
         test = list(rows(target/"test.jsonl")) if final else []
+        test_reviews = list(rows(target/"judge-test.jsonl")) if final else []
+        transfer_twins = list(rows(target/"transfer-evidence.jsonl")) if final else []
+        unseen_twins = list(rows(target/"unseen-evidence.jsonl")) if final else []
+        layout_twins = list(rows(target/"layout-evidence.jsonl")) if final else []
         if test:
             outcomes[name] = {r["key"]: r["correct"] for r in test}
         twins = list(rows(target/("mechanism.jsonl" if final and (target/"mechanism.jsonl").exists()
@@ -62,13 +63,9 @@ def collect():
         examples = []
         for match in (0, 1):
             examples.extend(r for r in [next((r for r in dev if r["correct"] == match), None)] if r)
-        replays = []
-        for order, label in enumerate(("D1", "D2", "D3", "Flat")):
-            bits = [(r["verdicts"][order] if order < 3 else r["flat"], r["correct"]) for r in dev]
-            replays.append(dict(method=label, n=len(bits), agreement=mean(a == b for a,b in bits) if bits else None,
-                                false_accept=sum(a == 1 and b == 0 for a,b in bits),
-                                false_reject=sum(a == 0 and b == 1 for a,b in bits),
-                                malformed=sum(r["judge_malformed"][order] for r in dev) if order < 3 else None))
+        heldout = test if role == "solver" else test_reviews
+        heldout_exact = (fraction(test, "correct") if role == "solver" else
+                         mean(r["full_report_correct"][int(role[1:])-1] for r in heldout) if heldout else None)
         common_example = None
         if dev:
             from .domain import Problem
@@ -86,23 +83,31 @@ def collect():
                          train_exact=fraction(training,"label"), train_reward=fraction(training,"reward"),
                          zero_groups=sum(len({r["reward"] for r in group}) == 1 for group in groups.values() if len(group)==4),
                          groups=len(curves), dev_n=len(dev), dev=role_acc, dev_final=fraction(dev,"final_correct"),
+                         dev_correct_n=sum(r["correct"] for r in dev),
                          dev_malformed=sum(r["malformed"] for r in dev),
                          dev_named_correct=sum(r["malformed"] and named_values(r["trace"],len(r["expected_values"]))==tuple(r["expected_values"]) for r in dev),
                          test_named_correct=sum(r["malformed"] and named_values(r["trace"],len(r["expected_values"]))==tuple(r["expected_values"]) for r in test),
-                         test_n=len(test), test=fraction(test,"correct"), final_answer=fraction(test,"final_correct"),
+                         test_n=len(heldout), test=heldout_exact, final_answer=fraction(test,"final_correct"),
                          fixed=sum(r["fixed"] for r in dev), harmed=sum(r["harmed"] for r in dev),
+                         test_review_n=len(test_reviews), test_fixed=sum(r["fixed"] for r in test_reviews),
+                         test_harmed=sum(r["harmed"] for r in test_reviews), test_replay=replay_metrics(test_reviews),
                          twins_n=len(twins), twins=fraction(twins,"visible_pair"), masked=fraction(twins,"masked_pair"),
+                         transfer_twin_n=len(transfer_twins), transfer_visible=fraction(transfer_twins,"visible_pair"),
+                         transfer_masked=fraction(transfer_twins,"masked_pair"),
+                         unseen_evidence=dict(n=len(unseen_twins),visible=fraction(unseen_twins,"visible_pair"),masked=fraction(unseen_twins,"masked_pair")),
+                         layout_evidence=dict(n=len(layout_twins),visible=fraction(layout_twins,"visible_pair"),masked=fraction(layout_twins,"masked_pair")),
+                         evidence_sources=(final or read_json(target/"development.json",{})).get("evidence_sources",{}),
                          twin_split=twins[0]["split"] if twins else None, paired_example=twins[0] if twins else None,
-                         replay=replays, curves=curves, logs=reports, examples=examples, common_example=common_example,
+                         replay=replay_metrics(dev), curves=curves, logs=reports, examples=examples, common_example=common_example,
                          usage=trained.get("usage", {}), elapsed_seconds=trained.get("elapsed_seconds"),
                          transfer={s: fraction(list(rows(target/(s+".jsonl"))), "correct") for s in ("layout","long")} if final else {},
                          completed_final=bool(final), completed_development=(target/"development.json").is_file()))
-    return dict(runs=runs, primary=paired_primary(outcomes), planned=len(manifest),
+    return dict(runs=runs, primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=len(manifest),
                 budget=read_json(RESULTS/"budget.json"), sealed=(RESULTS/"seal.json").is_file())
 
 
 def scores_table(data):
-    head = "| Run | Updated role | Updates | Development correct | Development n | Held-out trace pass@1 | Held-out n |\n|---|---|---:|---:|---:|---:|---:|"
+    head = "| Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |\n|---|---|---:|---:|---:|---:|---:|"
     values = [f"| {r['name']} | {r['role']} | {r['updates'] if r['updates'] is not None else '—'} | {percent(r['dev'])} | {r['dev_n']} | {percent(r['test'])} | {r['test_n']} |" for r in data["runs"]]
     return "\n".join([head, *values]) if values else "Model observations are pending."
 
@@ -145,6 +150,26 @@ def figures(data):
         ax.invert_yaxis()
         fig.tight_layout()
         fig.savefig(dest/"outcomes.png", dpi=140)
+        plt.close(fig)
+    if "delta" in data["primary"]:
+        # Plot the signed effect for fixed seeds and the pooled contrasts on a shared linear scale.
+        fig, ax = plt.subplots(figsize=(8, 4), constrained_layout=True)
+        i = 0
+        for label, estimate in (("D3 − D2", data["primary"]), ("D3 − flat", data["flat"])):
+            if "delta" not in estimate:
+                continue
+            for seed, value in [("Pooled", estimate["delta"]), *estimate["per_seed"].items()]:
+                lo, hi = estimate["ci"] if seed=="Pooled" else estimate["seed_intervals"][seed]
+                ax.hlines(i, 100*lo, 100*hi, color=colors[0])
+                ax.plot(100*value, i, "D" if seed=="Pooled" else "o", color=colors[0])
+                ax.text(-.015,i,f"{label} · {seed}",transform=ax.get_yaxis_transform(),ha="right",va="center")
+                i += 1
+        ax.axvline(0,color="#536867",linewidth=1)
+        ax.axvline(3,color=colors[2],linestyle="--",label="D3 − D2 practical target")
+        ax.set(yticks=[],xlabel="Difference in held-out complete-trace accuracy (percentage points)")
+        ax.invert_yaxis()
+        ax.legend(loc="best")
+        fig.savefig(dest/"paired-outcomes.png",dpi=145,bbox_inches="tight")
         plt.close(fig)
     examples = [r for r in data["runs"] if r["common_example"]]
     if examples:
@@ -197,7 +222,10 @@ def paper(data, date):
     styles = getSampleStyleSheet()
     story = []
     def line(text, style="BodyText"):
-        story.append(Paragraph(text, styles[style]))
+        paragraph = Paragraph(text, styles[style])
+        if style.startswith("Heading"):
+            paragraph.keepWithNext = True
+        story.append(paragraph)
     def table(headers, body):
         t = Table([headers,*body], repeatRows=1, hAlign="LEFT")
         t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#dceeea")),
@@ -225,6 +253,10 @@ def paper(data, date):
     primary = data["primary"]
     if "delta" in primary:
         line(f"The equally weighted paired difference is {primary['delta']*100:.2f} percentage points. The conditional 95% problem-bootstrap interval is [{primary['ci'][0]*100:.2f}, {primary['ci'][1]*100:.2f}] points. The registered decision is {primary['status']}.")
+    comparisons = list(contrast_rows(data))
+    if comparisons:
+        table(["Contrast", "Seed", "Difference (pp)", "95% lower", "95% upper"], comparisons)
+        line("Intervals resample problem identities within the common held-out sample. The pooled contrast weights the three trained seeds equally. The voting contrast is secondary.")
     line("Secondary outcomes","Heading2")
     checks = [r for r in data["runs"] if r["dev_n"]]
     if checks:
@@ -232,13 +264,15 @@ def paper(data, date):
               [[r["name"],r["dev_n"],r["fixed"],r["harmed"],r["twins_n"],percent(r["twins"]),percent(r["masked"])] for r in checks])
         first=checks[0]
         line(f"For {first['name']}, {first['dev_malformed']} of {first['dev_n']} development responses failed the registered trace format. A secondary, post-hoc parser identified {first['dev_named_correct']} fully correct traces written as named assignments among those failures. These retain their original primary scores.")
+        initial = first["replay"][0]
+        line(f"On the frozen baseline, Judge 1 agreed with the checker on {percent(initial['agreement'])} of solution verdicts. Its entire evidence record was correct on {initial['evidence_correct']} of {initial['n']} traces. Malformed reports default to rejection and occurred on {initial['malformed']} of {initial['reports']} calls. This measurement included {initial['valid']} genuinely valid solver traces.")
         for r in checks[:2]:
             if r["examples"]:
                 ex=r["examples"][0]
                 line(escape(f"{r['name']}. {ex['expression']}. Solver output {ex['trace']!r}. Expected {ex['expected_values']}. Exact acceptance {ex['correct']}." ))
     else:
         line("Paired evidence interventions and natural correction counts are pending.")
-    for filename, caption in (("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
+    for filename, caption in (("paired-outcomes.png","Seed-specific and pooled held-out effects"),("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
         asset=DOCS/"assets"/filename
         if asset.exists():
             from reportlab.lib.utils import ImageReader
@@ -249,7 +283,7 @@ def paper(data, date):
     line("Discussion, limitations and conclusion","Heading2")
     line("Only a paired comparison on sealed arithmetic problems can establish the registered solver effect. A higher training reward can coexist with lower exact accuracy [6]. The same underlying model supplies all three reviewers, so their errors may be correlated. Compact evidence records make audits decidable but leave unrestricted prose and other model families outside the tested population. Interval estimates condition on the trained checkpoints. Seed-specific estimates describe variation across the registered runs.")
     line("Appendix and references","Heading2")
-    line("The tagged protocol, run matrix, role prompts, raw per-problem outputs and analysis code are available in the <link href='https://github.com/BurnyCoder/verifying-verifier-s-verifier-llm-reinforcement-learning'>study repository</link>. The registered practical threshold is three percentage points, evaluated on 2,048 paired IDs with 10,000 paired bootstrap resamples after all three seeds complete.")
+    line(f"The published protocol, run matrix, role prompts, raw per-problem outputs and analysis code are available in the <link href='{GITHUB}'>study repository</link>. The registered practical threshold is three percentage points, evaluated on 2,048 paired IDs with 10,000 paired bootstrap resamples after all three seeds complete.")
     for title,url in [("[1] Wen et al. Recursive Self-Critiquing","https://arxiv.org/abs/2502.04675"),
                       ("[2] DeepSeekMath-V2","https://arxiv.org/abs/2511.22570"),
                       ("[3] Stojanovski et al. Reasoning Gym","https://arxiv.org/abs/2505.24760"),
@@ -278,16 +312,28 @@ def build():
     if "delta" in primary:
         status += f" Difference {100*primary['delta']:.2f} percentage points, conditional 95% interval [{100*primary['ci'][0]:.2f}, {100*primary['ci'][1]:.2f}]."
     summary = status+"\n\n"+score
-    atomic(REPORTS/"summary.md","# Study summary\n\n"+summary+"\n\nDevelopment scores use the updated role's complete record. The test column measures full solver traces. See the [preregistration](preregistration.md).\n")
+    for run in data["runs"]:
+        if run["name"] in ("base","d3-17") and run["completed_development"]:
+            label = "Untrained solver" if run["name"]=="base" else "First three-judge-trained solver"
+            summary += (f"\n\n**{label}.** Every step was correct on {run['dev_correct_n']} of {run['dev_n']} development problems. "
+                        f"Of {run['dev_malformed']} malformed outputs, {run['dev_named_correct']} contained all correct numbers as named assignments. "
+                        f"Judge 3 corrected {run['fixed']} of Judge 2’s verdicts and introduced {run['harmed']} errors on these traces.")
+    comparisons = list(contrast_rows(data))
+    if comparisons:
+        summary += "\n\n" + markdown(["Contrast", "Seed", "Difference (pp)", "95% lower", "95% upper"], comparisons)
+    explanation = "Solver scores require every intermediate value. Judge scores require all fields of the evidence record. Intervals condition on the trained checkpoints."
+    atomic(REPORTS/"summary.md","# Study summary\n\n"+summary+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)
     assets = "![Study architecture](docs/assets/architecture.png)\n\n"
+    if "delta" in primary:
+        assets += "![Conditional paired held-out effects](docs/assets/paired-outcomes.png)\n\n"
     if (DOCS/"assets/outcomes.png").exists():
         assets += "![Development solver accuracy](docs/assets/outcomes.png)\n\n"
     if (DOCS/"assets/examples.png").exists():
         assets += "![Model outputs and exact labels on a common development problem](docs/assets/examples.png)\n\n"
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+"\n\n[Interactive results explorer](https://burnycoder.github.io/verifying-verifier-s-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     for r in data["runs"]:
@@ -295,7 +341,7 @@ def build():
              f"The assigned reward averaged {percent(r['train_reward'])}. "
              f"{r['zero_groups']} of {r['groups']} complete groups had identical rewards.") if r["groups"] else "Training observations are pending or this is a frozen evaluation."
         meta=f"Role {r['role']}. Reward {r['reward']}. Seed {r['seed']}. The fixed architecture, curriculum, optimizer and sample definition are in the [registered protocol](../../preregistration.md)."
-        atomic(experiments/r["name"]/"experiment.md",f"# {r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n[Machine observations](../../../results/{r['name']})\n")
+        atomic(experiments/r["name"]/"experiment.md",f"# {r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n{run_evidence(r)}\n\n[Machine observations](../../../results/{r['name']})\n")
         atomic(experiments/r["name"]/"learnings.md",f"# Observations from {r['name']}\n\n{obs}\n\nNatural reviews corrected {r['fixed']} and introduced {r['harmed']} solution errors among {r['dev_n']} development traces. This is a within-trace comparison.\n")
         notes.append(f"- [{r['name']}]({r['name']}/learnings.md). {obs}")
     references="\n".join(f"- [{r['name']}]({r['name']}/experiment.md)" for r in data["runs"])
@@ -303,6 +349,13 @@ def build():
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
     complete=sum(r["completed_final"] for r in data["runs"] if r["name"]!="base")
     trained=sum(r["updates"] is not None for r in data["runs"])
-    atomic(REPORTS/"progress.md",f"# Progress · {date}\n\n{trained} of {data['planned']} registered training blocks have completed. {complete} have completed final evaluation. {status}\n\nThe first single-seed solver has a 14-hour target. The matrix has a one-week training target. Monitoring cadence and milestone order are in the [plan](plan.md). The [experiment index](experiments/experiments.md) contains available development observations.\n")
+    activity = []
+    if data["budget"]:
+        b = data["budget"]
+        activity.append(f"The timing pilot selected {b['updates']} updates per block at {b['seconds_per_update']:.1f} seconds per pilot update. A block at that rate would take {b['updates']*b['seconds_per_update']/3600:.2f} hours.")
+        for r in data["runs"]:
+            if r["name"]!="base" and r["updates"] is None and (RESULTS/r["name"]/"recipe.json").exists():
+                activity.append(f"{r['name']} has scored {r['groups']} complete rollout groups against its target of {b['updates']}. The live dashboard reads incoming observations between releases.")
+    atomic(REPORTS/"progress.md",f"# Progress · {date}\n\n{trained} of {data['planned']} registered training blocks have completed. {complete} have completed final evaluation. {status}\n\n"+"\n\n".join(activity)+"\n\nThe first single-seed solver has a 14-hour target. The matrix has a one-week training target. Monitoring cadence and milestone order are in the [plan](plan.md). The [experiment index](experiments/experiments.md) contains available development observations.\n")
     paper(data,date)
     return data

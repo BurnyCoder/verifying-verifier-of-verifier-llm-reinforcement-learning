@@ -6,15 +6,14 @@ import math
 import random
 import time
 from dataclasses import asdict
-from pathlib import Path
 
 import torch
 from datasets import Dataset
 from transformers import TrainerCallback
-from transformers.trainer_utils import get_last_checkpoint
 from trl import GRPOConfig, GRPOTrainer
 
 from .backend import Backend, stream_seed
+from .checkpoints import last_complete
 from .design import matrix, permute_groups
 from .domain import Problem, problems
 from .judging import chain, make_example, majority, votes
@@ -155,10 +154,18 @@ class Metrics(TrainerCallback):
                development_accuracy=correct/len(batch), development_n=len(batch)))
 
 
+def record_timing_budget(result):
+    seconds = result["elapsed_seconds"] / result["updates"]
+    count = max((n for n in (16,32,64,128,256) if 32*n*seconds <= 0.6*7*86400 and n*seconds <= 12*3600), default=16)
+    write_json(RESULTS / "budget.json", dict(updates=count, seconds_per_update=seconds, time=stamp()))
+
+
 def train(run, steps):
     out = RESULTS / run.name
     finished = read_json(out / "trained.json")
     if finished and (adapter(run.name) / "adapter_config.json").is_file():
+        if run.name == "timing" and not (RESULTS / "budget.json").is_file():
+            record_timing_budget(finished)
         return finished
     journal = Journal(run.name)
     backend = Backend(journal, run.initial, frozen_sources(run), run.seed)
@@ -166,9 +173,8 @@ def train(run, steps):
     data = training_data(backend, run, steps)
     work = STATE / "runs" / run.name / "trainer"
     work.mkdir(parents=True, exist_ok=True)
-    resume = get_last_checkpoint(str(work))
-    completed = read_json(Path(resume)/"trainer_state.json") if resume else {}
-    last_step = completed.get("global_step", 0)
+    checkpoint, last_step = last_complete(work)
+    resume = str(checkpoint) if checkpoint else None
     retain(out / "rollouts.jsonl", lambda row: row["step"] < last_step)
     retain(out / "metrics.jsonl", lambda row: row["step"] <= last_step)
     retain(out / "cost.jsonl", lambda row: row["step"] <= last_step)
@@ -199,9 +205,7 @@ def train(run, steps):
     backend.model.save_pretrained(adapter(run.name), selected_adapters=["default"])
     result = dict(time=stamp(), run=asdict(run), updates=trainer.state.global_step,
                   elapsed_seconds=elapsed, resumed_at=last_step, frozen_checksum=after, usage=backend.totals)
-    write_json(out / "trained.json", result)
     if run.name == "timing":
-        seconds = elapsed / steps
-        count = max((n for n in (16,32,64,128,256) if 32*n*seconds <= 0.6*7*86400 and n*seconds <= 12*3600), default=16)
-        write_json(RESULTS / "budget.json", dict(updates=count, seconds_per_update=seconds, time=stamp()))
+        record_timing_budget(result)
+    write_json(out / "trained.json", result)
     return result

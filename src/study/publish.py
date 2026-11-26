@@ -4,11 +4,11 @@ import gzip
 import shutil
 import subprocess
 
+from .design import GITHUB
 from .storage import RESULTS, ROOT, STATE, adapter, read_json, stamp, write_json
 
 DATA = "BurnyCoder/recursive-judge-grpo-study"
 MODELS = "BurnyCoder/recursive-judge-grpo-adapters"
-GITHUB = "https://github.com/BurnyCoder/verifying-verifier-s-verifier-llm-reinforcement-learning"
 
 
 def git(*args):

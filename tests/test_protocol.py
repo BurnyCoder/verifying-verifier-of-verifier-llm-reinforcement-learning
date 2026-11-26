@@ -61,6 +61,32 @@ def test_independent_arithmetic_and_split_routing():
     assert shape(Problem.from_expression("(1+2)*(3+4)")) == "layout"
 
 
+def test_published_steps_and_first_error_evidence_with_an_independent_interpreter():
+    for problem in problems("train", 64):
+        variables = {}
+        for line in problem.steps:
+            target, operation = line.split(" = ")
+            # Only the trusted generator's published arithmetic is executed by this independent oracle.
+            variables[target] = eval(operation, {"__builtins__": {}}, variables)
+        reference = tuple(variables.values())
+        assert reference == problem.values
+        for first in range(len(reference)):
+            faulty = reference[:first] + tuple(v + 1 for v in reference[first:])
+            assert solver_truth(problem, render(faulty)) == (0, first+1, reference[first])
+
+
+def test_transfer_mutates_only_the_evidence_and_changes_sign_and_absolute_magnitude():
+    from study.judging import twin
+
+    for i, problem in enumerate(problems("dev", 32)):
+        trace, first, good, changed = twin(problem, i, transfer=True)
+        original, altered = parse(good, 6), parse(changed, 6)
+        assert original[:2] == altered[:2] and original[3:] == altered[3:]
+        assert abs(altered[2]) > abs(original[2]) + 1
+        assert original[2] == 0 or original[2] * altered[2] < 0
+        assert expected(problem, trace, [first, changed])[:3] == (0, 3, original[2])
+
+
 def test_run_dependencies_and_shuffled_signal():
     seen = set()
     for row in matrix():
