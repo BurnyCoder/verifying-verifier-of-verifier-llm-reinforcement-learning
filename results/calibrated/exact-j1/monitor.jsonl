@@ -1,0 +1,4 @@
+{"time": "2026-11-26T19:36:43.841+00:00", "run": "exact-j1", "phase": "train", "elapsed_seconds": 300.01600000000326, "step": 39, "target_updates": 256, "remaining_seconds": 1107.2564102564102, "next_check_seconds": 300}
+{"time": "2026-11-26T19:41:43.884+00:00", "run": "exact-j1", "phase": "train", "elapsed_seconds": 600.0630000000019, "step": 98, "target_updates": 256, "remaining_seconds": 804.8116938775479, "next_check_seconds": 300}
+{"time": "2026-11-26T19:46:43.928+00:00", "run": "exact-j1", "phase": "train", "elapsed_seconds": 900.1100000000006, "step": 157, "target_updates": 256, "remaining_seconds": 505.01980891719705, "next_check_seconds": 300}
+{"time": "2026-11-26T19:51:43.984+00:00", "run": "exact-j1", "phase": "train", "elapsed_seconds": 1200.1719999999987, "step": 215, "target_updates": 256, "remaining_seconds": 210.00581395348837, "next_check_seconds": 300}
