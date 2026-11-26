@@ -1,5 +1,5 @@
 # Observations from base
 
-Training observations are pending or this is a frozen evaluation.
+The solver completed 0 of 32 development calculations exactly. Among 26 serialization failures, 5 contained all correct numbers as named assignments. On those same development traces, Judge 3 fixed 0 of Judge 2’s verdicts and introduced 1 errors.
 
-Natural reviews corrected 0 and introduced 1 solution errors among 32 development traces. This is a within-trace comparison.
+[Raw measurements and denominators](experiment.md) · [Analysis amendments](../../amendments.md)

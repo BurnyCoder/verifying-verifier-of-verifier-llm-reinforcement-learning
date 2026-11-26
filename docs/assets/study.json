@@ -7,8 +7,18 @@
       "seed": 17,
       "updates": null,
       "observations": 0,
+      "initial": null,
+      "judges": [
+        null,
+        null,
+        null
+      ],
+      "teacher": null,
+      "corpus": null,
       "train_exact": null,
       "train_reward": null,
+      "positive_on_incorrect": 0,
+      "zero_on_correct": 0,
       "zero_groups": 0,
       "groups": 0,
       "dev_n": 32,
@@ -79,6 +89,24 @@
       "twins_n": 8,
       "twins": 0,
       "masked": 0,
+      "evidence_fields": {
+        "visible": {
+          "reports": 16,
+          "parsed": 2,
+          "solution_bit": 2,
+          "audit_bit": 1,
+          "faults": 8,
+          "localized_and_repaired": 0
+        },
+        "masked": {
+          "reports": 16,
+          "parsed": 6,
+          "solution_bit": 4,
+          "audit_bit": 3,
+          "faults": 8,
+          "localized_and_repaired": 0
+        }
+      },
       "transfer_twin_n": 0,
       "transfer_visible": null,
       "transfer_masked": null,

@@ -81,7 +81,10 @@ function showRun() {
     for (const m of methods ?? []) if (m.n) row(byId("replay"),[phase,m.method,pct(m.agreement),
       m.false_accept+"/"+(m.invalid ?? "—"),m.false_reject+"/"+(m.valid ?? "—"),(m.malformed ?? "—")+"/"+(m.reports ?? "—")]);
   }
-  byId("training").textContent="Groups with identical rewards "+r.zero_groups+" / "+r.groups+". Development reviews corrected "+r.fixed+" verdicts and introduced "+r.harmed+" errors across "+r.dev_n+" traces.";
+  const findings=[];
+  if (r.groups) findings.push("Groups with identical rewards "+r.zero_groups+" / "+r.groups+".");
+  if (r.dev_n) findings.push("Across "+r.dev_n+" development traces, Judge 3 corrected "+r.fixed+" verdicts and introduced "+r.harmed+" errors.");
+  byId("training").textContent=findings.join(" ");
   const probe=r.logs.filter(e=>e.development_accuracy!=null).at(-1);
   if (probe) byId("probe").textContent="Latest greedy development check at update "+probe.step+" · "+pct(probe.development_accuracy)+" complete-trace accuracy on "+probe.development_n+" problems.";
   for (const step of r.curves.slice(-20).reverse()) row(byId("curve"),[step.step,pct(step.reward),pct(step.exact)]);

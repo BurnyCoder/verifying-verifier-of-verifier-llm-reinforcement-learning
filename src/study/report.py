@@ -6,11 +6,11 @@ from math import sqrt
 from statistics import NormalDist, mean
 from zoneinfo import ZoneInfo
 
-from .analysis import paired_comparison, paired_primary, replay_metrics
+from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .design import GITHUB, PAGES, matrix
 from .records import named_values
 from .storage import RESULTS, ROOT, atomic, read_json, rows, write_json
-from .tables import contrast_rows, markdown, rate as percent, run_evidence
+from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
 
 DOCS = ROOT / "docs"
 REPORTS = ROOT / "reports"
@@ -80,7 +80,11 @@ def collect():
                                   expected=render(reference), correct=matched)
         runs.append(dict(name=name, role=role, reward=spec.reward if spec else "untrained",
                          seed=spec.seed if spec else 17, updates=trained.get("updates"), observations=len(training),
+                         initial=spec.initial if spec else None, judges=spec.judges if spec else (None,)*3,
+                         teacher=spec.teacher if spec else None, corpus=spec.corpus if spec else None,
                          train_exact=fraction(training,"label"), train_reward=fraction(training,"reward"),
+                         positive_on_incorrect=sum(r["reward"]==1 and r["label"]==0 for r in training),
+                         zero_on_correct=sum(r["reward"]==0 and r["label"]==1 for r in training),
                          zero_groups=sum(len({r["reward"] for r in group}) == 1 for group in groups.values() if len(group)==4),
                          groups=len(curves), dev_n=len(dev), dev=role_acc, dev_final=fraction(dev,"final_correct"),
                          dev_correct_n=sum(r["correct"] for r in dev),
@@ -92,6 +96,7 @@ def collect():
                          test_review_n=len(test_reviews), test_fixed=sum(r["fixed"] for r in test_reviews),
                          test_harmed=sum(r["harmed"] for r in test_reviews), test_replay=replay_metrics(test_reviews),
                          twins_n=len(twins), twins=fraction(twins,"visible_pair"), masked=fraction(twins,"masked_pair"),
+                         evidence_fields={mode:evidence_fields(twins,mode) for mode in ("visible","masked")},
                          transfer_twin_n=len(transfer_twins), transfer_visible=fraction(transfer_twins,"visible_pair"),
                          transfer_masked=fraction(transfer_twins,"masked_pair"),
                          unseen_evidence=dict(n=len(unseen_twins),visible=fraction(unseen_twins,"visible_pair"),masked=fraction(unseen_twins,"masked_pair")),
@@ -133,8 +138,14 @@ def figures(data):
         ax.text(x+1.075, 1.1, sub, ha="center", fontsize=10)
         if i < 3:
             ax.annotate("", (x+2.65, 1.35), (x+2.23,1.35), arrowprops={"arrowstyle":"->","color":colors[0]})
-    ax.text(.12,.25,"The exact checker verifies each stated claim. The last solution verdict supplies the solver reward.",
-            fontsize=10, color=colors[0])
+    ax.text(.12,2.2,"Each reviewer receives the original problem, solver trace and all preceding reports.",
+            fontsize=10,color=colors[0])
+    ax.plot([9.475,9.475,1.225],[.81,.50,.50],color=colors[1],linewidth=1.3)
+    ax.annotate("",(1.225,.82),(1.225,.48),arrowprops={"arrowstyle":"->","color":colors[1]})
+    ax.text(5.35,.51,"Final solution bit supplies the solver’s GRPO reward",ha="center",va="center",
+            fontsize=9.5,color=colors[1],bbox={"facecolor":"white","edgecolor":"none","pad":2})
+    ax.text(.12,.09,"The independent checker labels every field and supplies the exact and hybrid reward arms.",
+            fontsize=9.5, color=colors[0])
     fig.tight_layout()
     fig.savefig(dest/"architecture.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -209,17 +220,41 @@ def figures(data):
         axes[1].set(xlabel="Optimizer update",ylabel="GRPO loss")
         fig.savefig(dest/"training.png",dpi=140)
         plt.close(fig)
+    # A fresh replication can share the report directory with a previously published data set.
+    # Remove only generated figures that the current evidence did not produce.
+    for filename, available in (("outcomes.png",scored), ("examples.png",examples), ("training.png",monitored),
+                                ("paired-outcomes.png","delta" in data["primary"])):
+        if not available:
+            (dest/filename).unlink(missing_ok=True)
 
 
 def paper(data, date):
+    from pathlib import Path
     from xml.sax.saxutils import escape
+    from matplotlib import get_data_path
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.units import mm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     styles = getSampleStyleSheet()
+    # Embed the same Unicode fonts used by the plots so minus signs and author punctuation travel with the PDF.
+    fonts = Path(get_data_path())/"fonts/ttf"
+    variants = {"Helvetica":"", "Helvetica-Bold":"-Bold", "Helvetica-Oblique":"-Oblique",
+                "Helvetica-BoldOblique":"-BoldOblique"}
+    for suffix in variants.values():
+        name="StudySans"+suffix
+        if name not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont(name,str(fonts/("DejaVuSans"+suffix+".ttf"))))
+    pdfmetrics.registerFontFamily("StudySans", normal="StudySans", bold="StudySans-Bold",
+                                  italic="StudySans-Oblique", boldItalic="StudySans-BoldOblique")
+    for style in styles.byName.values():
+        previous_font=getattr(style,"fontName",None)
+        if previous_font in variants:
+            style.fontName="StudySans"+variants[previous_font]
     story = []
     def line(text, style="BodyText"):
         paragraph = Paragraph(text, styles[style])
@@ -229,9 +264,12 @@ def paper(data, date):
     def table(headers, body):
         t = Table([headers,*body], repeatRows=1, hAlign="LEFT")
         t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#dceeea")),
+                               ("FONTNAME",(0,0),(-1,-1),"StudySans"),
                                ("FONTSIZE",(0,0),(-1,-1),8.5),("VALIGN",(0,0),(-1,-1),"TOP"),
                                ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white,colors.HexColor("#f5f7f6")])]))
-        story.extend([Spacer(1,2*mm),t,Spacer(1,2*mm)])
+        before=Spacer(1,2*mm)
+        before.keepWithNext=True
+        story.extend([before,t,Spacer(1,2*mm)])
     line("Does a third LLM judge improve GRPO rewards?", "Title")
     line("Libor “Burny” Burian · "+date, "Heading3")
     line("Abstract","Heading2")
@@ -243,6 +281,18 @@ def paper(data, date):
     line("The Reasoning Gym-derived sampler produces signed-integer expression trees [3]. Each operation has a numbered result. A report names the first erroneous step and its correction, following the first-error formulation used by ProcessBench [4]. An audit identifies the first erroneous field in the previous report, its replacement, and the final verdict on the original solution. A correct final value with a wrong intermediate step fails the complete-trace metric.")
     line("Policies share the pinned Qwen2.5-1.5B-Instruct backbone and use separate NF4/LoRA role configurations. GRPO uses four samples per prompt, group-scaled rewards, a clipped ratio, and a zero KL coefficient [5]. Solver-only, judge-only and alternating stages isolate which component learns. The control arms use depth one, depth two, a three-vote panel, exact outcomes, exact-gated learned rewards, and within-group shuffled rewards.")
     story.append(PageBreak())
+    line("Experimental design","Heading1")
+    line("Executable evidence","Heading2")
+    line("Judge 1 emits the solution bit, first faulty step and replacement integer. A correct trace uses step zero and repeats the root value. Missing or malformed input uses (0, -1, 0). Judges 2 and 3 first emit the preceding report's soundness, the one-based index of its first false field and the correct replacement. They then emit the corrected three-field solution record. Endorsing a sound rejection therefore earns the solver zero.")
+    line("In the evidence-pair intervention, both Judge 2 reports have the same verdicts on Judge 1 and the solver. Their numerical supporting values differ. Judge 3 must endorse the sound report and reject the altered report with its exact field and replacement, while retaining the correct solution verdict in both. Masking the evidence makes the twin inputs identical. Whole-pair credit therefore also tests whether the visible evidence affects the decision.")
+    line("Online training and supervision","Heading2")
+    line("The policy samples four completions at temperature 0.8, with a ceiling of 48 new tokens each. For reward r in group g, TRL assigns advantage (r − mean(g)) / (sd(g) + 0.0001). A group with identical rewards supplies zero centered reward signal. The policy uses a clip width of 0.2 and constant learning rate 0.00003. The quantized backbone stays frozen. The active role updates rank-16 LoRA adapters with alpha 32 on the query, key, value and output projections. This configuration fits the local accelerator and fixes trainable capacity across reward comparisons. [5, 7–9]")
+    line("The exact judge route awards one only for an entire matching report. In the top-down route, a frozen higher judge's soundness bit rewards the lower judge. Both routes use the same examples and update budgets for each matched role. One in four judge-corpus entries uses a natural train-split trace and preceding reports. The remaining entries use constructed traces and controlled predecessor errors. Alternating blocks refresh their route's inputs from its preceding solver and freeze each reward provider during policy updates.")
+    line("Evaluation and compute","Heading2")
+    line("Every variant shares its problem's canonical expression hash. The in-distribution population uses two to four operations and reserves trees with two internal root children. Longer test expressions have five to seven operations. A separate evidence-transfer mutation reverses nonzero sign and increases absolute magnitude, with zero mapped to minus three. Solver and evidence-pair evaluations decode greedily. Natural-review replays and flat ballots sample judgments. Comparisons use identical solver-trace IDs, and the final seal verifies the order of the problems and preceding reports seen during training.")
+    if data["budget"]:
+        b=data["budget"]
+        line(f"The disposable pilot measured {b['seconds_per_update']:.2f} seconds per update. The budget rule selected {b['updates']} updates per block. The wall-clock estimate excludes checkpoint loading. Every registered arm uses this update count.")
     line("Results and interpretation","Heading1")
     line("Development accuracy for a solver requires every arithmetic step to be correct. For a judge it requires its whole record to match the executable audit. Held-out solver accuracy uses one response per problem. A dash denotes a pending measurement.")
     if data["runs"]:
@@ -260,18 +310,53 @@ def paper(data, date):
     line("Secondary outcomes","Heading2")
     checks = [r for r in data["runs"] if r["dev_n"]]
     if checks:
-        table(["Run","Natural n","J3 fixes","J3 harms","Twin n","Visible pair","Masked pair"],
-              [[r["name"],r["dev_n"],r["fixed"],r["harmed"],r["twins_n"],percent(r["twins"]),percent(r["masked"])] for r in checks])
+        table(["Run","Dev. n","J3 fixes","J3 harms","Twin split","Twin n","Visible pair","Masked pair"],
+              [[r["name"],r["dev_n"],r["fixed"],r["harmed"],r["twin_split"] or "—",r["twins_n"],percent(r["twins"]),percent(r["masked"])] for r in checks])
         first=checks[0]
         line(f"For {first['name']}, {first['dev_malformed']} of {first['dev_n']} development responses failed the registered trace format. A secondary, post-hoc parser identified {first['dev_named_correct']} fully correct traces written as named assignments among those failures. These retain their original primary scores.")
         initial = first["replay"][0]
-        line(f"On the frozen baseline, Judge 1 agreed with the checker on {percent(initial['agreement'])} of solution verdicts. Its entire evidence record was correct on {initial['evidence_correct']} of {initial['n']} traces. Malformed reports default to rejection and occurred on {initial['malformed']} of {initial['reports']} calls. This measurement included {initial['valid']} genuinely valid solver traces.")
+        line(f"On {first['name']}, Judge 1 agreed with the checker on {percent(initial['agreement'])} of solution verdicts. Its entire evidence record was correct on {initial['evidence_correct']} of {initial['n']} traces. Malformed reports default to rejection and occurred on {initial['malformed']} of {initial['reports']} calls. This measurement included {initial['valid']} genuinely valid solver traces.")
         for r in checks[:2]:
             if r["examples"]:
                 ex=r["examples"][0]
-                line(escape(f"{r['name']}. {ex['expression']}. Solver output {ex['trace']!r}. Expected {ex['expected_values']}. Exact acceptance {ex['correct']}." ))
+                shown=escape(ex["trace"]).replace("\n","<br/>")
+                line(escape(f"{r['name']}. {ex['expression']}.")+"<br/>Solver output<br/>"+shown+"<br/>"+
+                     escape(f"Expected {ex['expected_values']}. Exact acceptance {ex['correct']}."))
     else:
         line("Paired evidence interventions and natural correction counts are pending.")
+    natural_test=[r for r in data["runs"] if r["test_review_n"]]
+    if natural_test:
+        line("Held-out natural reviews","Heading2")
+        table(["Run","Traces","J3 fixes","J3 harms","Net verdict change (pp)"],
+              [[r["name"],r["test_review_n"],r["test_fixed"],r["test_harmed"],
+                f"{100*(r['test_fixed']-r['test_harmed'])/r['test_review_n']:+.2f}"] for r in natural_test])
+    unique_reviewers=[r for r in data["runs"] if (r["name"]=="base" or r["role"]=="j3") and r["twins_n"]]
+    if unique_reviewers:
+        line("Which parts of the review were correct?","Heading2")
+        field_rows=[]
+        for r in unique_reviewers:
+            for mode, counts in r["evidence_fields"].items():
+                field_rows.append([r["name"],r["twin_split"],mode,counts["reports"],counts["parsed"],
+                                   counts["solution_bit"],counts["audit_bit"],f"{counts['localized_and_repaired']}/{counts['faults']}"])
+        table(["Reviewer","Split","Evidence","Reports","Parsed","Solution bit","Audit bit","Fault repaired"],field_rows)
+        line("The first two accuracy counts award one for the correct decision on the solver or preceding reviewer, respectively. Fault repair requires rejecting the altered review and giving both its first incorrect field and the exact replacement. An unparseable six-field report earns zero on these measures. Each frozen reviewer appears once.")
+    transferred=[r for r in unique_reviewers if r["transfer_twin_n"]]
+    if transferred:
+        line("Evidence transfer","Heading2")
+        table(["Reviewer","Familiar both","Novel error","Novel layout","Both novel","Pairs per cell"],
+              [[r["name"],percent(r["twins"]),percent(r["unseen_evidence"]["visible"]),
+                percent(r["layout_evidence"]["visible"]),percent(r["transfer_visible"]),r["transfer_twin_n"]] for r in transferred])
+    cost_rows=[]
+    for r in data["runs"]:
+        if r["seed"]==17 and r["name"] in ("d1-17","d2-17","d3-17","flat-17","oracle-17","hybrid-17","shuffle-17") and r["usage"]:
+            reward_calls=[v for k,v in r["usage"].items() if k in ("j1","j2","j3","flat_j1")]
+            cost_rows.append([r["name"], r["zero_groups"], r["groups"],
+                              *(sum(v[k] for v in reward_calls) for k in ("calls","input_tokens","output_tokens")),
+                              f"{sum(v['gpu_seconds'] for v in reward_calls):.1f}"])
+    if cost_rows:
+        line("Reward signal and generation cost","Heading2")
+        table(["Run","Constant groups","Groups","Judge calls","Input tokens","Output tokens","CUDA seconds"],cost_rows)
+        line("Counts cover reward-provider calls during training. CUDA events span batched generation and can include device idle time between kernel submissions. The flat panel and recursive chain share a call count and output ceiling. Their prompt lengths and stopping lengths may differ.")
     for filename, caption in (("paired-outcomes.png","Seed-specific and pooled held-out effects"),("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
         asset=DOCS/"assets"/filename
         if asset.exists():
@@ -289,16 +374,19 @@ def paper(data, date):
                       ("[3] Stojanovski et al. Reasoning Gym","https://arxiv.org/abs/2505.24760"),
                       ("[4] Zheng et al. ProcessBench","https://arxiv.org/abs/2412.06559"),
                       ("[5] Shao et al. DeepSeekMath","https://arxiv.org/abs/2402.03300"),
-                      ("[6] Huang et al. From Accuracy to Robustness","https://arxiv.org/abs/2505.22203")]:
+                      ("[6] Huang et al. From Accuracy to Robustness","https://arxiv.org/abs/2505.22203"),
+                      ("[7] Qwen2.5-1.5B-Instruct, immutable checkpoint","https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306"),
+                      ("[8] Hugging Face TRL, GRPO trainer","https://huggingface.co/docs/trl/grpo_trainer"),
+                      ("[9] Hugging Face PEFT, quantization and adapter training","https://huggingface.co/docs/peft/developer_guides/quantization")]:
         line(f"<link color='#17665b' href='{url}'>{title}</link>")
     line("AI statement","Heading3")
     line("Codex wrote this codebase and paper. A human provided the exact specification that Codex executed. Human cleanup and rewriting are in progress.")
     def footer(canvas, doc):
-        canvas.setFont("Helvetica",8)
+        canvas.setFont("StudySans",8)
         canvas.drawRightString(191*mm,12*mm,str(doc.page))
     SimpleDocTemplate(str(REPORTS/"paper.pdf"),pagesize=A4,leftMargin=20*mm,rightMargin=20*mm,
                       topMargin=17*mm,bottomMargin=20*mm,title="Does a third LLM judge improve GRPO rewards?",
-                      author="Libor Burian",invariant=1).build(story,onFirstPage=footer,onLaterPages=footer)
+                      author="Libor “Burny” Burian",invariant=1).build(story,onFirstPage=footer,onLaterPages=footer)
 
 
 def build():
@@ -333,19 +421,51 @@ def build():
         assets += "![Development solver accuracy](docs/assets/outcomes.png)\n\n"
     if (DOCS/"assets/examples.png").exists():
         assets += "![Model outputs and exact labels on a common development problem](docs/assets/examples.png)\n\n"
+    completed_dev = {r["name"] for r in data["runs"] if r["completed_development"]}
+    completed_final = {r["name"] for r in data["runs"] if r["completed_final"]}
+    schedule = matrix()
+    milestones = [
+        ("Complete the frozen-judge solver comparison.", all(r.name in completed_dev for r in schedule if r.name.rsplit("-",1)[-1].isdigit())),
+        ("Evaluate Judge 3 on natural reviews and paired evidence changes.", {"base","exact-j3","alt-exact-j3","alt-top-j3"} <= completed_final),
+        ("Compare exact and top-down judge supervision and alternating training.", all(r.name in completed_dev for r in schedule if not r.name.rsplit("-",1)[-1].isdigit())),
+        ("Release complete paired held-out results, positive and negative examples, and the reproducible analysis.",
+         (RESULTS/"completed.json").is_file() and "delta" in primary)]
+    for label, done in milestones:
+        marker="- [x] " if done else "- [ ] "
+        post=post.replace("- [ ] "+label,marker+label).replace("- [x] "+label,marker+label)
     atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
+    methods=[]
     for r in data["runs"]:
-        obs=(f"Exact agreement on the recorded training outputs was {percent(r['train_exact'])}. "
-             f"The assigned reward averaged {percent(r['train_reward'])}. "
-             f"{r['zero_groups']} of {r['groups']} complete groups had identical rewards.") if r["groups"] else "Training observations are pending or this is a frozen evaluation."
-        meta=f"Role {r['role']}. Reward {r['reward']}. Seed {r['seed']}. The fixed architecture, curriculum, optimizer and sample definition are in the [registered protocol](../../preregistration.md)."
+        observations=[]
+        if r["groups"]:
+            observations.append(f"The exact checker accepted {percent(r['train_exact'])} of observed policy outputs. "
+                                f"The assigned reward averaged {percent(r['train_reward'])}. Of {r['observations']} rollouts, "
+                                f"{r['positive_on_incorrect']} received reward for an incorrect output and {r['zero_on_correct']} lost reward for a correct output. "
+                                f"{r['zero_groups']} of {r['groups']} complete groups had identical rewards.")
+        if r["dev_n"]:
+            if r["role"]=="solver":
+                observations.append(f"The solver completed {r['dev_correct_n']} of {r['dev_n']} development calculations exactly. "
+                                    f"Among {r['dev_malformed']} serialization failures, {r['dev_named_correct']} contained all correct numbers as named assignments.")
+            else:
+                observations.append(f"The updated reviewer gave an entirely correct decision and evidence record on {percent(r['dev'])} of {r['dev_n']} natural development traces.")
+            observations.append(f"On those same development traces, Judge 3 fixed {r['fixed']} of Judge 2’s verdicts and introduced {r['harmed']} errors.")
+        obs=" ".join(observations) or "The first complete observation is pending."
+        meta = training_method(r)
+        meta+=" The shared architecture, optimizer and sample definition are in the [registered protocol](../../preregistration.md)."
+        coverage = None
+        if r["dev_n"]:
+            malformed = r["dev_malformed"] if r["role"]=="solver" else r["replay"][int(r["role"][1:])-1]["malformed"]
+            coverage=1-malformed/r["dev_n"]
+        methods.append([r["name"],r["role"],r["reward"],r["seed"],"arithmetic" if r["role"]=="solver" else r["corpus"],
+                        percent(coverage),percent(r["dev"]),percent(r["test"])])
         atomic(experiments/r["name"]/"experiment.md",f"# {r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n{run_evidence(r)}\n\n[Machine observations](../../../results/{r['name']})\n")
-        atomic(experiments/r["name"]/"learnings.md",f"# Observations from {r['name']}\n\n{obs}\n\nNatural reviews corrected {r['fixed']} and introduced {r['harmed']} solution errors among {r['dev_n']} development traces. This is a within-trace comparison.\n")
+        atomic(experiments/r["name"]/"learnings.md",f"# Observations from {r['name']}\n\n{obs}\n\n[Raw measurements and denominators](experiment.md) · [Analysis amendments](../../amendments.md)\n")
         notes.append(f"- [{r['name']}]({r['name']}/learnings.md). {obs}")
     references="\n".join(f"- [{r['name']}]({r['name']}/experiment.md)" for r in data["runs"])
-    atomic(experiments/"experiments.md","# Experiment index\n\n"+score+"\n\nA complete trace has every intermediate integer correct. Judge accuracy requires the full evidence and decision record. [Architecture, objectives and curricula](../planned-runs.md)\n\n"+references+"\n")
+    methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
+    atomic(experiments/"experiments.md","# Experiment index\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
     complete=sum(r["completed_final"] for r in data["runs"] if r["name"]!="base")
     trained=sum(r["updates"] is not None for r in data["runs"])

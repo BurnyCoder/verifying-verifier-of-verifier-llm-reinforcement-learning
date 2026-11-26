@@ -38,6 +38,23 @@ def markdown(headers, records):
     return "\n".join("| " + " | ".join(map(str, line)) + " |" for line in lines)
 
 
+def training_method(run):
+    if run["name"]=="base":
+        return "The untrained Qwen solver and frozen reviewers provide the starting measurements."
+    source = run["initial"] or "a fresh LoRA initialization"
+    text = f"The {run['role']} adapter starts from {source} with seed {run['seed']}. Its reward rule is {run['reward']}. "
+    if run["role"]!="solver":
+        text += f"The judge corpus uses the {run['corpus']} solver. "
+        return text + (f"The frozen teacher is {run['teacher']}." if run["teacher"] else "The checker labels the complete evidence record.")
+    if run["reward"]=="oracle":
+        return text + "The exact checker supplies the complete-trace reward."
+    if run["reward"]=="flat":
+        return text + "Three independent first-order calls vote on the same solver response."
+    depth={"d1":1,"d2":2}.get(run["reward"],3)
+    reviewers=", ".join(j or "the base model" for j in run["judges"][:depth])
+    return text + f"Frozen reviewer calls in order use {reviewers}."
+
+
 def run_evidence(run):
     """Record natural-review changes, transfer accuracy and measured computational cost."""
     sections = []
@@ -67,6 +84,14 @@ def run_evidence(run):
     if twins:
         sections.extend(["### Paired evidence interventions",
                          markdown(["Split", "Problem pairs", "Whole pair exact", "Masked whole pair exact"], twins)])
+        fields = []
+        for condition, counts in run["evidence_fields"].items():
+            if counts["reports"]:
+                fields.append([condition, counts["reports"], counts["parsed"], counts["solution_bit"], counts["audit_bit"],
+                               f"{counts['localized_and_repaired']}/{counts['faults']}"])
+        if fields:
+            sections.append(markdown(["Condition", "Twin reports", "Six fields parsed", "Correct solution bit",
+                                      "Correct audit bit", "Fault located and repaired / faulty reviews"],fields))
         shared = sorted({name for name in run["evidence_sources"].values() if name != run["name"]})
         if shared:
             sections.append("These evidence measurements use the identical frozen reviewer from "+", ".join(shared)+". They are shared observations.")

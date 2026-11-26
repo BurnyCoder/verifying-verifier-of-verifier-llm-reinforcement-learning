@@ -55,8 +55,9 @@ def publish(milestone, run=None):
             "# Recursive judge GRPO adapters\n\nRole-specific Qwen adapters are stored under runs/RUN_ID. "
             "The base model revision is 989aa7980e4cf806f80c7fef2b1adb7bc71aa306. "
             f"[Study, run matrix and evaluation]({GITHUB}). "
-            f"[Raw data, logs and paper](https://huggingface.co/datasets/{DATA}).\n\n"
-            +(ROOT/"reports/summary.md").read_text(encoding="utf-8").split("\n\nDevelopment scores",1)[0])
+            f"[Raw data, logs and paper](https://huggingface.co/datasets/{DATA}). "
+            f"[Load an adapter]({GITHUB}/blob/main/docs/usage.md#using-a-published-adapter).\n\n"
+            +(ROOT/"reports/summary.md").read_text(encoding="utf-8").replace("(preregistration.md)",f"({GITHUB}/blob/main/reports/preregistration.md)"))
     api.upload_file(path_or_fileobj=card.encode(),path_in_repo="README.md",repo_id=MODELS,
                     commit_message=f"Update study card at {milestone}")
     if run and (adapter(run)/"adapter_config.json").is_file() and milestone.endswith("-trained"):

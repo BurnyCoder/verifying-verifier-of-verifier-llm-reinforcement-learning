@@ -41,3 +41,13 @@ def test_replay_errors_include_the_population_at_risk_and_independent_ballots():
     assert methods["D3"]["false_accept"] == methods["D3"]["invalid"] == 1
     assert methods["D2"]["false_reject"] == methods["D2"]["valid"] == 1
     assert methods["Flat"]["malformed"] == 1 and methods["Flat"]["reports"] == 6
+
+
+def test_partial_evidence_does_not_earn_whole_pair_credit():
+    from study.analysis import evidence_fields
+
+    sample=[dict(labels=[[1,0,7,0,1,7],[0,3,7,0,1,7]],
+                 visible=["1,0,7,0,1,7","0,3,6,0,1,7"],masked=["bad","bad"])]
+    visible=evidence_fields(sample,"visible")
+    assert visible==dict(reports=2,parsed=2,solution_bit=2,audit_bit=2,faults=1,localized_and_repaired=0)
+    assert evidence_fields(sample,"masked")["audit_bit"]==0

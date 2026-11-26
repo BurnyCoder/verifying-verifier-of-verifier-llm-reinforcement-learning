@@ -1,6 +1,6 @@
 # base
 
-Role solver. Reward untrained. Seed 17. The fixed architecture, curriculum, optimizer and sample definition are in the [registered protocol](../../preregistration.md).
+The untrained Qwen solver and frozen reviewers provide the starting measurements. The shared architecture, optimizer and sample definition are in the [registered protocol](../../preregistration.md).
 
 | Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |
 |---|---|---:|---:|---:|---:|---:|
@@ -26,5 +26,10 @@ The flat panel contributes three ballots per trace. A zero denominator means the
 | Split | Problem pairs | Whole pair exact | Masked whole pair exact |
 | --- | --- | --- | --- |
 | dev | 8 | 0.0% | 0.0% |
+
+| Condition | Twin reports | Six fields parsed | Correct solution bit | Correct audit bit | Fault located and repaired / faulty reviews |
+| --- | --- | --- | --- | --- | --- |
+| visible | 16 | 2 | 2 | 1 | 0/8 |
+| masked | 16 | 6 | 4 | 3 | 0/8 |
 
 [Machine observations](../../../results/base)
