@@ -1,0 +1,58 @@
+{
+  "time": "2026-11-26T14:11:03.996+00:00",
+  "run": {
+    "name": "d3-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base"
+  },
+  "updates": 256,
+  "elapsed_seconds": 6897.718999999999,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "solver": {
+      "calls": 1024,
+      "input_tokens": 104140,
+      "output_tokens": 34481,
+      "gpu_seconds": 2031.9090373535164,
+      "wall_seconds": 2032.1379999999972
+    },
+    "j1": {
+      "calls": 1024,
+      "input_tokens": 216588,
+      "output_tokens": 7155,
+      "gpu_seconds": 367.7529772338868,
+      "wall_seconds": 368.1390000000092
+    },
+    "j2": {
+      "calls": 1024,
+      "input_tokens": 334167,
+      "output_tokens": 24943,
+      "gpu_seconds": 1551.786614990235,
+      "wall_seconds": 1552.0620000000035
+    },
+    "j3": {
+      "calls": 1024,
+      "input_tokens": 364396,
+      "output_tokens": 23000,
+      "gpu_seconds": 1450.6562777099612,
+      "wall_seconds": 1451.1099999999942
+    },
+    "development_solver": {
+      "calls": 64,
+      "input_tokens": 6304,
+      "output_tokens": 2161,
+      "gpu_seconds": 80.14329931640626,
+      "wall_seconds": 80.17299999999796
+    }
+  }
+}

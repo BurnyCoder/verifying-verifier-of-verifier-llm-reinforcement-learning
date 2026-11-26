@@ -1,0 +1,19 @@
+{
+  "run": {
+    "name": "d3-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T12:16:04.929+00:00"
+}

@@ -1,6 +1,6 @@
 # Progress · 2026-11-26
 
-0 of 32 registered training blocks have completed. 0 have completed final evaluation. Registered primary comparison: pending.
+1 of 32 registered training blocks have completed. 0 have completed final evaluation. Registered primary comparison is pending.
 
 The timing pilot selected 256 updates per block at 38.3 seconds per pilot update. A block at that rate would take 2.72 hours.
 
