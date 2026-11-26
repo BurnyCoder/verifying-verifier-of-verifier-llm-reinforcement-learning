@@ -34,3 +34,4 @@ Judge 3 solved 0.0% of 16 complete evidence pairs with the review visible and 0.
 | Checkpoint | Problems | Parsed | Entire trace correct | Exact accuracy |
 | --- | --- | --- | --- | --- |
 | base | 256 | 256 | 153 | 59.8% |
+| learn-oracle-17 | 256 | 255 | 246 | 96.1% |

@@ -13807,7 +13807,23 @@
         },
         "unfinished_generation_batches": 0
       },
-      "learn-oracle-17": null,
+      "learn-oracle-17": {
+        "time": "2026-11-26T14:41:56.963+00:00",
+        "n": 256,
+        "correct": 246,
+        "parsed": 255,
+        "weights": "d5617b63096e2810c535e90176ac6ca0752db142fda55946e258bea60656d313",
+        "usage": {
+          "validation_solver": {
+            "calls": 256,
+            "input_tokens": 42076,
+            "output_tokens": 1479,
+            "gpu_seconds": 55.59339770507811,
+            "wall_seconds": 55.64100000000144
+          }
+        },
+        "unfinished_generation_batches": 0
+      },
       "learn-shuffle-17": null
     }
   },
