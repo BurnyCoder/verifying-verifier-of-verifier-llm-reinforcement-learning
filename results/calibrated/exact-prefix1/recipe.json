@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "exact-prefix1",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      "exact-j1",
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T21:58:47.989+00:00"
+}
