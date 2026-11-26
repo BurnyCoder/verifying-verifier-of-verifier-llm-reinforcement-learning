@@ -22,7 +22,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | d2-17 | solver | 256 | 78.1% | 32 | — | 0 |
 | d1-17 | solver | 256 | 65.6% | 32 | — | 0 |
 | flat-17 | solver | 256 | 75.0% | 32 | — | 0 |
-| oracle-17 | solver | 256 | — | 0 | — | 0 |
+| oracle-17 | solver | 256 | 100.0% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
