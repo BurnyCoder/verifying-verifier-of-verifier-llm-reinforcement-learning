@@ -14,6 +14,7 @@ from trl import GRPOConfig, GRPOTrainer
 
 from .backend import Backend, stream_seed
 from .checkpoints import last_complete
+from .curriculum import curriculum_problems
 from .design import matrix, permute_groups
 from .domain import Problem, problems
 from .judging import chain, make_example, majority, votes
@@ -53,7 +54,7 @@ def corpus(backend, run, pool):
 
 
 def training_data(backend, run, count):
-    pool = problems("train", max(32, count))
+    pool = curriculum_problems(run.family,"train",max(32,count)) if run.family else problems("train", max(32, count))
     natural = corpus(backend, run, pool) if run.role != "solver" else {}
     records = []
     for i, p in enumerate(pool):
@@ -80,8 +81,10 @@ class Reward:
         if run.role == "solver":
             truth = [solver_truth(p, answer) for p, answer in zip(dataset, completions, strict=True)]
             labels = [r[0] for r in truth]
-            if run.reward == "oracle":
+            if run.reward in ("oracle","oracle-shuffle"):
                 rewards = labels.copy()
+                if run.reward=="oracle-shuffle":
+                    rewards = permute_groups(rewards,random.Random(seed))
             elif run.reward == "flat":
                 histories = votes(self.backend, dataset, completions, seed, run.judges)
                 rewards = [majority(h) for h in histories]
@@ -146,7 +149,7 @@ class Metrics(TrainerCallback):
                elapsed_seconds=self.prior_seconds+time.monotonic()-self.started))
         if self.run.name == "timing" or state.global_step % 32 or self.run.role != "solver":
             return
-        batch = problems("dev", 8)
+        batch = curriculum_problems(self.run.family,"confirm",8) if self.run.family else problems("dev", 8)
         answers = self.backend.generate([self.backend.prompt("solver", p) for p in batch], "@active",
                                         "development_solver", 911, False)
         correct = sum(solver_truth(p, t)[0] for p, t in zip(batch, answers, strict=True))
@@ -170,6 +173,7 @@ def train(run, steps):
     journal = Journal(run.name)
     backend = Backend(journal, run.initial, frozen_sources(run), run.seed)
     backend.label = run.role
+    backend.prompt_style = run.prompt_style
     data = training_data(backend, run, steps)
     work = STATE / "runs" / run.name / "trainer"
     work.mkdir(parents=True, exist_ok=True)

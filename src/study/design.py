@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 SEEDS = (17, 29, 43)
+PILOTS = ("learn-oracle-17","learn-shuffle-17")
 BASE = "Qwen/Qwen2.5-1.5B-Instruct"
 REVISION = "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
 PROJECT = "verifying-verifier-of-verifier-llm-reinforcement-learning"
@@ -20,6 +21,8 @@ class Run:
     initial: str | None = None
     teacher: str | None = None
     corpus: str = "base"
+    family: str | None = None
+    prompt_style: str = "registered"
 
     @property
     def dependencies(self):
