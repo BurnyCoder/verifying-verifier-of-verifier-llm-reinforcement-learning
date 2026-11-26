@@ -18,3 +18,13 @@ The frozen-model screen and the checkpoint comparison answer different questions
 The registered rule selected two-add with demonstrated prompts.
 
 Independent confirmation passed. On 48 problems, 99.0% of sampled outputs parsed, 54.2% were exact, and 16 groups contained both correct and incorrect answers.
+
+## Frozen judges on balanced correct and incorrect traces
+
+| Judge | Valid | Invalid | Sensitivity | Specificity | Balanced accuracy | Whole record exact | Malformed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 16 | 16 | 81.2% | 12.5% | 46.9% | 40.6% | 0 |
+| 2 | 16 | 16 | 68.8% | 12.5% | 40.6% | 34.4% | 0 |
+| 3 | 16 | 16 | 62.5% | 18.8% | 40.6% | 31.2% | 2 |
+
+Judge 3 solved 0.0% of 16 complete evidence pairs with the review visible and 0.0% with evidence masked.

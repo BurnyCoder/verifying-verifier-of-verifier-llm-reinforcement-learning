@@ -9252,7 +9252,82 @@
       },
       "unfinished_generation_batches": 0
     },
-    "audit": null,
+    "audit": {
+      "time": "2026-11-26T14:26:53.018+00:00",
+      "judges": [
+        {
+          "level": 1,
+          "valid": 16,
+          "invalid": 16,
+          "sensitivity": 0.8125,
+          "specificity": 0.125,
+          "balanced_accuracy": 0.46875,
+          "evidence": 0.40625,
+          "malformed": 0
+        },
+        {
+          "level": 2,
+          "valid": 16,
+          "invalid": 16,
+          "sensitivity": 0.6875,
+          "specificity": 0.125,
+          "balanced_accuracy": 0.40625,
+          "evidence": 0.34375,
+          "malformed": 0
+        },
+        {
+          "level": 3,
+          "valid": 16,
+          "invalid": 16,
+          "sensitivity": 0.625,
+          "specificity": 0.1875,
+          "balanced_accuracy": 0.40625,
+          "evidence": 0.3125,
+          "malformed": 2
+        }
+      ],
+      "pairs": 16,
+      "visible": 0,
+      "masked": 0,
+      "usage": {
+        "j1": {
+          "calls": 32,
+          "input_tokens": 9052,
+          "output_tokens": 220,
+          "gpu_seconds": 5.738905029296874,
+          "wall_seconds": 5.751000000002023
+        },
+        "j2": {
+          "calls": 32,
+          "input_tokens": 14200,
+          "output_tokens": 435,
+          "gpu_seconds": 9.67573193359375,
+          "wall_seconds": 9.670999999998457
+        },
+        "j3": {
+          "calls": 32,
+          "input_tokens": 17163,
+          "output_tokens": 437,
+          "gpu_seconds": 11.410634033203126,
+          "wall_seconds": 11.405000000002474
+        },
+        "j3_visible": {
+          "calls": 32,
+          "input_tokens": 17168,
+          "output_tokens": 447,
+          "gpu_seconds": 11.659070556640627,
+          "wall_seconds": 11.656000000000859
+        },
+        "j3_masked": {
+          "calls": 32,
+          "input_tokens": 16984,
+          "output_tokens": 416,
+          "gpu_seconds": 10.57145654296875,
+          "wall_seconds": 10.593000000000757
+        }
+      },
+      "unfinished_generation_batches": 0
+    },
     "learning": null,
     "evaluations": {
       "base": null,
