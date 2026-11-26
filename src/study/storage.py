@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -85,12 +86,33 @@ def retain(path, predicate):
         atomic(path, "".join(line + "\n" for line in data))
 
 
+def generation_cost(run, fallback):
+    """Include completed GPU generations from every attempt, including repeated evaluation batches."""
+    totals, unfinished = {}, 0
+    fields = ("calls", "input_tokens", "output_tokens", "gpu_seconds", "wall_seconds")
+    for path in sorted((log_directory()/run).glob("*.jsonl")):
+        started = finished = 0
+        for event in rows(path):
+            if event["event"] == "prompts":
+                started += 1
+            elif event["event"] == "outputs":
+                finished += 1
+                counts = totals.setdefault(event["role"], dict.fromkeys(fields, 0))
+                for field in fields:
+                    counts[field] += event[field]
+        unfinished += max(0, started-finished)
+    return dict(usage=totals or fallback, unfinished_generation_batches=unfinished)
+
+
 class Journal:
     """Mirror complete public model inputs and outputs to a timestamped log and terminal."""
 
     def __init__(self, run):
         self.run = run
         self.path = log_directory() / run / (stamp().replace(":", "-") + ".jsonl")
+        # A redirected Windows console can default to CP1252. Keep the terminal and UTF-8 file faithful.
+        if hasattr(sys.stdout,"reconfigure") and (sys.stdout.encoding or "").lower().replace("-","") != "utf8":
+            sys.stdout.reconfigure(encoding="utf-8")
 
     def event(self, event, **values):
         record = {"time": stamp(), "run": self.run, "event": event, **values}

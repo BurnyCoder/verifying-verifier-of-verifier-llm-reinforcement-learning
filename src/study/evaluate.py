@@ -9,7 +9,7 @@ from .domain import problems
 from .exposures import check_exposures
 from .judging import chain, majority, twin, votes
 from .records import expected, mask_evidence, parse, solver_truth, sound, terminal
-from .storage import RESULTS, Journal, adapter, append, atomic, read_json, rows, stamp, write_json
+from .storage import RESULTS, Journal, adapter, append, atomic, generation_cost, read_json, rows, stamp, write_json
 
 
 def weights_digest(name):
@@ -169,6 +169,6 @@ def evaluate(name, final=False):
             evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, "dev", 8, filename,
                                                          pool=population(profile, "dev", 8))
     result = {"time": stamp(), "phase": phase, "weights": weights_digest(name) if run else "frozen base",
-              "usage": backend.totals, "evidence_sources": evidence_sources, "profile": profile}
+              **generation_cost(name+"-"+phase,backend.totals), "evidence_sources": evidence_sources, "profile": profile}
     write_json(marker, result)
     return result
