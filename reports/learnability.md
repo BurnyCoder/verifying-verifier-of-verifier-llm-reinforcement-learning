@@ -101,3 +101,5 @@ Comparator
 14,20
 Exact-trained
 14,19</pre>
+
+[Independent arithmetic replay, paired estimates and realized split checks](reviews/learning-control.md).

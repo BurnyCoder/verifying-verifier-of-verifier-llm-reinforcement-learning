@@ -9693,5 +9693,14 @@
     "time": "2026-11-26T12:13:18.581+00:00"
   },
   "sealed": false,
-  "completed": false
+  "completed": false,
+  "learning_review": {
+    "training": 128,
+    "validation": 256,
+    "scored": 768,
+    "overlap": 0,
+    "exposure_hash": "e92fcd4a7337f53b79ecebfc388677456f3274d6ae28527bbb5d975aa7421357",
+    "fixed": 96,
+    "harmed": 3
+  }
 }
