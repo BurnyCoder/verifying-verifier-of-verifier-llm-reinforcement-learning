@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "learn-shuffle-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "oracle-shuffle",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 128,
+  "group": 4,
+  "started": "2026-11-26T14:43:21.386+00:00"
+}

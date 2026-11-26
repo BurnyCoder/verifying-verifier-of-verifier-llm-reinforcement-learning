@@ -1,0 +1,2 @@
+{"time": "2026-11-26T14:47:11.546+00:00", "run": "learn-shuffle-17", "phase": "train", "elapsed_seconds": 300.03199999999924, "step": 32, "target_updates": 128, "remaining_seconds": 676.6410000000014, "next_check_seconds": 300}
+{"time": "2026-11-26T14:52:11.614+00:00", "run": "learn-shuffle-17", "phase": "train", "elapsed_seconds": 600.0939999999991, "step": 81, "target_updates": 128, "remaining_seconds": 305.54525925926004, "next_check_seconds": 300}

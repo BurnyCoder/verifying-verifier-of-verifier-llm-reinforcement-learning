@@ -1,0 +1,40 @@
+{
+  "time": "2026-11-26T14:55:23.980+00:00",
+  "run": {
+    "name": "learn-shuffle-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "oracle-shuffle",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 128,
+  "elapsed_seconds": 721.5310000000009,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "solver": {
+      "calls": 512,
+      "input_tokens": 84108,
+      "output_tokens": 2968,
+      "gpu_seconds": 164.87985675048833,
+      "wall_seconds": 165.17199999998047
+    },
+    "development_solver": {
+      "calls": 32,
+      "input_tokens": 5264,
+      "output_tokens": 173,
+      "gpu_seconds": 5.360849914550782,
+      "wall_seconds": 5.376000000002023
+    }
+  },
+  "unfinished_generation_batches": 0
+}

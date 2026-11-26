@@ -7,9 +7,11 @@ All learned models use grouped reinforcement learning with one active LoRA adapt
 | base | solver | untrained | 17 | arithmetic | 18.8% | 0.0% | — |
 | d3-17 | solver | d3 | 17 | arithmetic | 0.0% | 0.0% | — |
 | learn-oracle-17 | solver | oracle | 17 | arithmetic | — | — | — |
+| learn-shuffle-17 | solver | oracle-shuffle | 17 | arithmetic | — | — | — |
 
 [Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)
 
 - [base](base/experiment.md)
 - [d3-17](d3-17/experiment.md)
 - [learn-oracle-17](learn-oracle-17/experiment.md)
+- [learn-shuffle-17](learn-shuffle-17/experiment.md)
