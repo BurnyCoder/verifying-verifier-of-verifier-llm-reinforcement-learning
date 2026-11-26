@@ -110,4 +110,5 @@ def learnability_text(data):
                 text = (f"Problem   {ex['expression']}\nExpected  {reference}\nComparator\n{ex['comparator']}"
                         f"\nExact-trained\n{ex['trained']}")
                 out.append(f"{ex['stratum']} · {ex['change']}\n\n<pre>{escape(text)}</pre>")
+        out.append("[Independent arithmetic replay, paired estimates and realized split checks](reviews/learning-control.md).")
     return "\n\n".join(out)+"\n"

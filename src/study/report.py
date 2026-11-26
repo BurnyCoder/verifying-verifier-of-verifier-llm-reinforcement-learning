@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .design import GITHUB, PAGES, PILOTS, Run, matrix
 from .learnability_report import collect_learnability, learnability_text, learning_figure
+from .learning_review import check_release, review_text
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
@@ -351,6 +352,9 @@ def paper(data, date):
                 table(["Formatting on the same problem","Problems","Gains","Losses"],
                       [[g["stratum"],g["n"],g["gains"],g["losses"]] for g in groups])
                 line("A gain when both responses already parse requires a corrected arithmetic trace. A gain in a newly parseable response can combine arithmetic and formatting changes.")
+            if data.get("learning_review"):
+                audit=data["learning_review"]
+                line(f"The replay audit reproduced all {audit['scored']} response grades and both paired intervals. The two training arms shared {audit['training']} unique prompts in identical order. The training, screening, confirmation and validation partitions had {audit['overlap']} shared canonical problem IDs.")
     primary = data["primary"]
     if "delta" in primary:
         line(f"The equally weighted paired difference is {primary['delta']*100:.2f} percentage points. The conditional 95% problem-bootstrap interval is [{primary['ci'][0]*100:.2f}, {primary['ci'][1]*100:.2f}] points. The registered decision is {primary['status']}.")
@@ -448,6 +452,12 @@ def paper(data, date):
 
 def build():
     data = collect()
+    data["learning_review"] = check_release(ORIGINAL_RESULTS)
+    review_file = REPORTS/"reviews/learning-control.md"
+    if data["learning_review"]:
+        atomic(review_file,review_text(data["learning_review"]))
+    else:
+        review_file.unlink(missing_ok=True)
     date = datetime.now(ZoneInfo("Europe/Berlin")).date().isoformat()
     figures(data)
     write_json(DOCS/"assets/study.json", data)
