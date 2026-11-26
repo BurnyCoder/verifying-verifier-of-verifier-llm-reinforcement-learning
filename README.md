@@ -18,7 +18,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |
 |---|---|---:|---:|---:|---:|---:|
 | base | solver | — | 62.5% | 32 | — | 0 |
-| d3-17 | solver | 256 | — | 0 | — | 0 |
+| d3-17 | solver | 256 | 9.4% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
@@ -29,6 +29,8 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 On the original signed development population, base solved 0/32, d3-17 solved 0/32.
 
 **Untrained solver.** Every step was correct on 20 of 32 development problems. Of 0 malformed outputs, 0 contained all correct numbers as named assignments. Judge 3 corrected 0 of Judge 2’s verdicts and introduced 2 errors on these traces.
+
+**First three-judge-trained solver.** Every step was correct on 3 of 32 development problems. Of 1 malformed outputs, 0 contained all correct numbers as named assignments. Judge 3 corrected 1 of Judge 2’s verdicts and introduced 1 errors on these traces.
 
 [Interactive results explorer](https://burnycoder.github.io/verifying-verifier-of-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)
 <!-- RESULTS:END -->
