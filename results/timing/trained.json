@@ -1,0 +1,51 @@
+{
+  "time": "2026-11-26T12:13:18.579+00:00",
+  "run": {
+    "name": "timing",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base"
+  },
+  "updates": 4,
+  "elapsed_seconds": 153.15700000000015,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "solver": {
+      "calls": 16,
+      "input_tokens": 1576,
+      "output_tokens": 255,
+      "gpu_seconds": 47.510875,
+      "wall_seconds": 47.516999999999825
+    },
+    "j1": {
+      "calls": 16,
+      "input_tokens": 3046,
+      "output_tokens": 108,
+      "gpu_seconds": 5.306689514160157,
+      "wall_seconds": 5.32799999999952
+    },
+    "j2": {
+      "calls": 16,
+      "input_tokens": 4879,
+      "output_tokens": 390,
+      "gpu_seconds": 29.967125,
+      "wall_seconds": 29.96900000000005
+    },
+    "j3": {
+      "calls": 16,
+      "input_tokens": 5351,
+      "output_tokens": 335,
+      "gpu_seconds": 24.778536987304687,
+      "wall_seconds": 24.796000000000276
+    }
+  }
+}

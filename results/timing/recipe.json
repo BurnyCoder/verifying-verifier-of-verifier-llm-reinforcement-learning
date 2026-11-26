@@ -1,0 +1,19 @@
+{
+  "run": {
+    "name": "timing",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base"
+  },
+  "updates": 4,
+  "group": 4,
+  "started": "2026-11-26T12:10:41.001+00:00"
+}
