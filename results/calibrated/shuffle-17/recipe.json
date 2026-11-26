@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "shuffle-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "shuffle",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T18:45:47.197+00:00"
+}
