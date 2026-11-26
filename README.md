@@ -9,16 +9,10 @@ For example, a solver can give the right final answer to (4 + 3) × 2 while reco
 
 ![Learning validation for the exact-reward and shuffled controls](docs/assets/learnability.png)
 
-![Development solver accuracy](docs/assets/outcomes.png)
-
-![Model outputs and exact labels on a common development problem](docs/assets/examples.png)
-
-Registered primary comparison is pending.
+Amended primary comparison is pending. Every arm uses two-add problems and demonstrated prompts.
 
 | Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |
 |---|---|---:|---:|---:|---:|---:|
-| base | solver | — | 0.0% | 32 | — | 0 |
-| d3-17 | solver | 256 | 0.0% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
@@ -26,9 +20,7 @@ Registered primary comparison is pending.
 
 **Solver learning.** Exact-reward training changed complete-trace accuracy on 256 fresh problems by +36.3 percentage points relative to the starting solver (paired 95% interval +30.1 to +42.6). [Shuffled control and arithmetic corrections](reports/learnability.md).
 
-**Untrained solver.** Every step was correct on 0 of 32 development problems. Of 26 malformed outputs, 5 contained all correct numbers as named assignments. Judge 3 corrected 0 of Judge 2’s verdicts and introduced 1 errors on these traces.
-
-**First three-judge-trained solver.** Every step was correct on 0 of 32 development problems. Of 32 malformed outputs, 0 contained all correct numbers as named assignments. Judge 3 corrected 0 of Judge 2’s verdicts and introduced 0 errors on these traces.
+On the original signed development population, base solved 0/32, d3-17 solved 0/32.
 
 [Interactive results explorer](https://burnycoder.github.io/verifying-verifier-of-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)
 <!-- RESULTS:END -->
