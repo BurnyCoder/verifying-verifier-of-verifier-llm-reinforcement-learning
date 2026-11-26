@@ -55,3 +55,19 @@ def replay_metrics(sample):
                             false_reject=sum(a == 0 and b == 1 for a,b in pairs), malformed=malformed,
                             reports=len(pairs) if order < 3 else sum(len(r["votes"]) for r in sample)))
     return results
+
+
+def evidence_fields(pairs, condition):
+    """Distinguish a correct solution bit from identifying and repairing faulty review evidence."""
+    counts = dict(reports=0, parsed=0, solution_bit=0, audit_bit=0, faults=0, localized_and_repaired=0)
+    for pair in pairs:
+        for answer, expected in zip(pair[condition], pair["labels"], strict=True):
+            counts["reports"] += 1
+            counts["faults"] += expected[0]==0
+            observed = parse(answer, 6)
+            if observed is not None:
+                counts["parsed"] += 1
+                counts["solution_bit"] += observed[3]==expected[3]
+                counts["audit_bit"] += observed[0]==expected[0]
+                counts["localized_and_repaired"] += expected[0]==0 and observed[:3]==tuple(expected[:3])
+    return counts

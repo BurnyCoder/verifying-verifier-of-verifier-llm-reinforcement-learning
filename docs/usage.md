@@ -19,3 +19,23 @@ The seal verifies prompt order and every four-completion group from the raw trai
 The campaign writes scheduled checks to each run's `monitor.jsonl`, the terminal and `reports/progress.md`. It uses measured throughput to estimate remaining training time. Checks on ongoing final evaluations disclose only completed record counts. A worker exit wakes the supervisor immediately.
 
 For a fresh replication after cloning a release that already contains observations, set both `STUDY_STATE=.local/replication/checkpoints` and `STUDY_RESULTS=.local/replication/results` in the local environment, then run the ordinary campaign. The report command reads the same paths. Use a distinct pair of directories for another independent replication. Omit these two overrides to regenerate the published tables from the committed observation files.
+
+## Using a published adapter
+
+The model repository stores the adapter for each completed training run in `runs/RUN_ID`. Download a released directory and load its adapter on the pinned base model. The `timing` directory contains the disposable timing-policy adapter. For a solver or judge treatment select its named directory in the model repository. The study runtime loads the base with the registered NF4 configuration in `src/study/backend.py`. [Released adapters](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/main/runs) · [PEFT checkpoint format](https://huggingface.co/docs/peft/developer_guides/checkpoint)
+
+```sh
+hf download BurnyCoder/recursive-judge-grpo-adapters --include 'runs/timing/*' --local-dir .local/release
+```
+
+```python
+from peft import PeftModel
+from transformers import AutoModelForCausalLM
+
+base = AutoModelForCausalLM.from_pretrained(
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    revision="989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    dtype="auto",
+)
+policy = PeftModel.from_pretrained(base, ".local/release/runs/timing").eval()
+```
