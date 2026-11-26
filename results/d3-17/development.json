@@ -1,0 +1,47 @@
+{
+  "time": "2026-11-26T14:20:29.155+00:00",
+  "phase": "development",
+  "weights": "b5ecb22f65d3cf53ea589fa91e8190982c0aaba9755501c2e3a9276d26043eea",
+  "usage": {
+    "eval_solver": {
+      "calls": 40,
+      "input_tokens": 4012,
+      "output_tokens": 1587,
+      "gpu_seconds": 41.19267919921875,
+      "wall_seconds": 41.23599999999897
+    },
+    "j1": {
+      "calls": 40,
+      "input_tokens": 8648,
+      "output_tokens": 289,
+      "gpu_seconds": 8.214175842285156,
+      "wall_seconds": 8.217000000002372
+    },
+    "j2": {
+      "calls": 40,
+      "input_tokens": 13248,
+      "output_tokens": 1080,
+      "gpu_seconds": 33.496295898437495,
+      "wall_seconds": 33.501000000000204
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 11620,
+      "output_tokens": 803,
+      "gpu_seconds": 26.23615380859375,
+      "wall_seconds": 26.21900000000096
+    },
+    "flat_j1": {
+      "calls": 96,
+      "input_tokens": 20790,
+      "output_tokens": 670,
+      "gpu_seconds": 21.647052795410158,
+      "wall_seconds": 21.653999999996813
+    }
+  },
+  "unfinished_generation_batches": 1,
+  "evidence_sources": {
+    "development-twins.jsonl": "base"
+  },
+  "profile": {}
+}

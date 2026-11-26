@@ -298,11 +298,11 @@
       "zero_on_correct": 0,
       "zero_groups": 227,
       "groups": 256,
-      "dev_n": 0,
-      "dev": null,
-      "dev_final": null,
+      "dev_n": 32,
+      "dev": 0,
+      "dev_final": 0,
       "dev_correct_n": 0,
-      "dev_malformed": 0,
+      "dev_malformed": 32,
       "dev_named_correct": 0,
       "test_named_correct": 0,
       "test_n": 0,
@@ -363,24 +363,24 @@
           "reports": 0
         }
       ],
-      "twins_n": 0,
-      "twins": null,
-      "masked": null,
+      "twins_n": 8,
+      "twins": 0,
+      "masked": 0,
       "evidence_fields": {
         "visible": {
-          "reports": 0,
-          "parsed": 0,
-          "solution_bit": 0,
-          "audit_bit": 0,
-          "faults": 0,
+          "reports": 16,
+          "parsed": 2,
+          "solution_bit": 2,
+          "audit_bit": 1,
+          "faults": 8,
           "localized_and_repaired": 0
         },
         "masked": {
-          "reports": 0,
-          "parsed": 0,
-          "solution_bit": 0,
-          "audit_bit": 0,
-          "faults": 0,
+          "reports": 16,
+          "parsed": 6,
+          "solution_bit": 4,
+          "audit_bit": 3,
+          "faults": 8,
           "localized_and_repaired": 0
         }
       },
@@ -397,57 +397,97 @@
         "visible": null,
         "masked": null
       },
-      "evidence_sources": {},
-      "twin_split": null,
-      "paired_example": null,
+      "evidence_sources": {
+        "development-twins.jsonl": "base"
+      },
+      "twin_split": "dev",
+      "paired_example": {
+        "key": "36cbaf13df6c3fdc08a091f0b10ec9db5acb8fa63404320855b9e9c43e087aa0",
+        "expression": "(-5 * -8) - -7",
+        "trace": "40,47",
+        "first": "1,0,47",
+        "reviews": [
+          "1,0,47,1,0,47",
+          "1,0,46,1,0,47"
+        ],
+        "labels": [
+          [
+            1,
+            0,
+            47,
+            1,
+            0,
+            47
+          ],
+          [
+            0,
+            3,
+            47,
+            1,
+            0,
+            47
+          ]
+        ],
+        "visible": [
+          "0,-1,0",
+          "0,-1,0"
+        ],
+        "masked": [
+          "0,-1,0",
+          "0,-1,0"
+        ],
+        "split": "dev",
+        "visible_pair": 0,
+        "masked_pair": 0
+      },
       "replay": [
         {
           "method": "D1",
-          "n": 0,
+          "n": 32,
           "valid": 0,
-          "invalid": 0,
-          "agreement": null,
+          "invalid": 32,
+          "agreement": 1.0,
           "evidence_correct": 0,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": 0,
-          "reports": 0
+          "malformed": 32,
+          "reports": 32
         },
         {
           "method": "D2",
-          "n": 0,
+          "n": 32,
           "valid": 0,
-          "invalid": 0,
-          "agreement": null,
+          "invalid": 32,
+          "agreement": 1.0,
           "evidence_correct": 0,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": 0,
-          "reports": 0
+          "malformed": 22,
+          "reports": 32
         },
         {
           "method": "D3",
-          "n": 0,
+          "n": 32,
           "valid": 0,
-          "invalid": 0,
-          "agreement": null,
+          "invalid": 32,
+          "agreement": 1.0,
           "evidence_correct": 0,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": 0,
-          "reports": 0
+          "malformed": 23,
+          "reports": 32
         },
         {
           "method": "Flat",
-          "n": 0,
+          "n": 32,
           "valid": 0,
-          "invalid": 0,
-          "agreement": null,
+          "invalid": 32,
+          "agreement": 1.0,
           "evidence_correct": null,
           "false_accept": 0,
           "false_reject": 0,
-          "malformed": 0,
-          "reports": 0
+          "malformed": 87,
+          "reports": 96
         }
       ],
       "curves": [
@@ -8960,8 +9000,60 @@
           "epoch": 1.0
         }
       ],
-      "examples": [],
-      "common_example": null,
+      "examples": [
+        {
+          "key": "36cbaf13df6c3fdc08a091f0b10ec9db5acb8fa63404320855b9e9c43e087aa0",
+          "expression": "(-5 * -8) - -7",
+          "problem": [
+            "s1 = -5 * -8",
+            "s2 = s1 - -7"
+          ],
+          "trace": "s1 = -5 * -8 = 40\ns2 = s1 - (-7) = 40 + 7 = 47",
+          "expected_values": [
+            40,
+            47
+          ],
+          "correct": 0,
+          "final_correct": 0,
+          "malformed": true,
+          "split": "dev",
+          "reports": [
+            "valid,step,40",
+            "Step 1: Analyze the provided solutions to understand why it may or may not be correct.\n\n- **Solution**: The computed result for `s1` is incorrect because it applies multiplication before addition.\n  \n- **Submitted Solution**: The",
+            "0,-1,0"
+          ],
+          "votes": [
+            "Valid,Step1,40",
+            "valid,step,s2",
+            "valid,step,s1"
+          ],
+          "verdicts": [
+            0,
+            0,
+            0
+          ],
+          "flat": 0,
+          "full_report_correct": [
+            0,
+            0,
+            0
+          ],
+          "judge_malformed": [
+            true,
+            true,
+            true
+          ],
+          "fixed": 0,
+          "harmed": 0
+        }
+      ],
+      "common_example": {
+        "key": "36cbaf13df6c3fdc08a091f0b10ec9db5acb8fa63404320855b9e9c43e087aa0",
+        "expression": "(-5 * -8) - -7",
+        "actual": "s1 = -5 * -8 = 40\ns2 = s1 - (-7) = 40 + 7 = 47",
+        "expected": "40,47",
+        "correct": 0
+      },
       "usage": {
         "solver": {
           "calls": 1024,
@@ -9002,7 +9094,7 @@
       "elapsed_seconds": 6897.718999999999,
       "transfer": {},
       "completed_final": false,
-      "completed_development": false
+      "completed_development": true
     }
   ],
   "primary": {

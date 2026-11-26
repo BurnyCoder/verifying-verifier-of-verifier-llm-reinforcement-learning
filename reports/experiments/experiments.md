@@ -5,7 +5,7 @@ All learned models use grouped reinforcement learning with one active LoRA adapt
 | Run | Role | Reward | Seed | Problem source | Dev. parsed | Dev. exact | Held-out exact |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | base | solver | untrained | 17 | arithmetic | 18.8% | 0.0% | — |
-| d3-17 | solver | d3 | 17 | arithmetic | — | — | — |
+| d3-17 | solver | d3 | 17 | arithmetic | 0.0% | 0.0% | — |
 
 [Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)
 
