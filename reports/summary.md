@@ -18,7 +18,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | top-j2 | j2 | 256 | 43.8% | 32 | — | 0 |
 | top-j1 | j1 | 256 | 50.0% | 32 | — | 0 |
 | exact-prefix1 | solver | 256 | 75.0% | 32 | — | 0 |
-| exact-prefix2 | solver | 256 | — | 0 | — | 0 |
+| exact-prefix2 | solver | 256 | 12.5% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
