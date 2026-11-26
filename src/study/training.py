@@ -35,14 +35,18 @@ def corpus(backend, run, pool):
     path = RESULTS / "corpora" / (run.corpus+".jsonl")
     saved = {r["key"]: r for r in rows(path)}
     origin = next((r for r in matrix() if r.name == run.corpus), None)
-    needed = [p for i, p in enumerate(pool) if i % 4 == 0 and p.key not in saved]
+    needed = [p for i, p in enumerate(pool) if i % 4 == 0]
     for offset in range(0, len(needed), 4):
         batch = needed[offset:offset+4]
+        if all(p.key in saved for p in batch):
+            continue
         seed = stream_seed("corpus", run.corpus, batch[0].key)
         traces = backend.generate([backend.prompt("solver", p) for p in batch], origin.name if origin else None,
                                   "corpus_solver", seed, True)
         histories = chain(backend, batch, traces, origin.judges if origin else (None,)*3, 2, seed)
         for p, t, h in zip(batch, traces, histories, strict=True):
+            if p.key in saved:
+                continue
             entry = {"key": p.key, "expression": p.expression, "trace": t, "reports": h}
             append(path, entry)
             saved[p.key] = entry
@@ -125,9 +129,10 @@ def frozen_fingerprint(model):
 
 
 class Metrics(TrainerCallback):
-    def __init__(self, backend, run, steps):
+    def __init__(self, backend, run, steps, prior_seconds=0):
         self.backend, self.run, self.steps = backend, run, steps
         self.started = None
+        self.prior_seconds = prior_seconds
 
     def on_train_begin(self, args, state, control, **kwargs):
         self.started = time.monotonic()
@@ -138,6 +143,8 @@ class Metrics(TrainerCallback):
             append(RESULTS / self.run.name / "metrics.jsonl", dict(step=state.global_step, time=stamp(), **values))
 
     def on_step_end(self, args, state, control, **kwargs):
+        append(RESULTS / self.run.name / "cost.jsonl",dict(step=state.global_step,usage=self.backend.totals,
+               elapsed_seconds=self.prior_seconds+time.monotonic()-self.started))
         if self.run.name == "timing" or state.global_step % 32 or self.run.role != "solver":
             return
         batch = problems("dev", 8)
@@ -164,6 +171,12 @@ def train(run, steps):
     last_step = completed.get("global_step", 0)
     retain(out / "rollouts.jsonl", lambda row: row["step"] < last_step)
     retain(out / "metrics.jsonl", lambda row: row["step"] <= last_step)
+    retain(out / "cost.jsonl", lambda row: row["step"] <= last_step)
+    latest_cost=next(reversed(list(rows(out/"cost.jsonl"))),{})
+    for role, counts in latest_cost.get("usage",{}).items():
+        existing=backend.totals.setdefault(role,{})
+        for key,value in counts.items():
+            existing[key]=existing.get(key,0)+value
     args = GRPOConfig(output_dir=str(work), max_steps=steps, per_device_train_batch_size=1,
                       gradient_accumulation_steps=4, num_generations=4, num_iterations=1, loss_type="grpo",
                       beta=0.0, epsilon=0.2, scale_rewards="group", learning_rate=3e-5, lr_scheduler_type="constant",
@@ -172,14 +185,14 @@ def train(run, steps):
                       gradient_checkpointing_kwargs={"use_reentrant": False}, optim="adamw_torch",
                       save_strategy="steps", save_steps=min(8, steps), save_total_limit=2, logging_steps=1,
                       report_to="none", disable_tqdm=True, remove_unused_columns=False, dataloader_num_workers=0)
-    monitor = Metrics(backend, run, steps)
+    monitor = Metrics(backend, run, steps,latest_cost.get("elapsed_seconds",0))
     trainer = GRPOTrainer(model=backend.model, args=args, processing_class=backend.tokenizer, train_dataset=data,
                           reward_funcs=Reward(backend, run), callbacks=[monitor])
     before = frozen_fingerprint(backend.model)
     write_json(out / "recipe.json", {"run": asdict(run), "updates": steps, "group": 4, "started": stamp()})
     journal.event("training_start", resume=resume, updates=steps, completed=last_step)
     trainer.train(resume_from_checkpoint=resume)
-    elapsed = time.monotonic()-monitor.started
+    elapsed = monitor.prior_seconds+time.monotonic()-monitor.started
     after = frozen_fingerprint(backend.model)
     if before != after:
         raise RuntimeError("Frozen judge adapter changed during optimization")
@@ -188,7 +201,7 @@ def train(run, steps):
                   elapsed_seconds=elapsed, resumed_at=last_step, frozen_checksum=after, usage=backend.totals)
     write_json(out / "trained.json", result)
     if run.name == "timing":
-        seconds = elapsed / max(1, steps-last_step)
+        seconds = elapsed / steps
         count = max((n for n in (16,32,64,128,256) if 32*n*seconds <= 0.6*7*86400 and n*seconds <= 12*3600), default=16)
         write_json(RESULTS / "budget.json", dict(updates=count, seconds_per_update=seconds, time=stamp()))
     return result

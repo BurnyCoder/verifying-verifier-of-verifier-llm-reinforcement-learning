@@ -42,17 +42,31 @@ def read_json(path, default=None):
 
 
 def append(path, value):
+    """Repair a torn last record before appending, including a partial UTF-8 character."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as file:
-        file.write(json.dumps(value, ensure_ascii=False, allow_nan=False) + "\n")
+    payload=(json.dumps(value,ensure_ascii=False,allow_nan=False)+"\n").encode("utf-8")
+    with path.open("a+b") as file:
+        end=file.tell()
+        if end:
+            file.seek(-1,os.SEEK_END)
+            if file.read(1)!=b"\n":
+                while end:
+                    start=max(0,end-65536)
+                    file.seek(start)
+                    boundary=file.read(end-start).rfind(b"\n")
+                    if boundary>=0 or start==0:
+                        file.truncate(start+boundary+1)
+                        break
+                    end=start
+        file.write(payload)
 
 
 def rows(path):
     """Recover complete lines after interruptions. Reject corruption inside a closed record."""
     if path.is_file():
-        with path.open(encoding="utf-8") as file:
+        with path.open("rb") as file:
             for line in file:
-                if line.endswith("\n") and line.strip():
+                if line.endswith(b"\n") and line.strip():
                     yield json.loads(line)
 
 
