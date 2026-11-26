@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "flat-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "flat",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T16:56:44.410+00:00"
+}

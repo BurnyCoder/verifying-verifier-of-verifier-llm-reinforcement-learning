@@ -1,0 +1,47 @@
+{
+  "time": "2026-11-26T17:32:44.228+00:00",
+  "run": {
+    "name": "flat-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "flat",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 2158.6090000000004,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "solver": {
+      "calls": 1024,
+      "input_tokens": 168240,
+      "output_tokens": 6126,
+      "gpu_seconds": 315.73216278076177,
+      "wall_seconds": 316.7479999999887
+    },
+    "flat_j1": {
+      "calls": 3072,
+      "input_tokens": 870066,
+      "output_tokens": 21037,
+      "gpu_seconds": 787.35787322998,
+      "wall_seconds": 789.9009999999435
+    },
+    "development_solver": {
+      "calls": 64,
+      "input_tokens": 10528,
+      "output_tokens": 353,
+      "gpu_seconds": 11.433227416992187,
+      "wall_seconds": 11.454000000008818
+    }
+  },
+  "unfinished_generation_batches": 0
+}
