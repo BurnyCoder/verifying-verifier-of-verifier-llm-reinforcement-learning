@@ -7,7 +7,7 @@ from statistics import NormalDist, mean
 from zoneinfo import ZoneInfo
 
 from .analysis import paired_comparison, paired_primary, replay_metrics
-from .design import matrix
+from .design import GITHUB, PAGES, matrix
 from .records import named_values
 from .storage import RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence
@@ -283,7 +283,7 @@ def paper(data, date):
     line("Discussion, limitations and conclusion","Heading2")
     line("Only a paired comparison on sealed arithmetic problems can establish the registered solver effect. A higher training reward can coexist with lower exact accuracy [6]. The same underlying model supplies all three reviewers, so their errors may be correlated. Compact evidence records make audits decidable but leave unrestricted prose and other model families outside the tested population. Interval estimates condition on the trained checkpoints. Seed-specific estimates describe variation across the registered runs.")
     line("Appendix and references","Heading2")
-    line("The tagged protocol, run matrix, role prompts, raw per-problem outputs and analysis code are available in the <link href='https://github.com/BurnyCoder/verifying-verifier-s-verifier-llm-reinforcement-learning'>study repository</link>. The registered practical threshold is three percentage points, evaluated on 2,048 paired IDs with 10,000 paired bootstrap resamples after all three seeds complete.")
+    line(f"The published protocol, run matrix, role prompts, raw per-problem outputs and analysis code are available in the <link href='{GITHUB}'>study repository</link>. The registered practical threshold is three percentage points, evaluated on 2,048 paired IDs with 10,000 paired bootstrap resamples after all three seeds complete.")
     for title,url in [("[1] Wen et al. Recursive Self-Critiquing","https://arxiv.org/abs/2502.04675"),
                       ("[2] DeepSeekMath-V2","https://arxiv.org/abs/2511.22570"),
                       ("[3] Stojanovski et al. Reasoning Gym","https://arxiv.org/abs/2505.24760"),
@@ -333,7 +333,7 @@ def build():
         assets += "![Development solver accuracy](docs/assets/outcomes.png)\n\n"
     if (DOCS/"assets/examples.png").exists():
         assets += "![Model outputs and exact labels on a common development problem](docs/assets/examples.png)\n\n"
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+"\n\n[Interactive results explorer](https://burnycoder.github.io/verifying-verifier-s-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     for r in data["runs"]:

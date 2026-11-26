@@ -19,7 +19,7 @@ Registered primary comparison: pending.
 
 **Untrained solver.** Every step was correct on 0 of 32 development problems. Of 26 malformed outputs, 5 contained all correct numbers as named assignments. Judge 3 corrected 0 of Judge 2’s verdicts and introduced 1 errors on these traces.
 
-[Interactive results explorer](https://burnycoder.github.io/verifying-verifier-s-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)
+[Interactive results explorer](https://burnycoder.github.io/verifying-verifier-of-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)
 <!-- RESULTS:END -->
 
 ### Experiment
