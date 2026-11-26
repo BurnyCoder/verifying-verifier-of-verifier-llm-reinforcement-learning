@@ -1,0 +1,40 @@
+{
+  "time": "2026-11-26T21:56:56.711+00:00",
+  "run": {
+    "name": "top-j1",
+    "seed": 17,
+    "role": "j1",
+    "reward": "teacher",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": "top-j2",
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 1476.6410000000033,
+  "resumed_at": 0,
+  "frozen_checksum": "a96f299286a422a2a954454354ce03b071841637f0f4cb400e065af6398e8017",
+  "usage": {
+    "j1": {
+      "calls": 1024,
+      "input_tokens": 289784,
+      "output_tokens": 7015,
+      "gpu_seconds": 231.50023425292966,
+      "wall_seconds": 231.704000000027
+    },
+    "j2": {
+      "calls": 1024,
+      "input_tokens": 454495,
+      "output_tokens": 14030,
+      "gpu_seconds": 451.0481413574214,
+      "wall_seconds": 451.2030000000159
+    }
+  },
+  "unfinished_generation_batches": 0
+}
