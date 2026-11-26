@@ -1,0 +1,55 @@
+{
+  "time": "2026-11-26T21:58:14.398+00:00",
+  "phase": "development",
+  "weights": "333909265e84981a8946c2e3150ba6cf0ff186ef350db73727f2a33832805251",
+  "usage": {
+    "eval_solver": {
+      "calls": 32,
+      "input_tokens": 5257,
+      "output_tokens": 182,
+      "gpu_seconds": 3.4860137329101564,
+      "wall_seconds": 3.4839999999967404
+    },
+    "j1": {
+      "calls": 32,
+      "input_tokens": 9052,
+      "output_tokens": 218,
+      "gpu_seconds": 4.717226806640625,
+      "wall_seconds": 4.7189999999973224
+    },
+    "j2": {
+      "calls": 32,
+      "input_tokens": 14198,
+      "output_tokens": 436,
+      "gpu_seconds": 7.46379638671875,
+      "wall_seconds": 7.452999999994063
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 17161,
+      "output_tokens": 436,
+      "gpu_seconds": 8.00802197265625,
+      "wall_seconds": 8.031999999991967
+    },
+    "flat_j1": {
+      "calls": 96,
+      "input_tokens": 27156,
+      "output_tokens": 658,
+      "gpu_seconds": 13.723087402343749,
+      "wall_seconds": 13.750999999996566
+    }
+  },
+  "unfinished_generation_batches": 0,
+  "evidence_sources": {},
+  "profile": {
+    "family": "two-add",
+    "style": "demonstrated",
+    "updates": 256,
+    "sources": {
+      "learnability/screen.json": "1f9a0a7e56f7179ab33b806d30ed350ce9bc18ed2e004b780e4830419cc2f910",
+      "learnability/confirm.json": "99ec496776f0f579a244af088038ec52a60affac2d0e2e3a32420e8f9702f6bb",
+      "learnability/learning.json": "ad2374b0a4b531b1f7133044d33e925e0cf161be2df2121a2af90b8659669bca",
+      "budget.json": "dedb9ff1007a5d48d6f23e376bf3d3a0852014604d5c0834643f7992c86a6574"
+    }
+  }
+}
