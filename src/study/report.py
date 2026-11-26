@@ -2,7 +2,8 @@
 
 from collections import defaultdict
 from datetime import datetime
-from statistics import mean
+from math import sqrt
+from statistics import NormalDist, mean
 from zoneinfo import ZoneInfo
 
 from .analysis import paired_primary
@@ -20,6 +21,15 @@ def fraction(records, key):
 
 def percent(value):
     return "—" if value is None else f"{100*value:.1f}%"
+
+
+def wilson(proportion, n):
+    """Wilson score endpoints for a descriptive binomial proportion on distinct problems."""
+    z=NormalDist().inv_cdf(.975)
+    denominator=1+z*z/n
+    center=(proportion+z*z/(2*n))/denominator
+    radius=z*sqrt(proportion*(1-proportion)/n+z*z/(4*n*n))/denominator
+    return max(0.0,center-radius),min(1.0,center+radius)
 
 
 def collect():
@@ -126,8 +136,12 @@ def figures(data):
     scored = [r for r in data["runs"] if r["dev"] is not None and r["role"] == "solver"]
     if scored:
         fig, ax = plt.subplots(figsize=(8, max(2.8,.33*len(scored)+1)))
-        ax.barh([r["name"] for r in scored], [r["dev"] for r in scored], color=colors[1])
-        ax.set(xlim=(0,1), xlabel="Fraction of complete traces correct on the development set")
+        rates=[r["dev"] for r in scored]
+        intervals=[wilson(r["dev"],r["dev_n"]) for r in scored]
+        errors=[[max(0.0,p-lo) for p,(lo,hi) in zip(rates,intervals,strict=True)],
+                [max(0.0,hi-p) for p,(lo,hi) in zip(rates,intervals,strict=True)]]
+        ax.barh([r["name"] for r in scored], rates, color=colors[1],xerr=errors,capsize=3)
+        ax.set(xlim=(0,1), xlabel="Complete-trace development accuracy with 95% Wilson intervals")
         ax.invert_yaxis()
         fig.tight_layout()
         fig.savefig(dest/"outcomes.png", dpi=140)

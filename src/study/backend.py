@@ -6,6 +6,7 @@ import os
 import time
 
 import torch
+from huggingface_hub import try_to_load_from_cache
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
@@ -52,12 +53,16 @@ class Backend:
             raise RuntimeError("The registered GPU profile requires a CUDA device")
         torch.manual_seed(seed)
         self.journal, self.label = journal, "solver"
-        self.tokenizer = AutoTokenizer.from_pretrained(BASE, revision=REVISION, padding_side="left")
+        # A complete immutable snapshot can be opened locally without repository discovery requests.
+        required=("config.json","generation_config.json","model.safetensors","tokenizer.json","tokenizer_config.json")
+        cached=all(isinstance(try_to_load_from_cache(BASE,filename,revision=REVISION),str) for filename in required)
+        self.tokenizer = AutoTokenizer.from_pretrained(BASE, revision=REVISION, padding_side="left",local_files_only=cached)
         self.tokenizer.padding_side = "left"
         quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
                                    bnb_4bit_compute_dtype=torch.bfloat16)
         base = AutoModelForCausalLM.from_pretrained(BASE, revision=REVISION, quantization_config=quant,
-                                                    dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa")
+                                                    dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa",
+                                                    local_files_only=cached)
         base = prepare_model_for_kbit_training(base, use_gradient_checkpointing=False)
         if initial:
             self.model = PeftModel.from_pretrained(base, adapter(initial), is_trainable=True)
