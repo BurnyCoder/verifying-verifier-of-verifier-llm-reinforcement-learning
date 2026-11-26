@@ -9,7 +9,7 @@ from .evaluate import mechanisms, weights_digest
 from .judging import chain
 from .learnability_analysis import cell_metrics, changes_by_parse, choose_cell, confirmed, learning_result
 from .records import expected, parse, render, solver_truth, sound, terminal
-from .storage import RESULTS, Journal, append, read_json, rows, stamp, write_json
+from .storage import RESULTS, Journal, append, generation_cost, read_json, rows, stamp, write_json
 
 def directory():
     return RESULTS/"learnability"
@@ -60,7 +60,7 @@ def screen():
         return read_json(target)
     backend=Backend(Journal("learnability-screen"))
     cells=[measure(backend,family,style,"screen",16) for family in FAMILIES for style in STYLES]
-    outcome=dict(time=stamp(),cells=cells,selected=choose_cell(cells),usage=backend.totals)
+    outcome=dict(time=stamp(),cells=cells,selected=choose_cell(cells),**generation_cost("learnability-screen",backend.totals))
     write_json(target,outcome)
     return outcome
 
@@ -72,7 +72,7 @@ def confirm():
     c=selected()
     backend=Backend(Journal("learnability-confirm"))
     measurement=measure(backend,c["family"],c["style"],"confirm",48)
-    outcome=dict(time=stamp(),cell=measurement,confirmed=confirmed(measurement),usage=backend.totals)
+    outcome=dict(time=stamp(),cell=measurement,confirmed=confirmed(measurement),**generation_cost("learnability-confirm",backend.totals))
     write_json(target,outcome)
     return outcome
 
@@ -119,7 +119,7 @@ def audit():
     mechanisms(backend,None,"learnability-confirm",len(pool),twin_path,population=pool)
     pairs=list(rows(twin_path))
     result=dict(time=stamp(),judges=levels,pairs=len(pairs),visible=mean(r["visible_pair"] for r in pairs),
-                masked=mean(r["masked_pair"] for r in pairs),usage=backend.totals)
+                masked=mean(r["masked_pair"] for r in pairs),**generation_cost("learnability-audit",backend.totals))
     write_json(target,result)
     return result
 
@@ -150,7 +150,8 @@ def evaluate_pilot(name):
                                  correct=solver_truth(p,t)[0],parsed=parse(t,len(p.values)) is not None))
     records=list(rows(path))
     result=dict(time=stamp(),n=len(records),correct=sum(r["correct"] for r in records),parsed=sum(r["parsed"] for r in records),
-                weights=weights_digest(name) if snapshot else "frozen base",usage=backend.totals)
+                weights=weights_digest(name) if snapshot else "frozen base",
+                **generation_cost("learnability-"+name+"-evaluation",backend.totals))
     write_json(target,result)
     return result
 

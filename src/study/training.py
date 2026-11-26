@@ -19,7 +19,7 @@ from .design import matrix, permute_groups
 from .domain import Problem, problems
 from .judging import chain, make_example, majority, votes
 from .records import approval, expected, solver_truth, sound, terminal
-from .storage import RESULTS, STATE, Journal, adapter, append, read_json, retain, rows, stamp, write_json
+from .storage import RESULTS, STATE, Journal, adapter, append, generation_cost, read_json, retain, rows, stamp, write_json
 
 
 def frozen_sources(run):
@@ -208,7 +208,7 @@ def train(run, steps):
         raise RuntimeError("Frozen judge adapter changed during optimization")
     backend.model.save_pretrained(adapter(run.name), selected_adapters=["default"])
     result = dict(time=stamp(), run=asdict(run), updates=trainer.state.global_step,
-                  elapsed_seconds=elapsed, resumed_at=last_step, frozen_checksum=after, usage=backend.totals)
+                  elapsed_seconds=elapsed, resumed_at=last_step, frozen_checksum=after, **generation_cost(run.name,backend.totals))
     if run.name == "timing":
         record_timing_budget(result)
     write_json(out / "trained.json", result)
