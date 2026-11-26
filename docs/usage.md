@@ -16,4 +16,6 @@ The training runner saves the adapter, optimizer, RNG and Trainer state at group
 
 The seal verifies prompt order and every four-completion group from the raw training observations. Final natural reviews evaluate the same base traces across judge-only arms. Evidence-transfer evaluations cross expression layout with the error in the prior review. When two arms share an identical Judge 3, the evidence cohort records its original source. [Analysis amendments](../reports/amendments.md)
 
+The campaign writes scheduled checks to each run's `monitor.jsonl`, the terminal and `reports/progress.md`. It uses measured throughput to estimate remaining training time. Checks on ongoing final evaluations disclose only completed record counts. A worker exit wakes the supervisor immediately.
+
 For a fresh replication after cloning a release that already contains observations, set both `STUDY_STATE=.local/replication/checkpoints` and `STUDY_RESULTS=.local/replication/results` in the local environment, then run the ordinary campaign. The report command reads the same paths. Use a distinct pair of directories for another independent replication. Omit these two overrides to regenerate the published tables from the committed observation files.

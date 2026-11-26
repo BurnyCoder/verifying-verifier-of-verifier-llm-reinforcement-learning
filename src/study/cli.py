@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -22,7 +23,24 @@ def run_spec(name):
 def worker(*args):
     """Keep independent training processes from retaining the previous arm's GPU allocations."""
     print(f"{stamp()} starting {' '.join(args)}", flush=True)
-    subprocess.run([sys.executable, "-u", "-m", "study.cli", *args],check=True)
+    command = [sys.executable, "-u", "-m", "study.cli", *args]
+    if args[0] in ("train","evaluate"):
+        from .monitor import supervise
+        phase = "train" if args[0]=="train" else "final" if "--final" in args else "development"
+        supervise(command, args[args.index("--run")+1], phase)
+    elif args[0]=="publish":
+        # A disconnected upload can be retried from the same immutable milestone and receipt.
+        for attempt in range(3):
+            result = subprocess.run(command)
+            if result.returncode == 0:
+                return
+            if attempt == 2:
+                result.check_returncode()
+            delay = 15*(attempt+1)
+            print(f"{stamp()} publication exited {result.returncode}, retrying the same milestone in {delay}s",flush=True)
+            time.sleep(delay)
+    else:
+        subprocess.run(command,check=True)
 
 
 @contextlib.contextmanager
