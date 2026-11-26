@@ -6,6 +6,8 @@ The solver adapter starts from a fresh LoRA initialization with seed 17. Its rew
 |---|---|---:|---:|---:|---:|---:|
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 
+On the fresh learning-validation cohort, 246 of 256 complete traces were correct and 255 parsed. [Individual validation records](../../../results/learnability/evaluations/learn-oracle-17.jsonl).
+
 ### Training generation cost
 
 | Role | Calls | Input tokens | Output tokens | CUDA event seconds |
