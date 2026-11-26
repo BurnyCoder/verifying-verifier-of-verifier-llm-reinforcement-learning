@@ -1,6 +1,7 @@
 """Freeze the development decision and route the amended comparisons to disjoint data."""
 
 import hashlib
+import json
 from functools import lru_cache
 
 from .curriculum import FAMILIES, STYLES, curriculum_problems
@@ -24,8 +25,13 @@ def freeze_profile(original):
     budget = read_json(sources[-1])
     if not budget or budget.get("updates", 0) <= 0:
         raise RuntimeError("The original training budget is missing")
-    profile = dict(family=family, style=style, updates=budget["updates"], sources={
-        path.relative_to(original).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources})
+    # Git normalizes line endings on checkout. Identify each observation by its JSON values.
+    digests = {}
+    for path in sources:
+        canonical = json.dumps(read_json(path), ensure_ascii=False, sort_keys=True,
+                               separators=(",", ":"), allow_nan=False).encode("utf-8")
+        digests[path.relative_to(original).as_posix()] = hashlib.sha256(canonical).hexdigest()
+    profile = dict(family=family, style=style, updates=budget["updates"], sources=digests)
     scope = original / "calibrated"
     for path, value in ((scope/"profile.json", profile), (scope/"budget.json", budget)):
         if path.exists() and read_json(path) != value:

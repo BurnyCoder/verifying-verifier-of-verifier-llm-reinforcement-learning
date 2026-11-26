@@ -31,7 +31,7 @@ def atomic(path, content):
     """Replace a complete file in one operation so readers never see half a publication."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + f".{os.getpid()}.partial")
-    temporary.write_text(content, encoding="utf-8")
+    temporary.write_text(content, encoding="utf-8", newline="\n")
     for attempt in range(6):
         try:
             os.replace(temporary, path)
