@@ -1,0 +1,61 @@
+{
+  "time": "2026-11-26T18:43:22.492+00:00",
+  "run": {
+    "name": "hybrid-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "hybrid",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 2670.1719999999987,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "solver": {
+      "calls": 1024,
+      "input_tokens": 168240,
+      "output_tokens": 6101,
+      "gpu_seconds": 303.0725724487306,
+      "wall_seconds": 303.9669999999969
+    },
+    "j1": {
+      "calls": 1024,
+      "input_tokens": 289996,
+      "output_tokens": 7006,
+      "gpu_seconds": 263.78024652099606,
+      "wall_seconds": 264.7069999999985
+    },
+    "j2": {
+      "calls": 1024,
+      "input_tokens": 454698,
+      "output_tokens": 13986,
+      "gpu_seconds": 507.3641517333984,
+      "wall_seconds": 508.1189999999915
+    },
+    "j3": {
+      "calls": 1024,
+      "input_tokens": 549580,
+      "output_tokens": 14048,
+      "gpu_seconds": 541.9596551513671,
+      "wall_seconds": 542.8439999999755
+    },
+    "development_solver": {
+      "calls": 64,
+      "input_tokens": 10528,
+      "output_tokens": 354,
+      "gpu_seconds": 11.255983886718749,
+      "wall_seconds": 11.31300000000192
+    }
+  },
+  "unfinished_generation_batches": 0
+}

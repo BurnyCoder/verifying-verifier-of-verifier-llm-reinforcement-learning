@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "hybrid-17",
+    "seed": 17,
+    "role": "solver",
+    "reward": "hybrid",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T17:58:51.141+00:00"
+}
