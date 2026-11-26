@@ -62,3 +62,18 @@ def test_full_release_from_synthetic_raw_records(tmp_path):
     subprocess.run([sys.executable,"-m","study.cli","report"],cwd=tmp_path,env=env,check=True,capture_output=True)
     assert not (tmp_path/"docs/assets/paired-outcomes.png").exists()
     assert "outcomes.png" not in (tmp_path/"README.md").read_text(encoding="utf-8")
+
+
+def test_learning_figure_contains_only_observed_conditions_and_is_removed_when_empty(tmp_path):
+    from study.learnability_report import learning_figure
+
+    chart = tmp_path / "learnability.png"
+    trials = {"base":{"n":256,"correct":128}, "learn-oracle-17":{"n":256,"correct":192}, "learn-shuffle-17":None}
+    learning_figure({"evaluations":trials, "learning":None},chart)
+    assert chart.stat().st_size>1000
+    trials["learn-shuffle-17"]={"n":256,"correct":128}
+    change={"delta":.25, "interval":[.14,.36]}
+    learning_figure({"evaluations":trials, "learning":{"over_base":change,"over_shuffled":change}},chart)
+    assert chart.stat().st_size>1000
+    learning_figure({"evaluations":{}, "learning":None},chart)
+    assert not chart.exists()

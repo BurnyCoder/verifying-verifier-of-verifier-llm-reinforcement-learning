@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .design import GITHUB, PAGES, PILOTS, Run, matrix
-from .learnability_report import collect_learnability, learnability_text
+from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
@@ -147,6 +147,7 @@ def figures(data):
 
     dest = DOCS/"assets"
     dest.mkdir(parents=True, exist_ok=True)
+    learning_figure(data["learnability"],dest/"learnability.png")
     colors = ("#1e5260", "#177267", "#b65127")
     fig, ax = plt.subplots(figsize=(11, 2.45))
     ax.set(xlim=(0, 11), ylim=(0, 2.5))
@@ -413,7 +414,7 @@ def paper(data, date):
         line("Reward signal and generation cost","Heading2")
         table(["Run","Constant groups","Groups","Judge calls","Input tokens","Output tokens","CUDA seconds"],cost_rows)
         line("Counts cover reward-provider calls during training. CUDA events span batched generation and can include device idle time between kernel submissions. The flat panel and recursive chain share a call count and output ceiling. Their prompt lengths and stopping lengths may differ.")
-    for filename, caption in (("paired-outcomes.png","Seed-specific and pooled held-out effects"),("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
+    for filename, caption in (("learnability.png","Solver learnability on fresh validation problems"),("paired-outcomes.png","Seed-specific and pooled held-out effects"),("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
         asset=DOCS/"assets"/filename
         if asset.exists():
             from reportlab.lib.utils import ImageReader
@@ -495,6 +496,8 @@ def build():
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)
     assets = "![Study architecture](docs/assets/architecture.png)\n\n"
+    if (DOCS/"assets/learnability.png").exists():
+        assets += "![Learning validation for the exact-reward and shuffled controls](docs/assets/learnability.png)\n\n"
     if "delta" in primary:
         assets += "![Conditional paired held-out effects](docs/assets/paired-outcomes.png)\n\n"
     if (DOCS/"assets/outcomes.png").exists():
@@ -522,6 +525,14 @@ def build():
         directory = experiments/sub/r["name"]
         up = "../" if sub else ""
         observations=[]
+        pilot_validation = learning["evaluations"].get(r["name"]) if r["diagnostic"] else None
+        validation_text = ""
+        if pilot_validation:
+            e=pilot_validation
+            observation=(f"On the fresh learning-validation cohort, {e['correct']} of {e['n']} complete traces "
+                         f"were correct and {e['parsed']} parsed.")
+            observations.append(observation)
+            validation_text=f"\n\n{observation} [Individual validation records](../../../results/learnability/evaluations/{r['name']}.jsonl)."
         if r["groups"]:
             observations.append(f"The exact checker accepted {percent(r['train_exact'])} of observed policy outputs. "
                                 f"The assigned reward averaged {percent(r['train_reward'])}. Of {r['observations']} rollouts, "
@@ -543,7 +554,7 @@ def build():
             coverage=1-malformed/r["dev_n"]
         methods.append([r["name"],r["role"],r["reward"],r["seed"],"arithmetic" if r["role"]=="solver" else r["corpus"],
                         percent(coverage),percent(r["dev"]),percent(r["test"])])
-        atomic(directory/"experiment.md",f"# {sub}{r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n{run_evidence(r)}\n\n[Machine observations]({up}../../../results/{sub}{r['name']})\n")
+        atomic(directory/"experiment.md",f"# {sub}{r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}{validation_text}\n\n{run_evidence(r)}\n\n[Machine observations]({up}../../../results/{sub}{r['name']})\n")
         atomic(directory/"learnings.md",f"# Observations from {sub}{r['name']}\n\n{obs}\n\n[Raw measurements and denominators](experiment.md) · [Analysis amendments]({up}../../amendments.md)\n")
         notes.append(f"- [{sub}{r['name']}]({sub}{r['name']}/learnings.md). {obs}")
     references="\n".join(f"- [{r['name']}]({'' if r['diagnostic'] else prefix}{r['name']}/experiment.md)" for r in data["runs"])

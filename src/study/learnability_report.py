@@ -14,6 +14,51 @@ def collect_learnability(results):
                 evaluations={name:read_json(root/"evaluations"/(name+".json")) for name in ("base",*PILOTS)})
 
 
+def learning_figure(data, path):
+    """Plot observed accuracy and, once measured, paired improvements on the same problems."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    labels = {"base":"Starting solver",PILOTS[0]:"Exact reward",PILOTS[1]:"Shuffled reward"}
+    colors = {"base":"#52656b",PILOTS[0]:"#167666",PILOTS[1]:"#a7562b"}
+    measured = [(name,e) for name,e in data["evaluations"].items() if e]
+    if not measured:
+        path.unlink(missing_ok=True)
+        return
+    result = data["learning"]
+    cols = 2 if result else 1
+    fig, grid = plt.subplots(1,cols,figsize=(10.8 if result else 6.8,3.2),squeeze=False,layout="constrained")
+    ax = grid[0,0]
+    for i,(name,e) in enumerate(measured):
+        score=100*e["correct"]/e["n"]
+        ax.barh(i,score,color=colors[name],height=.52)
+        inside=score >= 28
+        ax.text(score-2 if inside else score+2,i,f"{e['correct']}/{e['n']}",
+                ha="right" if inside else "left",va="center",color="white" if inside else "#1b3439")
+    ax.set(yticks=range(len(measured)),yticklabels=[labels[name] for name,_ in measured],xlim=(0,100),
+           xlabel="Entire trace correct (%)",title="Fresh validation problems")
+    ax.invert_yaxis()
+    if result:
+        ax=grid[0,1]
+        for i,key in enumerate(("over_base","over_shuffled")):
+            statistic=result[key]
+            value=100*statistic["delta"]
+            low,high=[100*x for x in statistic["interval"]]
+            ax.hlines(i,low,high,color=colors[PILOTS[0]],linewidth=2)
+            ax.plot(value,i,"o",color=colors[PILOTS[0]])
+            ax.text(value,i+.16,f"{value:+.1f}  [{low:+.1f}, {high:+.1f}]",ha="center",va="top",fontsize=9)
+        ax.axvline(0,color="#657477",linestyle="--",linewidth=1)
+        ax.set(yticks=[0,1],yticklabels=["vs starting solver","vs shuffled reward"],ylim=(1.5,-.35),
+               xlabel="Percentage-point difference",title="Exact reward · paired 95% intervals")
+        ax.margins(x=.22)
+    for ax in grid.flat:
+        ax.spines[["top","right"]].set_visible(False)
+    path.parent.mkdir(parents=True,exist_ok=True)
+    fig.savefig(path,dpi=150,bbox_inches="tight")
+    plt.close(fig)
+
+
 def learnability_text(data):
     out=["# Can this model learn the benchmark?",
          "The frozen-model screen and the checkpoint comparison answer different questions. "
@@ -47,6 +92,7 @@ def learnability_text(data):
     if measured:
         out.extend(["## Fresh learning-validation problems",markdown(["Checkpoint","Problems","Parsed","Entire trace correct","Exact accuracy"],
                    [[name,e["n"],e["parsed"],e["correct"],rate(e["correct"]/e["n"])] for name,e in measured])])
+        out.append("![Greedy complete-trace accuracy and available paired contrasts](../docs/assets/learnability.png)")
     if data["learning"]:
         result=data["learning"]
         out.append("The registered learning criterion was "+("met." if result["demonstrated"] else "unmet."))

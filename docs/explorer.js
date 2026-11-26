@@ -104,11 +104,26 @@ async function update() {
     byId("readiness").textContent=cal?.screen?.selected ? "Selected "+cal.screen.selected.family+" with "+cal.screen.selected.style+" prompts." :
       cal?.screen ? "No configuration qualified under the registered rule." : "The frozen-model difficulty screen is pending.";
     for (const c of cal?.screen?.cells ?? []) row(byId("calibration"),[c.family,c.style,pct(c.parsed),pct(c.sampled_exact),pct(c.greedy_exact),c.mixed_groups+" / "+c.problems]);
+    if (cal?.confirmation) {
+      const c=cal.confirmation.cell;
+      byId("readiness").textContent += " Independent confirmation "+(cal.confirmation.confirmed?"passed":"failed")+
+        " on "+c.problems+" problems. Greedy complete-trace accuracy "+pct(c.greedy_exact)+
+        ", with mixed samples on "+c.mixed_groups+" problems.";
+    }
     const vals=Object.entries(cal?.evaluations ?? {}).filter(([,v])=>v).map(([k,v])=>k+" "+v.correct+"/"+v.n);
     byId("learned").textContent=cal?.learning ? "Learning criterion "+(cal.learning.demonstrated?"met. ":"unmet. ")+vals.join(" · ") :
       vals.length ? "Fresh validation outcomes · "+vals.join(" · ") : "The positive-control test compares exact-reward training with the starting solver and shuffled rewards.";
     const arithmetic=cal?.learning?.by_parse?.base?.groups?.find(g=>g.stratum==="Both parsed");
     if (arithmetic) byId("learned").textContent += " Among "+arithmetic.n+" already parseable pairs, training corrected "+arithmetic.gains+" arithmetic traces and broke "+arithmetic.losses+".";
+    const chart=byId("validation-chart");
+    const version=vals.join("|")+"|"+(cal?.learning?.status ?? "");
+    if (vals.length && chart.dataset.version!==version) {
+      chart.hidden=true;
+      chart.onload=()=>{chart.hidden=false;};
+      chart.onerror=()=>{chart.hidden=true; delete chart.dataset.version;};
+      chart.dataset.version=version;
+      chart.src="assets/learnability.png?v="+encodeURIComponent(version);
+    } else if (!vals.length) chart.hidden=true;
     byId("results").replaceChildren();
     for (const r of study.runs) row(byId("results"),[r.name,r.role,r.updates,pct(r.dev),r.dev_n,pct(r.test),r.test_n]);
     const current=byId("run").value || study.runs.find(r=>r.name!=="base" && r.updates==null)?.name;

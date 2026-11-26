@@ -7,6 +7,8 @@ For example, a solver can give the right final answer to (4 + 3) × 2 while reco
 <!-- RESULTS:START -->
 ![Study architecture](docs/assets/architecture.png)
 
+![Learning validation for the exact-reward and shuffled controls](docs/assets/learnability.png)
+
 ![Development solver accuracy](docs/assets/outcomes.png)
 
 ![Model outputs and exact labels on a common development problem](docs/assets/examples.png)
