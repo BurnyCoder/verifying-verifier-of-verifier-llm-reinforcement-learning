@@ -1,0 +1,136 @@
+{
+  "time": "2026-11-26T14:57:58.356+00:00",
+  "status": "complete",
+  "demonstrated": true,
+  "reward_specific": true,
+  "over_base": {
+    "n": 256,
+    "delta": 0.36328125,
+    "interval": [
+      0.30078125,
+      0.42578125
+    ],
+    "fixed": 96,
+    "harmed": 3
+  },
+  "over_shuffled": {
+    "n": 256,
+    "delta": 0.6953125,
+    "interval": [
+      0.63671875,
+      0.75390625
+    ],
+    "fixed": 179,
+    "harmed": 1
+  },
+  "by_parse": {
+    "base": {
+      "groups": [
+        {
+          "stratum": "Both parsed",
+          "n": 255,
+          "gains": 96,
+          "losses": 3
+        },
+        {
+          "stratum": "Only trained parsed",
+          "n": 0,
+          "gains": 0,
+          "losses": 0
+        },
+        {
+          "stratum": "Only comparator parsed",
+          "n": 1,
+          "gains": 0,
+          "losses": 0
+        },
+        {
+          "stratum": "Neither parsed",
+          "n": 0,
+          "gains": 0,
+          "losses": 0
+        }
+      ],
+      "examples": [
+        {
+          "key": "07d33ee2ba4db6063091e4b6b04b54f63370e246d22fd0b6bf452d41f97804f5",
+          "stratum": "Both parsed",
+          "change": "gain",
+          "expression": "(13 + 1) - 4",
+          "expected": [
+            14,
+            10
+          ],
+          "comparator": "9,5",
+          "trained": "14,10"
+        },
+        {
+          "key": "4d6e5df7f9d3c3b6fa1500b8a89cd594b7af6dfed458ef8e82aeda33f2d03ced",
+          "stratum": "Both parsed",
+          "change": "loss",
+          "expression": "(25 - 11) + 6",
+          "expected": [
+            14,
+            20
+          ],
+          "comparator": "14,20",
+          "trained": "14,19"
+        }
+      ]
+    },
+    "shuffled": {
+      "groups": [
+        {
+          "stratum": "Both parsed",
+          "n": 255,
+          "gains": 179,
+          "losses": 1
+        },
+        {
+          "stratum": "Only trained parsed",
+          "n": 0,
+          "gains": 0,
+          "losses": 0
+        },
+        {
+          "stratum": "Only comparator parsed",
+          "n": 1,
+          "gains": 0,
+          "losses": 0
+        },
+        {
+          "stratum": "Neither parsed",
+          "n": 0,
+          "gains": 0,
+          "losses": 0
+        }
+      ],
+      "examples": [
+        {
+          "key": "001010904e6ce02b10931bc2f5e22ee1ee42d64357b53c1ddcd4f905fd6d1d89",
+          "stratum": "Both parsed",
+          "change": "gain",
+          "expression": "(24 - 9) + 5",
+          "expected": [
+            15,
+            20
+          ],
+          "comparator": "19,24",
+          "trained": "15,20"
+        },
+        {
+          "key": "4d6e5df7f9d3c3b6fa1500b8a89cd594b7af6dfed458ef8e82aeda33f2d03ced",
+          "stratum": "Both parsed",
+          "change": "loss",
+          "expression": "(25 - 11) + 6",
+          "expected": [
+            14,
+            20
+          ],
+          "comparator": "14,20",
+          "trained": "14,19"
+        }
+      ]
+    }
+  }
+}

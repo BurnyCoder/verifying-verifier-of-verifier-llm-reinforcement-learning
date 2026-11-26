@@ -11,6 +11,8 @@ Registered primary comparison is pending.
 
 **Benchmark difficulty.** The frozen-model screen selected two-add with demonstrated prompts. On 16 screening problems it produced a mix of correct and incorrect answers on 2 problems. [All difficulty levels](learnability.md).
 
+**Solver learning.** Exact-reward training changed complete-trace accuracy on 256 fresh problems by +36.3 percentage points relative to the starting solver (paired 95% interval +30.1 to +42.6). [Shuffled control and arithmetic corrections](learnability.md).
+
 **Untrained solver.** Every step was correct on 0 of 32 development problems. Of 26 malformed outputs, 5 contained all correct numbers as named assignments. Judge 3 corrected 0 of Judge 2’s verdicts and introduced 1 errors on these traces.
 
 **First three-judge-trained solver.** Every step was correct on 0 of 32 development problems. Of 32 malformed outputs, 0 contained all correct numbers as named assignments. Judge 3 corrected 0 of Judge 2’s verdicts and introduced 0 errors on these traces.
