@@ -18,6 +18,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |
 |---|---|---:|---:|---:|---:|---:|
 | base | solver | — | 62.5% | 32 | — | 0 |
+| d3-17 | solver | 256 | — | 0 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
