@@ -107,6 +107,8 @@ async function update() {
     const vals=Object.entries(cal?.evaluations ?? {}).filter(([,v])=>v).map(([k,v])=>k+" "+v.correct+"/"+v.n);
     byId("learned").textContent=cal?.learning ? "Learning criterion "+(cal.learning.demonstrated?"met. ":"unmet. ")+vals.join(" · ") :
       vals.length ? "Fresh validation outcomes · "+vals.join(" · ") : "The positive-control test compares exact-reward training with the starting solver and shuffled rewards.";
+    const arithmetic=cal?.learning?.by_parse?.base?.groups?.find(g=>g.stratum==="Both parsed");
+    if (arithmetic) byId("learned").textContent += " Among "+arithmetic.n+" already parseable pairs, training corrected "+arithmetic.gains+" arithmetic traces and broke "+arithmetic.losses+".";
     byId("results").replaceChildren();
     for (const r of study.runs) row(byId("results"),[r.name,r.role,r.updates,pct(r.dev),r.dev_n,pct(r.test),r.test_n]);
     const current=byId("run").value || study.runs.find(r=>r.name!=="base" && r.updates==null)?.name;

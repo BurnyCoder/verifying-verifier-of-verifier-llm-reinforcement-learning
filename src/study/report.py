@@ -320,6 +320,8 @@ def paper(data, date):
         line(f"The amended primary population uses {config['family']} arithmetic with {config['style']} prompts for every arm. Learning was measured on a separate validation partition before this population was frozen. The primary comparison uses 2,048 new canonical problems. The following 128 form the evidence cohort. The original signed population is also evaluated for transfer.")
         if config["family"]=="registered":
             line("The signed-difficulty transfer and the amended primary coincide for this selection.")
+        elif config["family"]=="one":
+            line("The amended primary has one operation per problem, so its final answer is the complete trace. Multi-step evidence comes from the signed, layout and length transfer cohorts.")
         if data["original_development"]:
             table(["Original development","Correct complete trace","Problems"],
                   [[r["name"],r["correct"],r["n"]] for r in data["original_development"]])
@@ -343,6 +345,11 @@ def paper(data, date):
         if learning["learning"]:
             gain=learning["learning"]["over_base"]
             line(f"Exact-reward training changed held-out development accuracy by {100*gain['delta']:+.2f} percentage points relative to the starting solver. The paired 95% interval was [{100*gain['interval'][0]:+.2f}, {100*gain['interval'][1]:+.2f}] points. The full shuffled control is in the learnability report.")
+            if "by_parse" in learning["learning"]:
+                groups = learning["learning"]["by_parse"]["base"]["groups"]
+                table(["Formatting on the same problem","Problems","Gains","Losses"],
+                      [[g["stratum"],g["n"],g["gains"],g["losses"]] for g in groups])
+                line("A gain when both responses already parse requires a corrected arithmetic trace. A gain in a newly parseable response can combine arithmetic and formatting changes.")
     primary = data["primary"]
     if "delta" in primary:
         line(f"The equally weighted paired difference is {primary['delta']*100:.2f} percentage points. The conditional 95% problem-bootstrap interval is [{primary['ci'][0]*100:.2f}, {primary['ci'][1]*100:.2f}] points. The registered decision is {primary['status']}.")
@@ -455,6 +462,21 @@ def build():
     if "delta" in primary:
         status += f" Difference {100*primary['delta']:.2f} percentage points, conditional 95% interval [{100*primary['ci'][0]:.2f}, {100*primary['ci'][1]:.2f}]."
     summary = status+"\n\n"+score
+    learning = data["learnability"]
+    if learning["screen"]:
+        chosen = learning["screen"]["selected"]
+        if chosen:
+            summary += (f"\n\n**Benchmark difficulty.** The frozen-model screen selected {chosen['family']} with {chosen['style']} prompts. "
+                        f"On {chosen['problems']} screening problems it produced a mix of correct and incorrect answers on "
+                        f"{chosen['mixed_groups']} problems. [All difficulty levels](reports/learnability.md).")
+        else:
+            summary += "\n\n**Benchmark difficulty.** No setting passed the registered difficulty screen. [All difficulty levels](reports/learnability.md)."
+    if learning["learning"]:
+        change=learning["learning"]["over_base"]
+        summary += (f"\n\n**Solver learning.** Exact-reward training changed complete-trace accuracy on {change['n']} fresh "
+                    f"problems by {100*change['delta']:+.1f} percentage points relative to the starting solver "
+                    f"(paired 95% interval {100*change['interval'][0]:+.1f} to {100*change['interval'][1]:+.1f}). "
+                    "[Shuffled control and arithmetic corrections](reports/learnability.md).")
     if data["original_development"]:
         summary += "\n\nOn the original signed development population, "+", ".join(
             f"{r['name']} solved {r['correct']}/{r['n']}" for r in data["original_development"])+"."
@@ -468,7 +490,7 @@ def build():
     if comparisons:
         summary += "\n\n" + markdown(["Contrast", "Seed", "Difference (pp)", "95% lower", "95% upper"], comparisons)
     explanation = "Solver scores require every intermediate value. Judge scores require all fields of the evidence record. Intervals condition on the trained checkpoints."
-    atomic(REPORTS/"summary.md","# Study summary\n\n"+summary+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
+    atomic(REPORTS/"summary.md","# Study summary\n\n"+summary.replace("(reports/learnability.md)","(learnability.md)")+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)
