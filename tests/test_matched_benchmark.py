@@ -27,6 +27,10 @@ def test_freeze_requires_confirmed_learning_and_preserves_every_original_arm(tmp
     profile = freeze_profile(tmp_path)
     assert read_json(tmp_path/"calibrated/budget.json") == read_json(tmp_path/"budget.json")
     assert freeze_profile(tmp_path) == profile
+    # A Git checkout or equivalent JSON serializer may change indentation or line endings.
+    screening = calibration/"screen.json"
+    screening.write_bytes(json.dumps(read_json(screening), sort_keys=True).encode()+b"\r\n")
+    assert freeze_profile(tmp_path) == profile
     calibrated = matrix(profile)
     assert [(r.name, r.dependencies, r.reward, r.seed) for r in calibrated] == [
         (r.name, r.dependencies, r.reward, r.seed) for r in matrix({})]
