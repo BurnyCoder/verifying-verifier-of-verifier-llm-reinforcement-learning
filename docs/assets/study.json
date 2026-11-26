@@ -9330,7 +9330,23 @@
     },
     "learning": null,
     "evaluations": {
-      "base": null,
+      "base": {
+        "time": "2026-11-26T14:28:02.802+00:00",
+        "n": 256,
+        "correct": 153,
+        "parsed": 256,
+        "weights": "frozen base",
+        "usage": {
+          "validation_solver": {
+            "calls": 256,
+            "input_tokens": 42076,
+            "output_tokens": 1454,
+            "gpu_seconds": 31.556482421874996,
+            "wall_seconds": 31.58100000000013
+          }
+        },
+        "unfinished_generation_batches": 0
+      },
       "learn-oracle-17": null,
       "learn-shuffle-17": null
     }

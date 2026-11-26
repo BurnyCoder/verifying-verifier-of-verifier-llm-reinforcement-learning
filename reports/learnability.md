@@ -28,3 +28,9 @@ Independent confirmation passed. On 48 problems, 99.0% of sampled outputs parsed
 | 3 | 16 | 16 | 62.5% | 18.8% | 40.6% | 31.2% | 2 |
 
 Judge 3 solved 0.0% of 16 complete evidence pairs with the review visible and 0.0% with evidence masked.
+
+## Fresh learning-validation problems
+
+| Checkpoint | Problems | Parsed | Entire trace correct | Exact accuracy |
+| --- | --- | --- | --- | --- |
+| base | 256 | 256 | 153 | 59.8% |
