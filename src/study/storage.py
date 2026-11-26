@@ -10,8 +10,17 @@ from dotenv import load_dotenv
 
 ROOT = Path.cwd()
 load_dotenv(ROOT / ".env")
-STATE = Path(os.environ.get("STUDY_STATE", ROOT / "checkpoints")).resolve()
-RESULTS = Path(os.environ.get("STUDY_RESULTS", ROOT / "results")).resolve()
+ORIGINAL_STATE = Path(os.environ.get("STUDY_STATE", ROOT / "checkpoints")).resolve()
+ORIGINAL_RESULTS = Path(os.environ.get("STUDY_RESULTS", ROOT / "results")).resolve()
+TRACK = os.environ.get("STUDY_TRACK", "original")
+if TRACK not in ("original", "calibrated"):
+    raise ValueError(f"Unknown study track {TRACK}")
+SCOPE = "calibrated" if TRACK == "calibrated" else ""
+STATE, RESULTS = ORIGINAL_STATE / SCOPE, ORIGINAL_RESULTS / SCOPE
+
+
+def log_directory():
+    return ROOT / "logs" / SCOPE
 
 
 def stamp():
@@ -81,7 +90,7 @@ class Journal:
 
     def __init__(self, run):
         self.run = run
-        self.path = ROOT / "logs" / run / (stamp().replace(":", "-") + ".jsonl")
+        self.path = log_directory() / run / (stamp().replace(":", "-") + ".jsonl")
 
     def event(self, event, **values):
         record = {"time": stamp(), "run": self.run, "event": event, **values}

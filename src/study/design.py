@@ -1,6 +1,6 @@
 """One dependency-ordered manifest drives training, publication, and analysis."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 SEEDS = (17, 29, 43)
 PILOTS = ("learn-oracle-17","learn-shuffle-17")
@@ -30,7 +30,10 @@ class Run:
         return tuple(dict.fromkeys(x for x in sources if x))
 
 
-def matrix():
+def matrix(profile=None):
+    if profile is None:
+        from .benchmark import active_profile
+        profile = active_profile()
     rows = [Run(f"{arm}-17", reward=arm) for arm in ("d3", "d2", "d1", "flat", "oracle", "hybrid", "shuffle")]
     direct = tuple(f"exact-j{i}" for i in (1, 2, 3))
     top = ("top-j1", "top-j2", direct[2])
@@ -51,6 +54,8 @@ def matrix():
             current[index] = name
         rows.append(Run(f"alt-{route}-solver", judges=tuple(current), initial=corpus, corpus=corpus))
     rows.extend(Run(f"{arm}-{seed}", seed=seed, reward=arm) for seed in SEEDS[1:] for arm in ("d3", "d2", "flat"))
+    if profile:
+        return [replace(row, family=profile["family"], prompt_style=profile["style"]) for row in rows]
     return rows
 
 

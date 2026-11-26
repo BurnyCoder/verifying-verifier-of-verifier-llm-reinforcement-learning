@@ -10,7 +10,7 @@ from .analysis import evidence_fields, paired_comparison, paired_primary, replay
 from .design import GITHUB, PAGES, PILOTS, Run, matrix
 from .learnability_report import collect_learnability, learnability_text
 from .records import named_values
-from .storage import RESULTS, ROOT, atomic, read_json, rows, write_json
+from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
 
 DOCS = ROOT / "docs"
@@ -32,9 +32,12 @@ def wilson(proportion, n):
 
 def collect():
     """Keep live training/dev observations available. Only completed final evaluations enter tables."""
-    manifest = {r.name: r for r in matrix()}
+    calibrated = ORIGINAL_RESULTS / "calibrated"
+    profile = read_json(calibrated/"profile.json", {})
+    source = calibrated if profile else ORIGINAL_RESULTS
+    manifest = {r.name: r for r in matrix(profile)}
     registered=len(manifest)
-    learning=collect_learnability(RESULTS)
+    learning=collect_learnability(ORIGINAL_RESULTS)
     chosen=(learning["screen"] or {}).get("selected")
     if chosen:
         for name in PILOTS:
@@ -42,7 +45,7 @@ def collect():
                                family=chosen["family"],prompt_style=chosen["style"])
     runs, outcomes = [], {}
     for name in ("base", *manifest):
-        target = RESULTS / name
+        target = (ORIGINAL_RESULTS if name in PILOTS else source) / name
         if not target.is_dir():
             continue
         spec = manifest.get(name)
@@ -87,7 +90,7 @@ def collect():
             common_example = dict(key=e["key"], expression=e["expression"], actual=actual,
                                   expected=render(reference), correct=matched)
         runs.append(dict(name=name, role=role, reward=spec.reward if spec else "untrained",
-                         diagnostic=name in PILOTS, family=spec.family if spec else None,
+                         diagnostic=name in PILOTS, family=spec.family if spec else profile.get("family"),
                          seed=spec.seed if spec else 17, updates=trained.get("updates"), observations=len(training),
                          initial=spec.initial if spec else None, judges=spec.judges if spec else (None,)*3,
                          teacher=spec.teacher if spec else None, corpus=spec.corpus if spec else None,
@@ -114,11 +117,20 @@ def collect():
                          twin_split=twins[0]["split"] if twins else None, paired_example=twins[0] if twins else None,
                          replay=replay_metrics(dev), curves=curves, logs=reports, examples=examples, common_example=common_example,
                          usage=trained.get("usage", {}), elapsed_seconds=trained.get("elapsed_seconds"),
-                         transfer={s: fraction(list(rows(target/(s+".jsonl"))), "correct") for s in ("layout","long")} if final else {},
+                         transfer={s: fraction(list(rows(target/(s+".jsonl"))), "correct")
+                                   for s in ("layout","long","original-difficulty")} if final else {},
                          completed_final=bool(final), completed_development=(target/"development.json").is_file()))
+    archive = []
+    if profile:
+        for name in ("base", "d3-17"):
+            target = ORIGINAL_RESULTS / name
+            if (target/"development.json").exists():
+                sample = list(rows(target/"replay.jsonl"))
+                archive.append(dict(name=name, correct=sum(r["correct"] for r in sample), n=len(sample)))
     return dict(runs=runs, primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=registered,
-                learnability=learning,
-                budget=read_json(RESULTS/"budget.json"), sealed=(RESULTS/"seal.json").is_file())
+                learnability=learning, profile=profile, original_development=archive,
+                budget=read_json(source/"budget.json"), sealed=(source/"seal.json").is_file(),
+                completed=(source/"completed.json").is_file())
 
 
 def scores_table(data):
@@ -303,6 +315,14 @@ def paper(data, date):
     if data["budget"]:
         b=data["budget"]
         line(f"The disposable pilot measured {b['seconds_per_update']:.2f} seconds per update. The budget rule selected {b['updates']} updates per block. The wall-clock estimate excludes checkpoint loading. Every registered arm uses this update count.")
+    if data["profile"]:
+        config=data["profile"]
+        line(f"The amended primary population uses {config['family']} arithmetic with {config['style']} prompts for every arm. Learning was measured on a separate validation partition before this population was frozen. The primary comparison uses 2,048 new canonical problems. The following 128 form the evidence cohort. The original signed population is also evaluated for transfer.")
+        if config["family"]=="registered":
+            line("The signed-difficulty transfer and the amended primary coincide for this selection.")
+        if data["original_development"]:
+            table(["Original development","Correct complete trace","Problems"],
+                  [[r["name"],r["correct"],r["n"]] for r in data["original_development"]])
     line("Results and interpretation","Heading1")
     line("Development accuracy for a solver requires every arithmetic step to be correct. For a judge it requires its whole record to match the executable audit. Held-out solver accuracy uses one response per problem. A dash denotes a pending measurement.")
     if data["runs"]:
@@ -369,6 +389,12 @@ def paper(data, date):
         table(["Reviewer","Familiar both","Novel error","Novel layout","Both novel","Pairs per cell"],
               [[r["name"],percent(r["twins"]),percent(r["unseen_evidence"]["visible"]),
                 percent(r["layout_evidence"]["visible"]),percent(r["transfer_visible"]),r["transfer_twin_n"]] for r in transferred])
+    solver_transfer = [r for r in data["runs"] if r["role"]=="solver" and r["test_n"] and data["profile"]]
+    if solver_transfer:
+        line("Solver transfer","Heading2")
+        table(["Run","Primary","Original difficulty","Unseen layout","Longer expressions"],
+              [[r["name"],percent(r["test"]),percent(r["test"] if data["profile"]["family"]=="registered" else r["transfer"]["original-difficulty"]),
+                percent(r["transfer"]["layout"]),percent(r["transfer"]["long"])] for r in solver_transfer])
     cost_rows=[]
     for r in data["runs"]:
         if r["seed"]==17 and r["name"] in ("d1-17","d2-17","d3-17","flat-17","oracle-17","hybrid-17","shuffle-17") and r["usage"]:
@@ -420,10 +446,18 @@ def build():
     score = scores_table(data)
     primary = data["primary"]
     atomic(REPORTS/"learnability.md",learnability_text(data["learnability"]))
-    status = "Registered primary comparison: "+primary["status"]+"."
+    profile = data["profile"]
+    prefix = "calibrated/" if profile else ""
+    source = ORIGINAL_RESULTS / prefix
+    status = ("Amended primary comparison" if profile else "Registered primary comparison")+" is "+primary["status"]+"."
+    if profile:
+        status += f" Every arm uses {profile['family']} problems and {profile['style']} prompts."
     if "delta" in primary:
         status += f" Difference {100*primary['delta']:.2f} percentage points, conditional 95% interval [{100*primary['ci'][0]:.2f}, {100*primary['ci'][1]:.2f}]."
     summary = status+"\n\n"+score
+    if data["original_development"]:
+        summary += "\n\nOn the original signed development population, "+", ".join(
+            f"{r['name']} solved {r['correct']}/{r['n']}" for r in data["original_development"])+"."
     for run in data["runs"]:
         if run["name"] in ("base","d3-17") and run["completed_development"]:
             label = "Untrained solver" if run["name"]=="base" else "First three-judge-trained solver"
@@ -447,13 +481,13 @@ def build():
         assets += "![Model outputs and exact labels on a common development problem](docs/assets/examples.png)\n\n"
     completed_dev = {r["name"] for r in data["runs"] if r["completed_development"]}
     completed_final = {r["name"] for r in data["runs"] if r["completed_final"]}
-    schedule = matrix()
+    schedule = matrix(profile)
     milestones = [
         ("Complete the frozen-judge solver comparison.", all(r.name in completed_dev for r in schedule if r.name.rsplit("-",1)[-1].isdigit())),
         ("Evaluate Judge 3 on natural reviews and paired evidence changes.", {"base","exact-j3","alt-exact-j3","alt-top-j3"} <= completed_final),
         ("Compare exact and top-down judge supervision and alternating training.", all(r.name in completed_dev for r in schedule if not r.name.rsplit("-",1)[-1].isdigit())),
         ("Release complete paired held-out results, positive and negative examples, and the reproducible analysis.",
-         (RESULTS/"completed.json").is_file() and "delta" in primary)]
+         data["completed"] and "delta" in primary)]
     for label, done in milestones:
         marker="- [x] " if done else "- [ ] "
         post=post.replace("- [ ] "+label,marker+label).replace("- [x] "+label,marker+label)
@@ -462,6 +496,9 @@ def build():
     notes=[]
     methods=[]
     for r in data["runs"]:
+        sub = "" if r["diagnostic"] else prefix
+        directory = experiments/sub/r["name"]
+        up = "../" if sub else ""
         observations=[]
         if r["groups"]:
             observations.append(f"The exact checker accepted {percent(r['train_exact'])} of observed policy outputs. "
@@ -477,17 +514,18 @@ def build():
             observations.append(f"On those same development traces, Judge 3 fixed {r['fixed']} of Judge 2’s verdicts and introduced {r['harmed']} errors.")
         obs=" ".join(observations) or "The first complete observation is pending."
         meta = training_method(r)
-        meta+=" The shared architecture, optimizer and sample definition are in the [registered protocol](../../preregistration.md)."
+        meta+=f" The shared architecture, optimizer and sample definition are in the [registered protocol]({up}../../preregistration.md)."
         coverage = None
         if r["dev_n"]:
             malformed = r["dev_malformed"] if r["role"]=="solver" else r["replay"][int(r["role"][1:])-1]["malformed"]
             coverage=1-malformed/r["dev_n"]
         methods.append([r["name"],r["role"],r["reward"],r["seed"],"arithmetic" if r["role"]=="solver" else r["corpus"],
                         percent(coverage),percent(r["dev"]),percent(r["test"])])
-        atomic(experiments/r["name"]/"experiment.md",f"# {r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n{run_evidence(r)}\n\n[Machine observations](../../../results/{r['name']})\n")
-        atomic(experiments/r["name"]/"learnings.md",f"# Observations from {r['name']}\n\n{obs}\n\n[Raw measurements and denominators](experiment.md) · [Analysis amendments](../../amendments.md)\n")
-        notes.append(f"- [{r['name']}]({r['name']}/learnings.md). {obs}")
-    references="\n".join(f"- [{r['name']}]({r['name']}/experiment.md)" for r in data["runs"])
+        atomic(directory/"experiment.md",f"# {sub}{r['name']}\n\n{meta}\n\n{scores_table({'runs':[r]})}\n\n{run_evidence(r)}\n\n[Machine observations]({up}../../../results/{sub}{r['name']})\n")
+        atomic(directory/"learnings.md",f"# Observations from {sub}{r['name']}\n\n{obs}\n\n[Raw measurements and denominators](experiment.md) · [Analysis amendments]({up}../../amendments.md)\n")
+        notes.append(f"- [{sub}{r['name']}]({sub}{r['name']}/learnings.md). {obs}")
+    references="\n".join(f"- [{r['name']}]({'' if r['diagnostic'] else prefix}{r['name']}/experiment.md)" for r in data["runs"])
+    references+="".join(f"\n- [Original {r['name']}]({r['name']}/experiment.md)" for r in data["original_development"])
     methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
     atomic(experiments/"experiments.md","# Experiment index\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
@@ -498,8 +536,10 @@ def build():
         b = data["budget"]
         activity.append(f"The timing pilot selected {b['updates']} updates per block at {b['seconds_per_update']:.1f} seconds per pilot update. A block at that rate would take {b['updates']*b['seconds_per_update']/3600:.2f} hours.")
         for r in data["runs"]:
-            if r["name"]!="base" and r["updates"] is None and (RESULTS/r["name"]/"recipe.json").exists():
-                activity.append(f"{r['name']} has scored {r['groups']} complete rollout groups against its target of {b['updates']}. The live dashboard reads incoming observations between releases.")
+            root = ORIGINAL_RESULTS if r["diagnostic"] else source
+            recipe = read_json(root/r["name"]/"recipe.json", {})
+            if r["name"]!="base" and r["updates"] is None and recipe:
+                activity.append(f"{r['name']} has scored {r['groups']} complete rollout groups against its target of {recipe['updates']}. The live dashboard reads incoming observations between releases.")
     atomic(REPORTS/"progress.md",f"# Progress · {date}\n\n{trained} of {data['planned']} registered training blocks have completed. {complete} have completed final evaluation. {status}\n\n"+"\n\n".join(activity)+"\n\nThe first single-seed solver has a 14-hour target. The matrix has a one-week training target. Monitoring cadence and milestone order are in the [plan](plan.md). The [experiment index](experiments/experiments.md) contains available development observations.\n")
     paper(data,date)
     return data

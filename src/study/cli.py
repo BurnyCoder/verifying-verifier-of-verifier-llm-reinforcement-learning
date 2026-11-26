@@ -11,7 +11,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 from .design import PILOTS, Run, matrix
-from .storage import RESULTS, ROOT, STATE, read_json, stamp, write_json
+from .storage import ORIGINAL_RESULTS, RESULTS, ROOT, STATE, TRACK, read_json, stamp, write_json
 
 
 def run_spec(name):
@@ -61,7 +61,7 @@ def study_lock(name):
         yield
 
 
-def campaign(public):
+def campaign(public, registered_only=False):
     def stage(action, name, phase):
         milestone = f"{name}-{phase}"
         marker = RESULTS/name/(phase+".json")
@@ -82,7 +82,20 @@ def campaign(public):
             if not (STATE/"publication/protocol.json").exists():
                 worker("publish","--milestone","protocol")
         stage("evaluate","base","development")
-        stage("train","timing","trained")
+        if TRACK == "original":
+            stage("train","timing","trained")
+            if not registered_only:
+                # Preserve the first preregistered solver, then test learnability before scaling.
+                stage("train","d3-17","trained")
+                stage("evaluate","d3-17","development")
+                learnability_campaign(public)
+                from .benchmark import freeze_profile
+                freeze_profile(ORIGINAL_RESULTS)
+                command = [sys.executable, "-u", "-m", "study.cli", "campaign"]
+                if public:
+                    command.append("--publish")
+                subprocess.run(command, env={**os.environ, "STUDY_TRACK":"calibrated"}, check=True)
+                return
         for run in matrix():
             stage("train",run.name,"trained")
             stage("evaluate",run.name,"development")
@@ -150,7 +163,9 @@ def main():
     actions=parser.add_subparsers(dest="action",required=True)
     schedule=actions.add_parser("campaign")
     schedule.add_argument("--publish",action="store_true")
-    names=[r.name for r in matrix()]
+    schedule.add_argument("--registered-only", action="store_true",
+                          help="Reproduce the original signed-arithmetic matrix independently")
+    names=[r.name for r in matrix({})]
     actions.add_parser("train").add_argument("--run",required=True,choices=["timing",*PILOTS,*names])
     calibration=actions.add_parser("learnability",description="Calibrate arithmetic and test actual solver improvement")
     calibration.add_argument("phase",choices=["screen","confirm","audit","evaluate","compare","campaign"])
@@ -167,7 +182,13 @@ def main():
     pub.add_argument("--run")
     args=parser.parse_args()
     if args.action == "campaign":
-        campaign(args.publish)
+        if TRACK == "calibrated":
+            from .benchmark import freeze_profile
+            freeze_profile(ORIGINAL_RESULTS)
+        campaign(args.publish, args.registered_only)
+    elif TRACK == "calibrated" and (args.action=="learnability" or
+                                    args.action=="train" and args.run in ("timing", *PILOTS)):
+        parser.error("The disposable timing and learnability probes belong to the original results root")
     elif args.action == "train":
         from .training import train
         spec=run_spec(args.run)

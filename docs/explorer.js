@@ -98,6 +98,7 @@ async function update() {
     const p=study.primary;
     byId("primary").textContent=p.delta == null ? "Awaiting matched final checkpoints for all registered seeds." : "Three judges minus two: "+(p.delta*100).toFixed(2)+" points. 95% interval "+p.ci.map(x=>(100*x).toFixed(2)).join(" to ")+". Decision: "+p.status+".";
     byId("progress").textContent=study.runs.filter(r=>r.updates != null && !r.diagnostic).length+" of "+study.planned+" registered training blocks completed. "+(study.sealed?"Checkpoint manifest sealed.":"Final test sealed during development.");
+    if (study.profile?.family) byId("progress").textContent += " Amended benchmark · "+study.profile.family+" arithmetic with "+study.profile.style+" prompts.";
     const cal=study.learnability;
     byId("calibration").replaceChildren();
     byId("readiness").textContent=cal?.screen?.selected ? "Selected "+cal.screen.selected.family+" with "+cal.screen.selected.style+" prompts." :
