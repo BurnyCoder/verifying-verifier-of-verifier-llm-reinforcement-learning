@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "top-j2",
+    "seed": 17,
+    "role": "j2",
+    "reward": "teacher",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": "exact-j3",
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T20:54:27.090+00:00"
+}
