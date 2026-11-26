@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "exact-j3",
+    "seed": 17,
+    "role": "j3",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-26T20:25:24.971+00:00"
+}

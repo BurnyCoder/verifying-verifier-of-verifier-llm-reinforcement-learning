@@ -1,0 +1,33 @@
+{
+  "time": "2026-11-26T20:52:03.028+00:00",
+  "run": {
+    "name": "exact-j3",
+    "seed": 17,
+    "role": "j3",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 1596.875,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "usage": {
+    "j3": {
+      "calls": 1024,
+      "input_tokens": 549232,
+      "output_tokens": 14157,
+      "gpu_seconds": 609.2081202392578,
+      "wall_seconds": 609.6790000000328
+    }
+  },
+  "unfinished_generation_batches": 0
+}
