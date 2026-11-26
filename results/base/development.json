@@ -1,0 +1,56 @@
+{
+  "time": "2026-11-26T12:06:12.303+00:00",
+  "phase": "development",
+  "weights": "frozen base",
+  "usage": {
+    "eval_solver": {
+      "calls": 32,
+      "input_tokens": 3215,
+      "output_tokens": 443,
+      "gpu_seconds": 38.86258154296875,
+      "wall_seconds": 38.875
+    },
+    "j1": {
+      "calls": 32,
+      "input_tokens": 6090,
+      "output_tokens": 213,
+      "gpu_seconds": 7.508165527343751,
+      "wall_seconds": 7.530999999999949
+    },
+    "j2": {
+      "calls": 32,
+      "input_tokens": 9753,
+      "output_tokens": 761,
+      "gpu_seconds": 40.00212890625,
+      "wall_seconds": 39.999000000000706
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 10678,
+      "output_tokens": 812,
+      "gpu_seconds": 39.9895,
+      "wall_seconds": 39.998999999999796
+    },
+    "flat_j1": {
+      "calls": 96,
+      "input_tokens": 18270,
+      "output_tokens": 718,
+      "gpu_seconds": 39.83335327148437,
+      "wall_seconds": 39.82800000000043
+    },
+    "j3_visible": {
+      "calls": 16,
+      "input_tokens": 5035,
+      "output_tokens": 238,
+      "gpu_seconds": 12.723077636718749,
+      "wall_seconds": 12.734999999999673
+    },
+    "j3_masked": {
+      "calls": 16,
+      "input_tokens": 4948,
+      "output_tokens": 270,
+      "gpu_seconds": 14.305353027343749,
+      "wall_seconds": 14.311999999999898
+    }
+  }
+}

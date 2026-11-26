@@ -7,9 +7,13 @@ For example, a solver can give the right final answer to (4 + 3) × 2 while reco
 <!-- RESULTS:START -->
 ![Study architecture](docs/assets/architecture.png)
 
+![Development solver accuracy](docs/assets/outcomes.png)
+
 Registered primary comparison: pending.
 
-Model observations are pending.
+| Run | Updated role | Updates | Development correct | Development n | Held-out trace pass@1 | Held-out n |
+|---|---|---:|---:|---:|---:|---:|
+| base | solver | — | 0.0% | 32 | — | 0 |
 
 [Interactive results explorer](https://burnycoder.github.io/verifying-verifier-s-verifier-llm-reinforcement-learning/) · [Paper](reports/paper.pdf)
 <!-- RESULTS:END -->
