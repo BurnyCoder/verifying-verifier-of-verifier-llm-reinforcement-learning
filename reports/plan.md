@@ -1,0 +1,7 @@
+# Study plan
+
+Publish the literature reviews, preregistration and run matrix before inference. Publish implementation, tests, protocol paper and website before the first model call. Run the study in the [registered order](planned-runs.md). Use one organization of raw results keyed by run, phase and checkpoint. Keep the final test sealed until model recipes and checkpoints for the comparison are fixed.
+
+Monitor runs lasting 10–30 minutes every five minutes, runs lasting over 30–60 minutes every 15 minutes, and runs over an hour every 30 minutes. Save resumable state and stream the full model I/O. Inspect only development metrics during training. After each training and evaluation milestone, regenerate figures and reports, publish changes and record the checkpoint in one Hugging Face collection.
+
+The final release includes the dated paper, a plain-language summary, a Pages explorer, raw observations, a table of architectures and objectives, per-experiment methods and learnings, and a scientific review. All reported empirical numbers come from machine-readable observations. [Preregistration](preregistration.md) · [Literature](literature-review.md)

@@ -1,0 +1,21 @@
+# Literature review
+
+Reviewed 26 November 2026. The intervention is the source of the online policy reward. The target population is fresh, short, signed-integer calculation traces with an explicit intermediate result at every node.
+
+| Work | What the authors actually tested | Consequence for this study |
+|---|---|---|
+| [Wen et al., Recursive Self-Critiquing, §§2 and 5](https://arxiv.org/html/2502.04675v4) | Pairwise critiques through third order, comparisons with voting, and reward models evaluated by best-of-N selection. Relative critic and solver strength changed the findings. | Treat recursion as prior art. Compare adding an audit with spending three calls on first-order votes and measure downstream online policy training. |
+| [DeepSeekMath-V2, §2.1.2 and Appendix A.3](https://arxiv.org/html/2511.22570v1) | Experts scored verifier analyses. A learned meta-verifier judged whether claimed proof defects existed and supported the score. Its score contributed to the verifier reward. | Train upper judges on support for a verdict. Replace expert judgments with executable labels in a restricted domain. |
+| [Wu et al., Meta-Rewarding Language Models, §2](https://arxiv.org/html/2407.19594v2) | A meta-judge compared alternative judgments and supplied preference data for iterative DPO. The authors examined length bias. | Use fixed fields and record lengths. Our pointwise evidence audits have independently checkable answers. |
+| [Meta FAIR, RLLM](https://facebookresearch.github.io/RAM/blogs/rllm/) | A language-model reward model learned from on-policy judgments, then provided rewards to a policy. | Separate judge training from solver training and freeze the reward source throughout each solver block. |
+| [Shao et al., DeepSeekMath, §4](https://arxiv.org/html/2402.03300v3) | Group Relative Policy Optimization estimates advantages from multiple outputs to the same question. | Use four completions per prompt and log groups whose rewards have zero variation. |
+| [Stojanovski et al., Reasoning Gym](https://arxiv.org/html/2505.24760v1) and [generator source](https://github.com/open-thought/reasoning-gym/blob/5aea50d292a6427f12c63c77873ec8ae945cd2c0/reasoning_gym/arithmetic/basic_arithmetic.py) | Procedural problem generation with configurable complexity and programmatic grading. | Adapt the signed-integer expression sampler to retain every intermediate node. Preserve upstream attribution. |
+| [Zheng et al., ProcessBench, §3](https://arxiv.org/html/2412.06559v1) | Expert annotation identifies the first erroneous step, with a separate all-correct class. | Ask for the first faulty step and the correct replacement. Score final-answer correctness separately. |
+| [Huang et al., From Accuracy to Robustness, §§4–5](https://arxiv.org/html/2505.22203v3) | Static verifier performance and policy performance diverged in some runs. Policies could receive positive learned rewards for incorrect completions. | Log exact accuracy beside the reward on the same on-policy completions. Include an exact-gated condition. |
+| [Shao et al., Spurious Rewards](https://proceedings.mlr.press/v306/shao26d.html) | Some model and task combinations improved under spurious rewards. | Permute rewards inside each four-sample group to preserve reward counts and remove their assignment to particular completions. |
+
+### Methods and limitations
+
+The paper and repository search covered recursive self-critiquing, meta-rewarding, mathematical proof meta-verification, first-error benchmarks, procedural RLVR, and noisy GRPO rewards. We inspected the authors' methods, comparison conditions and reference implementations. These papers establish precedents for individual components. None of their reported scores is an observation about this project. The proposed contribution is an online comparison with a truth label for each cited claim, including an evidence-only intervention on the second judge.
+
+We follow the distinction between hypotheses and empirical findings, the use of holdouts, and reporting variability across reinforcement-learning runs described by [Lipton and Steinhardt](https://arxiv.org/abs/1807.03341), [Lones](https://arxiv.org/abs/2108.02497), [Henderson et al.](https://arxiv.org/abs/1709.06560), and the [NeurIPS checklist](https://neurips.cc/public/guides/PaperChecklist).
