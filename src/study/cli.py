@@ -26,10 +26,10 @@ def worker(*args):
 
 
 @contextlib.contextmanager
-def campaign_lock():
+def study_lock(name):
     """Use an OS-held lock that releases on crash or restart and prevents competing supervisors."""
     STATE.mkdir(parents=True,exist_ok=True)
-    with (STATE/"campaign.lock").open("a+b") as lock:
+    with (STATE/(name+".lock")).open("a+b") as lock:
         lock.seek(0)
         if os.name == "nt":
             import msvcrt
@@ -41,9 +41,6 @@ def campaign_lock():
 
 
 def campaign(public):
-    from .publish import publish
-    from .report import build
-
     def stage(action, name, phase):
         milestone = f"{name}-{phase}"
         marker = RESULTS/name/(phase+".json")
@@ -53,14 +50,16 @@ def campaign(public):
                 arguments.append("--final")
             worker(*arguments)
         if public:
-            publish(milestone, name)
+            if not (STATE/"publication"/(milestone+".json")).is_file():
+                worker("publish","--milestone",milestone,"--run",name)
         elif not (STATE/"local-milestones"/(milestone+".json")).exists():
-            build()
+            worker("report")
             write_json(STATE/"local-milestones"/(milestone+".json"), {"time":stamp()})
 
-    with campaign_lock():
+    with study_lock("campaign"):
         if public:
-            publish("protocol")
+            if not (STATE/"publication/protocol.json").exists():
+                worker("publish","--milestone","protocol")
         stage("evaluate","base","development")
         stage("train","timing","trained")
         for run in matrix():
@@ -69,14 +68,14 @@ def campaign(public):
         if not (RESULTS/"seal.json").exists():
             worker("seal")
         if public:
-            publish("sealed-checkpoints")
+            worker("publish","--milestone","sealed-checkpoints")
         for name in ("base", *(r.name for r in matrix())):
             stage("evaluate",name,"final")
         write_json(RESULTS/"completed.json",{"time":stamp(),"arms":len(matrix())})
         if public:
-            publish("complete")
+            worker("publish","--milestone","complete")
         else:
-            build()
+            worker("report")
 
 
 def dashboard(port):
@@ -126,10 +125,12 @@ def main():
         budget=read_json(RESULTS/"budget.json")
         if args.run!="timing" and not budget:
             parser.error("Run the registered timing pilot first.")
-        train(spec,4 if args.run=="timing" else budget["updates"])
+        with study_lock("train-"+args.run):
+            train(spec,4 if args.run=="timing" else budget["updates"])
     elif args.action == "evaluate":
         from .evaluate import evaluate
-        evaluate(args.run,args.final)
+        with study_lock("evaluate-"+args.run+("-final" if args.final else "-dev")):
+            evaluate(args.run,args.final)
     elif args.action == "seal":
         from .evaluate import seal
         seal()

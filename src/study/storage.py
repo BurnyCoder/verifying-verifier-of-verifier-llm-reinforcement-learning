@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 ROOT = Path.cwd()
 load_dotenv(ROOT / ".env")
 STATE = Path(os.environ.get("STUDY_STATE", ROOT / "checkpoints")).resolve()
-RESULTS = ROOT / "results"
+RESULTS = Path(os.environ.get("STUDY_RESULTS", ROOT / "results")).resolve()
 
 
 def stamp():
