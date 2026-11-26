@@ -25,5 +25,6 @@ On the natural replay set report J2→J3 fixes and harms on identical traces. Fo
 | Confirm and audit | Frozen solver and frozen J1/J2/J3 | 48 new solver problems, balanced valid/invalid traces and review twins on 16 of them | Confirm learnability range and characterize reward quality |
 | Positive and shuffled controls | Separate fresh seed-17 solver adapters | 128 updates per arm, four samples per group, same prompt order | Exact complete-trace reward versus a within-group shuffle of that reward |
 | Learning validation | Frozen base and both trained solver checkpoints | Same 256 fresh problems, one greedy completion each | Paired improvement and reward-specificity intervals |
+| Matched depth comparison | Repeat all registered solver, judge and alternating arms on fresh role adapters | Freeze the selected family and prompt style. Keep the original per-block update budget and seed schedule. Evaluate 2,048 new problems plus 128 separate review pairs. | Estimate D3 minus D2 on the amended population and report flat voting, signed-difficulty, layout, length and evidence controls |
 
 These are developmental checks ahead of scaling the reward comparison. The first original solver block retains its own name, data, checkpoints and scores. [Decision thresholds](learnability-preregistration.md) · [Measurements](learnability.md)

@@ -100,6 +100,10 @@ def run_evidence(run):
             markdown(["Complete trace", "Final integer", "Unseen layout", "Longer expression", "Correct named assignments among malformed"],
                      [[rate(run["test"]), rate(run["final_answer"]), rate(run["transfer"]["layout"]),
                        rate(run["transfer"]["long"]), run["test_named_correct"]]])])
+        if run.get("family"):
+            signed = run["test"] if run["family"]=="registered" else run["transfer"].get("original-difficulty")
+            desc = " (same population as primary)" if run["family"]=="registered" else ""
+            sections.append("Original signed-difficulty complete-trace accuracy"+desc+" was "+rate(signed)+".")
     if run["usage"]:
         usage = [[name, counts["calls"], counts["input_tokens"], counts["output_tokens"], f"{counts['gpu_seconds']:.2f}"]
                  for name, counts in run["usage"].items()]

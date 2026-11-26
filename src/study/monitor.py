@@ -33,7 +33,7 @@ def inspect_worker(name, phase, elapsed):
             message = "Model setup, corpus preparation or the first optimizer update is in progress."
     else:
         files = ("replay", "development-twins") if phase=="development" else (
-            "test", "long", "layout", "judge-test", "mechanism", "unseen-evidence", "layout-evidence", "transfer-evidence")
+            "test", "long", "layout", "original-difficulty", "judge-test", "mechanism", "unseen-evidence", "layout-evidence", "transfer-evidence")
         counts = {}
         for cohort in files:
             path = target/(cohort+".jsonl")

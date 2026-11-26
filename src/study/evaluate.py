@@ -3,6 +3,7 @@
 import hashlib
 
 from .backend import Backend, stream_seed
+from .benchmark import active_profile, population
 from .design import matrix
 from .domain import problems
 from .exposures import check_exposures
@@ -47,9 +48,9 @@ def batches(split, n, path, size=8, population=None):
             yield pos, batch, seen
 
 
-def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=None):
+def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=None, pool=None):
     policy = run.name if run and run.role == "solver" else None
-    for pos, batch, seen in batches(split, n, path):
+    for pos, batch, seen in batches(split, n, path, population=pool):
         seed = stream_seed("eval", split, pos)
         if stored_traces is not None and all(p.key in stored_traces for p in batch):
             traces = [stored_traces[p.key] for p in batch]
@@ -100,7 +101,7 @@ def mechanisms(backend, snapshot, split, n, path, transfer=False, population=Non
                               masked_pair=int(all(sound(a, b) for a,b in zip(ma,labels,strict=True)))))
 
 
-def evidence_cohort(backend, snapshot, name, phase, split, count, filename, transfer=False):
+def evidence_cohort(backend, snapshot, name, phase, split, count, filename, transfer=False, pool=None):
     """Identical frozen J3, prompts and deterministic decoder yield one shared evidence measurement."""
     reference = snapshot or "base"
     target = RESULTS / name / filename
@@ -113,7 +114,7 @@ def evidence_cohort(backend, snapshot, name, phase, split, count, filename, tran
             atomic(target, source.read_text(encoding="utf-8"))
             backend.journal.event("shared_evidence_measurement", cohort=filename, source=reference, pairs=count)
             return reference
-    mechanisms(backend, snapshot, split, count, target, transfer)
+    mechanisms(backend, snapshot, split, count, target, transfer, pool)
     return name
 
 
@@ -136,28 +137,38 @@ def evaluate(name, final=False):
             used.add(name)
         if not frozen or any(frozen["weights"].get(s) != weights_digest(s) for s in used):
             raise RuntimeError("Final evaluation requires every participating checkpoint to match the seal")
+    profile = active_profile()
     backend = Backend(Journal(name+"-"+phase), frozen=[*snapshots, name if run else None])
+    backend.prompt_style = profile.get("style", "registered")
     evidence_sources = {}
     if final:
         if not run or run.role == "solver":
-            for split, count in (("test", 2048), ("layout", 128), ("long", 128)):
-                solutions(backend, run, snapshots, split, count, directory/(split+".jsonl"), False)
+            suites = [("test", 2048), ("layout", 128), ("long", 128)]
+            if profile and profile["family"] != "registered":
+                suites.append(("original-difficulty", 2048))
+            for split, count in suites:
+                solutions(backend, run, snapshots, split, count, directory/(split+".jsonl"), False,
+                          pool=population(profile, split, count))
         if not run or run.role == "j3" or name in ("exact-prefix3", "top-prefix3", "alt-exact-solver", "alt-top-solver"):
             cohorts = (("mechanism", "mechanism.jsonl", False), ("mechanism", "unseen-evidence.jsonl", True),
                        ("layout", "layout-evidence.jsonl", False), ("layout", "transfer-evidence.jsonl", True))
             for split, filename, transfer in cohorts:
-                evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, split, 128, filename, transfer)
+                evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, split, 128,
+                                                             filename, transfer, population(profile, split, 128))
         if name in ("base", "d3-17") or run.role.startswith("j"):
             # Reuse the exact greedy outputs already observed on this fixed test prefix.
             origin = directory if name == "d3-17" else RESULTS / "base"
             stored = {r["key"]: r["trace"] for r in rows(origin / "test.jsonl")}
-            solutions(backend, run, snapshots, "test", 128, directory/"judge-test.jsonl", True, stored)
+            solutions(backend, run, snapshots, "test", 128, directory/"judge-test.jsonl", True, stored,
+                      population(profile, "test", 128))
     else:
-        solutions(backend, run, snapshots, "dev", 32, directory/"replay.jsonl", True)
+        solutions(backend, run, snapshots, "dev", 32, directory/"replay.jsonl", True,
+                  pool=population(profile, "dev", 32))
         if not run or run.role == "j3" or run.role == "solver":
             filename = "development-twins.jsonl"
-            evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, "dev", 8, filename)
+            evidence_sources[filename] = evidence_cohort(backend, snapshots[2], name, phase, "dev", 8, filename,
+                                                         pool=population(profile, "dev", 8))
     result = {"time": stamp(), "phase": phase, "weights": weights_digest(name) if run else "frozen base",
-              "usage": backend.totals, "evidence_sources": evidence_sources}
+              "usage": backend.totals, "evidence_sources": evidence_sources, "profile": profile}
     write_json(marker, result)
     return result
