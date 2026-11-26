@@ -9109,7 +9109,118 @@
   },
   "planned": 32,
   "learnability": {
-    "screen": null,
+    "screen": {
+      "time": "2026-11-26T14:24:23.069+00:00",
+      "cells": [
+        {
+          "family": "one",
+          "style": "registered",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0,
+          "greedy_exact": 0,
+          "parsed": 0.015625,
+          "mixed_groups": 0
+        },
+        {
+          "family": "one",
+          "style": "demonstrated",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0.8125,
+          "greedy_exact": 0.9375,
+          "parsed": 0.8125,
+          "mixed_groups": 4
+        },
+        {
+          "family": "two-add",
+          "style": "registered",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0,
+          "greedy_exact": 0,
+          "parsed": 0,
+          "mixed_groups": 0
+        },
+        {
+          "family": "two-add",
+          "style": "demonstrated",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0.53125,
+          "greedy_exact": 0.5625,
+          "parsed": 1,
+          "mixed_groups": 2
+        },
+        {
+          "family": "two-mixed",
+          "style": "registered",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0,
+          "greedy_exact": 0,
+          "parsed": 0,
+          "mixed_groups": 0
+        },
+        {
+          "family": "two-mixed",
+          "style": "demonstrated",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0.5625,
+          "greedy_exact": 0.75,
+          "parsed": 1,
+          "mixed_groups": 5
+        },
+        {
+          "family": "registered",
+          "style": "registered",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0,
+          "greedy_exact": 0,
+          "parsed": 0.359375,
+          "mixed_groups": 0
+        },
+        {
+          "family": "registered",
+          "style": "demonstrated",
+          "problems": 16,
+          "samples": 64,
+          "sampled_exact": 0.125,
+          "greedy_exact": 0.125,
+          "parsed": 0.984375,
+          "mixed_groups": 3
+        }
+      ],
+      "selected": {
+        "family": "two-add",
+        "style": "demonstrated",
+        "problems": 16,
+        "samples": 64,
+        "sampled_exact": 0.53125,
+        "greedy_exact": 0.5625,
+        "parsed": 1,
+        "mixed_groups": 2
+      },
+      "usage": {
+        "greedy_solver": {
+          "calls": 128,
+          "input_tokens": 16550,
+          "output_tokens": 1340,
+          "gpu_seconds": 69.23774884033203,
+          "wall_seconds": 69.21700000000055
+        },
+        "sampled_solver": {
+          "calls": 512,
+          "input_tokens": 66200,
+          "output_tokens": 5342,
+          "gpu_seconds": 118.66440911865233,
+          "wall_seconds": 118.71700000000237
+        }
+      },
+      "unfinished_generation_batches": 0
+    },
     "confirmation": null,
     "audit": null,
     "learning": null,
