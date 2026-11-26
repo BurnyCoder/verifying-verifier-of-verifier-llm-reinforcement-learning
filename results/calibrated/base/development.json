@@ -1,0 +1,71 @@
+{
+  "time": "2026-11-26T14:59:48.988+00:00",
+  "phase": "development",
+  "weights": "frozen base",
+  "usage": {
+    "eval_solver": {
+      "calls": 32,
+      "input_tokens": 5257,
+      "output_tokens": 182,
+      "gpu_seconds": 4.672128845214845,
+      "wall_seconds": 4.702999999997701
+    },
+    "j1": {
+      "calls": 32,
+      "input_tokens": 9052,
+      "output_tokens": 220,
+      "gpu_seconds": 4.851865844726563,
+      "wall_seconds": 4.843999999999141
+    },
+    "j2": {
+      "calls": 32,
+      "input_tokens": 14200,
+      "output_tokens": 437,
+      "gpu_seconds": 9.418322265625001,
+      "wall_seconds": 9.406000000000859
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 17164,
+      "output_tokens": 440,
+      "gpu_seconds": 10.485481201171876,
+      "wall_seconds": 10.484000000000378
+    },
+    "flat_j1": {
+      "calls": 96,
+      "input_tokens": 27156,
+      "output_tokens": 659,
+      "gpu_seconds": 14.526957275390625,
+      "wall_seconds": 14.54700000000048
+    },
+    "j3_visible": {
+      "calls": 16,
+      "input_tokens": 8584,
+      "output_tokens": 227,
+      "gpu_seconds": 5.9552114257812505,
+      "wall_seconds": 5.937999999998283
+    },
+    "j3_masked": {
+      "calls": 16,
+      "input_tokens": 8492,
+      "output_tokens": 202,
+      "gpu_seconds": 5.105068359375,
+      "wall_seconds": 5.093999999999141
+    }
+  },
+  "unfinished_generation_batches": 0,
+  "evidence_sources": {
+    "development-twins.jsonl": "base"
+  },
+  "profile": {
+    "family": "two-add",
+    "style": "demonstrated",
+    "updates": 256,
+    "sources": {
+      "learnability/screen.json": "1f9a0a7e56f7179ab33b806d30ed350ce9bc18ed2e004b780e4830419cc2f910",
+      "learnability/confirm.json": "99ec496776f0f579a244af088038ec52a60affac2d0e2e3a32420e8f9702f6bb",
+      "learnability/learning.json": "ad2374b0a4b531b1f7133044d33e925e0cf161be2df2121a2af90b8659669bca",
+      "budget.json": "dedb9ff1007a5d48d6f23e376bf3d3a0852014604d5c0834643f7992c86a6574"
+    }
+  }
+}
