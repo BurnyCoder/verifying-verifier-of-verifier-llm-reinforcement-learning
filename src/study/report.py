@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .depth_review import collect_depth_review, readme_depth, review_text as depth_review_text
 from .paired_examples import differing_examples, paired_text
+from .trajectory import late_rewards, save_trajectory_figure
 from .design import GITHUB, MATCHED_NAMES, PAGES, PILOTS, Run, matched_runs, matrix
 from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
@@ -250,10 +251,13 @@ def figures(data):
         axes[1].set(xlabel="Optimizer update",ylabel="GRPO loss")
         fig.savefig(dest/"training.png",dpi=140)
         plt.close(fig)
+    trajectory = data.get("depth_review", [])
+    if trajectory:
+        save_trajectory_figure(trajectory[0], dest/"depth-trajectory.png")
     # A fresh replication can share the report directory with a previously published data set.
     # Remove only generated figures that the current evidence did not produce.
     for filename, available in (("outcomes.png",scored), ("examples.png",examples), ("training.png",monitored),
-                                ("paired-outcomes.png","delta" in data["primary"])):
+                                ("paired-outcomes.png","delta" in data["primary"]), ("depth-trajectory.png",trajectory)):
         if not available:
             (dest/filename).unlink(missing_ok=True)
 
@@ -358,6 +362,7 @@ def paper(data, date):
                for r in data["depth_review"]])
         line(f"Per-problem verdict changes, reward rates by arithmetic error and within-group preferences are in the <link href='{GITHUB}/blob/main/reports/reviews/depth-diagnosis.md'>depth analysis</link>. It was specified after seeing the first development contrast.")
         first = data["depth_review"][0]
+        line(late_rewards(first).replace("**",""))
         examples = differing_examples(first["paired_outputs"])
         if examples:
             pair = examples[0]
@@ -453,7 +458,7 @@ def paper(data, date):
         line("Reward signal and generation cost","Heading2")
         table(["Run","Constant groups","Groups","Judge calls","Input tokens","Output tokens","CUDA seconds"],cost_rows)
         line("Counts cover reward-provider calls during training. CUDA events span batched generation and can include device idle time between kernel submissions. The flat panel and recursive chain share a call count and output ceiling. Their prompt lengths and stopping lengths may differ.")
-    for filename, caption in (("learnability.png","Solver learnability on fresh validation problems"),("paired-outcomes.png","Seed-specific and pooled held-out effects"),("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("training.png","Frozen three-judge solver training")):
+    for filename, caption in (("learnability.png","Solver learnability on fresh validation problems"),("paired-outcomes.png","Seed-specific and pooled held-out effects"),("outcomes.png","Development complete-trace accuracy"),("examples.png","Common problem across methods"),("depth-trajectory.png","Exact arithmetic and assigned rewards during two-judge and three-judge solver training"),("training.png","Frozen three-judge solver training")):
         asset=DOCS/"assets"/filename
         if asset.exists():
             from reportlab.lib.utils import ImageReader
@@ -558,8 +563,14 @@ def build():
         summary += "\n\n" + markdown(["Contrast", "Seed", "Difference (pp)", "95% lower", "95% upper"], comparisons)
     explanation = "Solver scores require every intermediate value. Judge scores require all fields of the evidence record. Intervals condition on the trained checkpoints."
     grid_text = grid_markdown(data["matched_depth"])
+    trajectory_note = ""
+    if data["depth_review"]:
+        first = data["depth_review"][0]
+        trajectory_note = (f"\n\n### Reward and arithmetic during training, seed {first['seed']}\n\n"
+                           +late_rewards(first)+
+                           f" [All four quarters, denominators and original records]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md).")
     atomic(REPORTS/"summary.md","# Study summary\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
-           summary.replace("(reports/learnability.md)","(learnability.md)")+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
+           summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)

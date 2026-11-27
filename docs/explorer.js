@@ -78,6 +78,23 @@ function showMatched(grids) {
     if (grid.judge_note) {
       const note=document.createElement("p"); note.textContent=grid.judge_note; target.append(note);
     }
+    if (grid.frozen_changes?.length) {
+      const details=document.createElement("details"), summary=document.createElement("summary");
+      summary.textContent="Every changed frozen-judge verdict on the starting solver";
+      const wrap=document.createElement("div"), table=document.createElement("table");
+      wrap.className="scroll";
+      const header=table.createTHead().insertRow();
+      for (const label of ["Problem","Solver wrote","Exact steps","Judge 2","Judge 3","Effect"]) {
+        const cell=document.createElement("th"); cell.scope="col"; cell.textContent=label; header.append(cell);
+      }
+      const body=table.createTBody();
+      for (const record of grid.frozen_changes) {
+        const verdict=level=>(record.verdicts[level] ? "Accept" : "Reject")+" · "+record.reports[level];
+        row(body,[record.expression,record.trace,record.expected_values.join(","),verdict(1),verdict(2),
+                  Boolean(record.verdicts[2])===Boolean(record.correct) ? "Fixed a grading error" : "Introduced a grading error"]);
+      }
+      wrap.append(table); details.append(summary,wrap); target.append(details);
+    }
   }
 }
 function showRun() {
@@ -124,6 +141,15 @@ async function update() {
     byId("progress").textContent=study.runs.filter(r=>r.updates != null && !r.diagnostic && !r.supplemental).length+" of "+study.planned+" registered training blocks completed. "+(study.sealed?"Checkpoint manifest sealed.":"Final test sealed during development.");
     if (study.profile?.family) byId("progress").textContent += " Amended benchmark · "+study.profile.family+" arithmetic with "+study.profile.style+" prompts.";
     showMatched(study.matched_depth ?? []);
+    const trajectory=byId("depth-trajectory");
+    const ready=study.profile?.family==="two-add" && ["d2-17","d3-17"].every(id=>study.runs.some(r=>r.name===id && r.completed_development));
+    if (ready && !trajectory.hasAttribute("src")) {
+      trajectory.onload=()=>{trajectory.hidden=false;};
+      trajectory.src="assets/depth-trajectory.png";
+    } else if (!ready) {
+      trajectory.removeAttribute("src");
+      trajectory.hidden=true;
+    }
     const cal=study.learnability;
     byId("calibration").replaceChildren();
     byId("readiness").textContent=cal?.screen?.selected ? "Selected "+cal.screen.selected.family+" with "+cal.screen.selected.style+" prompts." :
