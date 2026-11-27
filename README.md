@@ -5,7 +5,17 @@ A small language model solves numbered arithmetic problems. A second call judges
 For example, a solver can give the right final answer to (4 + 3) × 2 while recording 8 in the first step. A reviewer can endorse the correct rejection and still give the wrong correction. [Compare the two trained solvers’ answers and each judge’s actual output](#what-did-the-solvers-and-judges-actually-write).
 
 <!-- RESULTS:START -->
-**Independent frozen-judge confirmation.** On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The eligible online solver comparison is deferred.
+## Solvers trained with frozen Qwen3.5-4B judges
+
+| Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
+| --- | --- | --- | --- |
+| Starting solver | 0 | — | 20/32 |
+| Frozen Qwen3.5-4B Judge 2 | 0 | — | Scheduled |
+| Frozen Qwen3.5-4B Judge 3 | 0 | — | Scheduled |
+
+The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
+
+**Independent frozen-judge confirmation.** On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The selected judge qualified for the online solver comparison.
 
 [Run inventory, including upcoming experiments](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/run-inventory.md) · [Newer frozen Qwen protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md) · [Paused solver checkpoint, update 16](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/5274be501a83e4c881664370cfe75f912c69413f/resumable/calibrated/top-depth2/checkpoint-16)
 
@@ -119,8 +129,8 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | [new-judges/q38-27b-iq1s](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q38-27b-iq1s) | Frozen 27B IQ1_S, fresh screen conditional on sustained latency at higher precision | Complete | J3 verdict 36/64, twins 5/32, masked 0/32 | — |
 | [new-judges/confirm-control](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-control) | Frozen Qwen2.5 control, fresh confirmation | Complete | J3 verdict 61/128, twins 1/64, masked 0/64 | — |
 | [new-judges/confirm-winner](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-winner) | Selected newer frozen judge, fresh confirmation · Qwen3.5-4B | Complete | J3 verdict 73/128, twins 10/64, masked 0/64 | — |
-| new-judges/winner-d2 | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 | Eligible, deferred | Pending | — |
-| new-judges/winner-d3 | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 | Eligible, deferred | Pending | — |
+| new-judges/winner-d2 | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B | Scheduled | Pending | — |
+| new-judges/winner-d3 | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B | Scheduled | Pending | — |
 
 </details>
 
@@ -220,13 +230,11 @@ Among the completed original screens, Qwen3.5-4B ranked first. The amended ranki
 
 The screen selected Qwen3.5-4B (Qwen3.5-4B-Q4_K_M.gguf) for independent confirmation against the original frozen model.
 
-Online comparison eligible on a later day.
-
 The candidate-minus-control difference in twins was +14.06 percentage points on 64 paired problems (95% interval +6.25 to +23.44).
 
 The candidate-minus-control difference in balanced verdict was +9.38 percentage points on 64 paired problems (95% interval +1.56 to +17.97).
 
-Intervals resample confirmation problems in pairs and condition on the deployed model files. The solver responses were fixed throughout. Measuring what the solver learns from these rewards requires the deferred online comparison.
+Intervals resample confirmation problems in pairs and condition on the deployed model files. The solver responses were fixed throughout this measurement. The online comparison measures learning from those rewards.
 
 [Case identities, selection and interval audit](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/frozen-confirmation.md).
 

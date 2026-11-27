@@ -240327,8 +240327,8 @@
     {
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/winner-d2",
-      "treatment": "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17",
-      "status": "Eligible, deferred",
+      "treatment": "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B",
+      "status": "Scheduled",
       "result": "Pending",
       "held_out": "—",
       "evidence": null
@@ -240336,13 +240336,82 @@
     {
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/winner-d3",
-      "treatment": "Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17",
-      "status": "Eligible, deferred",
+      "treatment": "Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B",
+      "status": "Scheduled",
       "result": "Pending",
       "held_out": "—",
       "evidence": null
     }
   ],
+  "online_solvers": {
+    "plan": {
+      "date": "2026-11-27",
+      "solver": "Qwen/Qwen2.5-1.5B-Instruct",
+      "solver_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "judge": "Qwen3.5-4B",
+      "judge_digest": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+      "seed": 17,
+      "updates": 256,
+      "group": 4,
+      "depths": [
+        2,
+        3
+      ],
+      "development_n": 32,
+      "status": "Authorized after independent frozen-judge confirmation"
+    },
+    "base": {
+      "correct": 20,
+      "n": 32
+    },
+    "arms": [
+      {
+        "name": "new-judges/winner-d2",
+        "depth": 2,
+        "status": "Scheduled",
+        "updates": 0,
+        "n": null,
+        "correct": null,
+        "elapsed_seconds": null,
+        "signal": {
+          "groups": 0,
+          "samples": 0,
+          "reward": 0,
+          "exact": 0,
+          "false_accept": 0,
+          "false_reject": 0,
+          "mixed": 0,
+          "curves": [],
+          "j3_fixed": 0,
+          "j3_harmed": 0
+        },
+        "probes": []
+      },
+      {
+        "name": "new-judges/winner-d3",
+        "depth": 3,
+        "status": "Scheduled",
+        "updates": 0,
+        "n": null,
+        "correct": null,
+        "elapsed_seconds": null,
+        "signal": {
+          "groups": 0,
+          "samples": 0,
+          "reward": 0,
+          "exact": 0,
+          "false_accept": 0,
+          "false_reject": 0,
+          "mixed": 0,
+          "curves": [],
+          "j3_fixed": 0,
+          "j3_harmed": 0
+        },
+        "probes": []
+      }
+    ],
+    "comparison": {}
+  },
   "newer_judges": {
     "results": [
       {
@@ -241746,7 +241815,7 @@
       "matched_cases": 192,
       "ranked_candidates": 3
     },
-    "headline": "On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The eligible online solver comparison is deferred."
+    "headline": "On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The selected judge qualified for the online solver comparison."
   },
   "matched_depth": [
     {

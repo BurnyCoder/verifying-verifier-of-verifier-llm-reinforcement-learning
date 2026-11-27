@@ -1,5 +1,15 @@
 # Experimental learnings
 
+## Solvers trained with frozen Qwen3.5-4B judges
+
+| Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
+| --- | --- | --- | --- |
+| Starting solver | 0 | — | 20/32 |
+| Frozen Qwen3.5-4B Judge 2 | 0 | — | Scheduled |
+| Frozen Qwen3.5-4B Judge 3 | 0 | — | Scheduled |
+
+The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
+
 [Frozen judge comparisons and independent confirmation](new-judges/learnings.md).
 
 - [calibrated/base](calibrated/base/learnings.md). The solver completed 20 of 32 development calculations exactly. Among 0 serialization failures, 0 contained all correct numbers as named assignments. On those same development traces, Judge 3 fixed 0 of Judge 2’s verdicts and introduced 2 errors.

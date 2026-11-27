@@ -32,3 +32,5 @@ The [matched-depth extension](matched-depth-protocol.md) adds four fresh shallow
 | Matched depth comparison | Repeat all registered solver, judge and alternating arms on fresh role adapters | Freeze the selected family and prompt style. Keep the original per-block update budget and seed schedule. Evaluate 2,048 new problems plus 128 separate review pairs. | Estimate D3 minus D2 on the amended population and report flat voting, signed-difficulty, layout, length and evidence controls |
 
 These are developmental checks ahead of scaling the reward comparison. The first original solver block retains its own name, data, checkpoints and scores. [Decision thresholds](learnability-preregistration.md) · [Measurements](learnability.md)
+
+The independent frozen-judge confirmation qualified Qwen3.5-4B for two online arms. Both train a fresh original solver, with successive J2 or J3 rewards, and receive the same development evaluation. [Registered online matrix](newer-frozen-judges.md#online-solver-comparison) · [Status and measurements](run-inventory.md)
