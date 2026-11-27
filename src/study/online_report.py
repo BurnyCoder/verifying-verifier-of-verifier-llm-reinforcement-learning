@@ -36,12 +36,19 @@ def signal(rollouts):
     complete = [g for g in clusters if len(g)==4]
     samples = [r for g in complete for r in g]
     changes = [r for r in samples if len(r["reports"])==3 and terminal(r["reports"][1],2)!=r["reward"]]
+    changed_groups = 0
+    for group in complete:
+        if all(len(r["reports"])==3 for r in group):
+            j2 = [terminal(r["reports"][1],2) for r in group]
+            j3 = [r["reward"] for r in group]
+            changed_groups += j2 != j3 and (len(set(j2))>1 or len(set(j3))>1)
     curves = [dict(step=g[0]["step"]+1, reward=mean(r["reward"] for r in g), exact=mean(r["label"] for r in g)) for g in complete]
     return dict(groups=len(complete), samples=len(samples), reward=sum(r["reward"] for r in samples),
                 exact=sum(r["label"] for r in samples), false_accept=sum(r["reward"]>r["label"] for r in samples),
                 false_reject=sum(r["reward"]<r["label"] for r in samples),
                 mixed=sum(len({r["reward"] for r in g})>1 for g in complete), curves=curves,
-                j3_fixed=sum(r["label"]==r["reward"] for r in changes), j3_harmed=sum(r["label"]!=r["reward"] for r in changes))
+                j3_fixed=sum(r["label"]==r["reward"] for r in changes), j3_harmed=sum(r["label"]!=r["reward"] for r in changes),
+                changed_advantage_groups=changed_groups)
 
 
 def arm_progress(folder, target):
@@ -77,6 +84,9 @@ def verified_training(folder, depth, keys, identity, updates):
     """Independently match every effective reward to its actual prompt chain and exact arithmetic label."""
     spec = read_json(folder/"recipe.json")
     receipt = read_json(folder/"trained.json")
+    confirmed = read_json(folder.parent/"confirm-winner/configuration.json")
+    if read_json(folder/"configuration.json") != confirmed:
+        raise ValueError("Solver training used a different frozen judge deployment")
     if (spec["initial_adapter_sha256"] != identity or receipt["initial_adapter_sha256"] != identity
         or receipt["updates"] != updates or spec["run"]["initial"] is not None):
         raise ValueError("Solver initialization or completed update count differs")
@@ -91,7 +101,8 @@ def verified_training(folder, depth, keys, identity, updates):
             raise ValueError(f"Training reward or split mismatch at {row['step']}/{row['sample']}")
         for level, output in enumerate(reports,1):
             call = calls[f"{row['step']}/{row['sample']}/j{level}"]
-            if call["text"] != output or call["messages"] != messages(f"j{level}",p,trace,reports[:level-1],"demonstrated"):
+            if (call["artifact"].split("|")[0]!=confirmed["sha256"] or call["text"] != output or
+                call["messages"] != messages(f"j{level}",p,trace,reports[:level-1],"demonstrated")):
                 raise ValueError("Training rollout does not match the recorded frozen-judge call")
     return [r["answer"] for r in effective[:4]]
 
@@ -161,7 +172,8 @@ def conclusion(study):
             f"relative to the two-judge solver (paired 95% interval {100*lo:+.1f} to {100*hi:+.1f}). "
             f"It gained {effect['fixed']} solutions and lost {effect['harmed']} on the {effect['n']} shared problems. "
             f"During three-judge training, Judge 3 fixed {signal['j3_fixed']} solution verdicts and introduced "
-            f"{signal['j3_harmed']} errors across {signal['samples']:,} sampled answers. "
+            f"{signal['j3_harmed']} errors across {signal['samples']:,} sampled answers. Using Judge 3 changed "
+            f"the within-group advantages in {signal['changed_advantage_groups']}/{signal['groups']} groups on those same samples. "
             "The interval conditions on these seed-17 checkpoints and the development population.")
 
 
@@ -187,3 +199,94 @@ def experiment_pages(study, destination):
         link = f"[Raw solver and judge outputs]({GITHUB}/tree/main/results/{name})"
         atomic(target/"experiment.md", f"# Fresh solver with frozen Judge {arm['depth']}\n\n"+online_text(study)+note+" "+link+"\n")
         atomic(target/"learnings.md", f"# Training signal from frozen Judge {arm['depth']}\n\n"+note+" "+link+"\n")
+
+
+def solver_examples(study):
+    examples = study.get("comparison",{}).get("examples",[])
+    if not examples:
+        return ""
+    def show(ex,i):
+        j2,j3 = ex["reports"][i][1:]
+        return f"`{ex['traces'][i]}` ({'correct' if ex['correct'][i] else 'wrong'}), J2 `{j2}`, J3 `{j3}`"
+    data = [[e["expression"], ", ".join(map(str,e["expected"])),show(e,0),show(e,1)] for e in examples]
+    return ("### Both solvers on the same development calculation\n\n"+
+            markdown(["Expression","Exact steps","Two-judge-trained solver and reviews","Three-judge-trained solver and reviews"],data)+
+            "\n\nEach solver writes its answer before grading. In the six-number reviews, the first number audits the preceding judge and the fourth accepts or rejects the solver. The examples take the first problem in each observed pair of outcomes in evaluation order.\n\n")
+
+
+def fit_results(root):
+    from .solver_fit import CANDIDATES
+    measured = []
+    for key in CANDIDATES:
+        r = read_json(root/key/"result.json")
+        if r:
+            measured.append(dict(key=key, **r))
+    return measured
+
+
+def fit_table(measured):
+    head = ["Solver", "Precision", "GPU test", "Parsed", "Exact", "Peak solver allocation"]
+    table = []
+    for r in measured:
+        n = r.get("n")
+        peak = r.get("after_step",{}).get("solver_peak_mib")
+        table.append([r["model"].split("/")[-1],r["precision"].upper(),r["status"],
+                      f"{r['parsed']}/{n}" if n else "—",f"{r['correct']}/{n}" if n else "—",
+                      f"{peak:,.0f} MiB" if peak else "—"])
+    return head,table
+
+
+def fit_text(measured):
+    if not measured:
+        return ""
+    return ("### Solver precision and pretraining-only hardware checks\n\n"+markdown(*fit_table(measured))+
+            "\n\nStarting accuracy uses greedy decoding on the same train-split calibration problems before the disposable update. "
+            "The 4B judge ran on the same GPU. Peak allocation is PyTorch memory for the solver process alone. "
+            f"[Hardware protocol]({GITHUB}/blob/main/reports/solver-precision.md) · [Measured costs and outcomes]({GITHUB}/tree/main/results/solver-fit).\n\n")
+
+
+def paired_review(study):
+    """Expose the initial-weight and exposure checks and every paired change, including negative results."""
+    c=study.get("comparison",{})
+    if not c:
+        return ""
+    data=[]
+    for label, change in zip(("Two judges minus starting solver","Three judges minus starting solver","Three minus two"),
+                             [*c["vs_base"],c["d3_minus_d2"]],strict=True):
+        lo,hi=change["interval"]
+        data.append([label,change["n"],change["fixed"],change["harmed"],f"{100*change['delta']:+.1f}",
+                     f"{100*lo:+.1f} to {100*hi:+.1f}"])
+    provenance=(f"The two fresh adapters had the same initial SHA-256 `{c['initial_adapter_sha256']}`. The actual prompt-order digest "
+                f"for both training trajectories was `{next(iter(c['prompt_order_sha256'].values()))}`. "
+                f"The first four sampled answers {'matched' if c['first_four_answers_matched'] else 'differed'}. "
+                "Each effective training reward was recomputed from the raw terminal report and checked against its exact prompt history. "
+                "Every finished checkpoint contributed one greedy trace per development problem. The training and development IDs were disjoint.")
+    return ("# Independent review of the Qwen3.5-4B solver-reward comparison\n\n"+online_text(study)+
+            markdown(["Paired comparison","Problems","Gained","Lost","Difference (pp)","95% interval (pp)"],data)+
+            "\n\n"+provenance+"\n\n"+solver_examples(study))
+
+
+def plot_online(study, path):
+    """Plot only completed checkpoints, with the original solver and the realized reward signal explicitly labeled."""
+    completed = [a for a in study.get("arms",[]) if a["n"]]
+    if not completed:
+        path.unlink(missing_ok=True)
+        return
+    import matplotlib.pyplot as plt
+    fig,axes = plt.subplots(1,2,figsize=(10,3.8),layout="constrained")
+    base=study["base"]
+    def bars(ax, labels, pairs, colors, title):
+        scales=[100*x/n for x,n in pairs]
+        rectangles=ax.bar(labels,scales,color=colors)
+        ax.set(ylim=(0,110),ylabel="Percent", title=title,yticks=[0,25,50,75,100])
+        ax.bar_label(rectangles,labels=[f"{x}/{n}" for x,n in pairs],padding=3)
+        ax.spines[["top","right"]].set_visible(False)
+    labels=[f"{a['depth']} judges" for a in completed]
+    colors=["#24796c","#4776ad"][:len(labels)]
+    bars(axes[0],["Starting solver",*labels],[(base["correct"],base["n"]),*((a["correct"],a["n"]) for a in completed)],
+         ["#72807f",*colors],"Exact development solutions")
+    bars(axes[1],labels,[(a["signal"]["mixed"],a["signal"]["groups"]) for a in completed],colors,
+         "Training groups with mixed rewards")
+    fig.suptitle("Training Qwen2.5-1.5B with frozen Qwen3.5-4B judges")
+    fig.savefig(path,dpi=150)
+    plt.close(fig)

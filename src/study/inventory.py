@@ -195,6 +195,19 @@ def inventory(root, profile, observed, contrasts=None):
             description += " · "+receipt["model"]
         add("Newer frozen Qwen judges", "new-judges/"+key, description, state, receipt.get("result","Pending"),
             evidence="new-judges/"+key if folder.is_dir() else None)
+    if (root/"new-judges/online-plan.json").is_file():
+        from .solver_fit import CANDIDATES
+        bf16 = read_json(root/"solver-fit/original-bf16/result.json", {})
+        for key,(model,_,precision) in CANDIDATES.items():
+            path = "solver-fit/"+key
+            receipt = read_json(root/path/"result.json",{})
+            status = "Scheduled"
+            if key=="original-int8":
+                status = "Conditional on BF16 fit failure" if not bf16 else "Scheduled" if bf16["status"]=="GPU fit unavailable" else "BF16 fit; fallback unnecessary"
+            n = receipt.get("n")
+            add("Solver hardware and train-split calibration",path,f"{model}, {precision.upper()}, disposable GRPO update",
+                receipt.get("status",status), f"{receipt['correct']}/{n} exact before the update" if n else receipt.get("reason","Pending"),
+                evidence=path if (root/path).exists() else None)
     return ledger
 
 

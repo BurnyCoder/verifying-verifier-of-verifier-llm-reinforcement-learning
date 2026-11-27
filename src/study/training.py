@@ -165,7 +165,7 @@ def record_timing_budget(result):
     write_json(RESULTS / "budget.json", dict(updates=count, seconds_per_update=seconds, time=stamp()))
 
 
-def train(run, steps, external_chain=None):
+def train(run, steps, external_chain=None, backend_factory=None):
     out = RESULTS / run.name
     finished = read_json(out / "trained.json")
     if finished and (adapter(run.name) / "adapter_config.json").is_file():
@@ -173,7 +173,7 @@ def train(run, steps, external_chain=None):
             record_timing_budget(finished)
         return finished
     journal = Journal(run.name)
-    backend = Backend(journal, run.initial, frozen_sources(run), run.seed)
+    backend = (backend_factory or Backend)(journal, run.initial, frozen_sources(run), run.seed)
     backend.label = run.role
     backend.prompt_style = run.prompt_style
     identity = {}

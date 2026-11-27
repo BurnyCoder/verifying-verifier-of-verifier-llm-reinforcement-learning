@@ -140,6 +140,7 @@ def collect():
     contrasts = dict(primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"))
     return dict(runs=runs, inventory=inventory(ORIGINAL_RESULTS,profile,runs,contrasts),
                 online_solvers=online_report.collect_online(ORIGINAL_RESULTS/"new-judges"),
+                solver_fit=online_report.fit_results(ORIGINAL_RESULTS/"solver-fit"),
                 newer_judges=collect_frozen(ORIGINAL_RESULTS/"new-judges"), matched_depth=accuracy_grid(source,profile),
                 **contrasts, planned=registered,
                 learnability=learning, profile=profile, original_development=archive,
@@ -162,6 +163,7 @@ def figures(data):
     dest = DOCS/"assets"
     dest.mkdir(parents=True, exist_ok=True)
     plot_scores(data["newer_judges"],dest/"frozen-judge-scores.png")
+    online_report.plot_online(data["online_solvers"],dest/"online-solvers.png")
     learning_figure(data["learnability"],dest/"learnability.png")
     colors = ("#1e5260", "#177267", "#b65127")
     fig, ax = plt.subplots(figsize=(11, 2.45))
@@ -489,6 +491,16 @@ def paper(data, date):
         line("Original solver trained with frozen Qwen3.5-4B judges","Heading2")
         table(*online_report.score_table(data["online_solvers"]))
         line(escape(online_report.conclusion(data["online_solvers"])))
+        online_figure=DOCS/"assets/online-solvers.png"
+        if online_figure.is_file():
+            story.append(Image(str(online_figure),width=164*mm,height=62.32*mm))
+        for example in data["online_solvers"].get("comparison",{}).get("examples",[]):
+            ref=", ".join(map(str,example["expected"]))
+            line(escape(f"{example['expression']} requires {ref}. The two-judge solver wrote {example['traces'][0]!r}, and the three-judge solver wrote {example['traces'][1]!r}."))
+    if data["solver_fit"]:
+        line("Solver precision and pretraining-only hardware measurements","Heading2")
+        table(*online_report.fit_table(data["solver_fit"]))
+        line("Counts reflect greedy predictions on common train-split calibration prompts before a single disposable update with the frozen 4B judge. Peak allocation covers the solver process only.")
     if data["newer_judges"]["results"]:
         line("Frozen Qwen verdict and evidence scores", "Heading2")
         chart=DOCS/"assets/frozen-judge-scores.png"
@@ -623,6 +635,13 @@ def build():
     headline = confirmation_headline(data['newer_judges'])
     highlight = f"**Independent frozen-judge confirmation.** {headline}\n\n" if headline else ""
     online_summary = online_report.online_text(data["online_solvers"])
+    if (DOCS/"assets/online-solvers.png").is_file():
+        online_summary += f"![Exact solver accuracy and the fraction of groups with mixed rewards]({GITHUB}/raw/refs/heads/main/docs/assets/online-solvers.png)\n\n"
+    online_summary += online_report.solver_examples(data["online_solvers"] or {}) + online_report.fit_text(data["solver_fit"])
+    online_review = online_report.paired_review(data["online_solvers"] or {})
+    if online_review:
+        atomic(REPORTS/"reviews/online-solvers.md",online_review)
+        online_summary += f"[Paired effects and independent reward checks]({GITHUB}/blob/main/reports/reviews/online-solvers.md).\n\n"
     highlight = online_summary + highlight
     if data['newer_judges'].get('review'):
         atomic(REPORTS/'reviews/frozen-confirmation.md',confirmation_review_text(data['newer_judges']))
