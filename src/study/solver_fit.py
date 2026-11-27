@@ -6,7 +6,9 @@ from time import monotonic
 
 from .curriculum import curriculum_problems
 from .design import BASE, REVISION, Run
+from .depth_review import effective_bit, numbers
 from .frozen_gpu import GPUFitError, device_memory, process_dedicated_memory, require_dedicated_memory
+from .learning_review import execute_steps
 from .online_solvers import device_costs, initial_policy_digest, judge_session, score_chain
 from .records import parse, solver_truth
 from .storage import ORIGINAL_RESULTS, append, read_json, rows, stamp, write_json
@@ -15,6 +17,21 @@ from .storage import ORIGINAL_RESULTS, append, read_json, rows, stamp, write_jso
 BASE_ONLY = ("Qwen/Qwen3.5-2B-Base", "b1485b2fa6dfa1287294f269f5fb618e03d52d7c")
 CANDIDATES = {"original-nf4":(BASE, REVISION, "nf4"), "original-bf16":(BASE, REVISION, "bf16"),
               "original-int8":(BASE, REVISION, "int8"), "base-2b":(*BASE_ONLY, "nf4")}
+
+
+def starting_scores(pool, answers):
+    """Re-execute each saved answer on the ordered calibration prefix, including interrupted probes."""
+    data = list(answers)
+    parsed = correct = 0
+    for problem, row in zip(pool[:len(data)], data, strict=True):
+        truth = execute_steps(problem)
+        values = numbers(row["answer"], len(truth))
+        observed = (problem.key, problem.expression, values is not None, values == truth)
+        if observed != (row["key"], row["expression"], row["parsed"], row["correct"]):
+            raise ValueError(f"Incorrect calibration order, parse or grade for {row['key']}")
+        parsed += values is not None
+        correct += values == truth
+    return dict(n=len(data), correct=correct, parsed=parsed)
 
 
 def memory_check(model, server):
@@ -78,16 +95,20 @@ def probe(key):
             else:
                 raise ValueError("An interrupted probe has no post-update residency reading")
             samples = list(rows(folder/"rollouts.jsonl"))
-            calibration = list(rows(folder/"starting-answers.jsonl"))
-            if (effective["updates"]!=1 or len(samples)!=4 or [r["key"] for r in calibration]!=[p.key for p in pool]
-                or any(len(s["reports"])!=3 for s in samples)):
+            metrics = [r for r in rows(folder/"metrics.jsonl") if r.get("step")==1 and "grad_norm" in r]
+            rewards = [s["reward"] for s in samples]
+            if (effective["updates"]!=1 or len(samples)!=4 or len(metrics)!=1
+                or any(len(s["reports"])!=3 or effective_bit(s["reports"][-1])!=s["reward"] for s in samples)
+                or metrics[0]["rewards/registered_reward/mean"]!=sum(rewards)/4):
                 raise ValueError("Incomplete real GRPO hardware trial")
-            receipt.update(status="One update completed", updates=1, group_rewards=[s["reward"] for s in samples],
-                           correct=sum(r["correct"] for r in calibration), parsed=sum(r["parsed"] for r in calibration),
-                           n=len(calibration), solver_usage=effective["usage"])
+            receipt.update(status="One update completed", updates=1, group_rewards=rewards,
+                           gradient_norm=metrics[0]["grad_norm"], solver_usage=effective["usage"])
         receipt["judge_cost"] = device_costs(name,"train")
     except (GPUFitError, torch.cuda.OutOfMemoryError) as error:
         receipt.update(status="GPU fit unavailable",reason=str(error))
+    receipt.update(starting_scores(pool, rows(folder/"starting-answers.jsonl")))
+    if receipt["status"]=="One update completed" and receipt["n"]!=len(pool):
+        raise ValueError("Incomplete starting-solver calibration cohort")
     receipt.update(time=stamp(), elapsed_seconds=monotonic()-started)
     write_json(folder/"result.json",receipt)
     return receipt

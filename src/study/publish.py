@@ -57,9 +57,14 @@ def publish(milestone, run=None):
         operations.append(CommitOperationAdd(path_in_repo=f"{relative}/{packed.name}",path_or_fileobj=str(packed)))
     if operations:
         api.create_commit(repo_id=DATA,repo_type="dataset",operations=operations,commit_message=f"{release} · {head[:12]}")
-    card = ("---\nbase_model: Qwen/Qwen2.5-1.5B-Instruct\nlibrary_name: peft\nlicense: apache-2.0\n---\n"
+    base_model = "base_model: Qwen/Qwen2.5-1.5B-Instruct"
+    base_probe = read_json(ORIGINAL_RESULTS/"solver-fit/base-2b/result.json", {})
+    if base_probe.get("updates")==1:
+        base_model = f"base_model:\n- Qwen/Qwen2.5-1.5B-Instruct\n- {base_probe['model']}"
+    card = (f"---\n{base_model}\nlibrary_name: peft\nlicense: apache-2.0\n---\n"
             "# Recursive judge GRPO adapters\n\nRole-specific adapters use runs/RUN_ID for the original study and runs/calibrated/RUN_ID for the amended comparison. "
-            "The base model revision is 989aa7980e4cf806f80c7fef2b1adb7bc71aa306. "
+            "The original solver revision is 989aa7980e4cf806f80c7fef2b1adb7bc71aa306. "
+            "The two fresh solvers rewarded by Qwen3.5-4B use runs/new-judges/. One-step hardware trials use runs/solver-fit/ and record their own base model, revision and precision. "
             f"[Study, run matrix and evaluation]({GITHUB}). "
             f"[Raw data, logs and paper](https://huggingface.co/datasets/{DATA}). "
             f"[Load an adapter]({GITHUB}/blob/main/docs/usage.md#using-a-published-adapter).\n\n"
@@ -69,7 +74,8 @@ def publish(milestone, run=None):
               .replace("(learnability.md)",f"({GITHUB}/blob/main/reports/learnability.md)"))
     api.upload_file(path_or_fileobj=card.encode(),path_in_repo="README.md",repo_id=MODELS,
                     commit_message=f"Update study card at {release}")
-    if run and (adapter(run)/"adapter_config.json").is_file() and milestone.endswith("-trained"):
+    probe = read_json(ORIGINAL_RESULTS/run/"result.json", {}) if run and run.startswith("solver-fit/") else {}
+    if run and (adapter(run)/"adapter_config.json").is_file() and (milestone.endswith("-trained") or probe.get("updates")==1):
         folder = "/".join(part for part in ("runs", SCOPE, run) if part)
         api.upload_folder(folder_path=str(adapter(run)), path_in_repo=folder,repo_id=MODELS,
                           commit_message=f"Publish {folder} role adapter")
