@@ -9,6 +9,6 @@ Complete. J3 verdict 28/64, twins 0/32, masked 0/32
 | Qwen2.5-1.5B-Instruct · screen · balanced | 32/64 | 28/64 | 28/64 | 0/32 | 0/32 |
 | Qwen2.5-1.5B-Instruct · screen · natural | 23/32 | 19/32 | 13/32 | — | — |
 
-The release checked 416 scored calls against the original prompts, raw generated text and independent arithmetic values. The masked twins returned identical token sequences on 32/32 pairs.
+The release checked 416 scored calls against the original prompts, raw generated text and independent arithmetic values. The masked twins returned identical token sequences on 32/32 pairs. The balanced invalid traces contained 16 first errors before the final step and 16 at the final step.
 
 Windows sampled the dedicated allocation of the llama.cpp process at up to 1,262 MiB. At its last sample, per-process engine running time was Copy 0.4 s, 3D 39.2 s. Engine counters include model loading. Sampling can end before the final kernel completes. [Windows GPU accounting](https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/).

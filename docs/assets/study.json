@@ -240436,6 +240436,10 @@
         "audit": {
           "calls": 416,
           "matched_masked_outputs": 32,
+          "error_positions": {
+            "nonfinal": 16,
+            "final": 16
+          },
           "examples": {
             "failed": {
               "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
@@ -240475,6 +240479,7 @@
             }
           }
         },
+        "devices": [],
         "gpu": {
           "peak_dedicated_mib": 5627.578125,
           "engines": [
@@ -240581,6 +240586,10 @@
         "audit": {
           "calls": 416,
           "matched_masked_outputs": 32,
+          "error_positions": {
+            "nonfinal": 16,
+            "final": 16
+          },
           "examples": {
             "failed": {
               "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
@@ -240620,6 +240629,7 @@
             }
           }
         },
+        "devices": [],
         "gpu": {
           "peak_dedicated_mib": 2783.65234375,
           "engines": [
@@ -240726,6 +240736,10 @@
         "audit": {
           "calls": 416,
           "matched_masked_outputs": 32,
+          "error_positions": {
+            "nonfinal": 16,
+            "final": 16
+          },
           "examples": {
             "failed": {
               "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
@@ -240747,6 +240761,7 @@
             }
           }
         },
+        "devices": [],
         "gpu": {
           "peak_dedicated_mib": 1261.5390625,
           "engines": [

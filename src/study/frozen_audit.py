@@ -15,6 +15,7 @@ def audit(folder, receipt):
     example = {}
     counter = 0
     identical_masked = 0
+    error_positions = {"nonfinal":0,"final":0}
 
     def checked(call_id,level,p,trace,history):
         nonlocal counter
@@ -50,7 +51,10 @@ def audit(folder, receipt):
             example.setdefault(outcome,dict(key=p.key,expression=p.expression,trace=r["trace"],first=r["first"],
                                        reviews=r["reviews"],outputs=r["visible"]["outputs"],expected=[render(v) for v in r["labels"]]))
         else:
-            verdict = solver_truth(p,r["trace"])[0]
+            solution = solver_truth(p,r["trace"])
+            verdict = solution[0]
+            if r["kind"]=="balanced-invalid":
+                error_positions["final" if solution[1]==len(p.values) else "nonfinal"]+=1
             history = []
             for level in (1,2,3):
                 c = checked(f"{r['id']}/j{level}",level,p,r["trace"],history)
@@ -63,4 +67,4 @@ def audit(folder, receipt):
                 history.append(c["text"])
     if metrics(data)!=receipt["metrics"] or counter!=receipt["cost"]["calls"] or len(calls)!=counter+4:
         raise ValueError("Published summary disagrees with complete raw observations")
-    return dict(calls=counter,matched_masked_outputs=identical_masked,examples=example)
+    return dict(calls=counter,matched_masked_outputs=identical_masked,error_positions=error_positions,examples=example)

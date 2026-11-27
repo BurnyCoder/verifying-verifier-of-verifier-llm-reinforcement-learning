@@ -24,6 +24,9 @@ def publish(milestone, run=None):
         return
     if ORIGINAL_RESULTS != (ROOT/"results").resolve():
         raise RuntimeError("Independent replication results use local reporting; the public release uses the registered results directory")
+    if milestone.startswith("new-judges-"):
+        from .frozen_device import close_device_records
+        close_device_records()
     build()
     if git("branch", "--show-current") != "main":
         raise RuntimeError("Publish experiment milestones from the merged main checkout")
@@ -44,7 +47,8 @@ def publish(milestone, run=None):
     logdir = log_directory()/(milestone if not run else run)
     if milestone.endswith("-development") or milestone.endswith("-final"):
         logdir = log_directory()/milestone
-    for path in sorted(logdir.glob("*.jsonl")):
+    native_logs = list(logdir.glob("*-server.log")) if milestone.startswith("new-judges-") else []
+    for path in sorted([*logdir.glob("*.jsonl"),*native_logs]):
         packed=STATE/"publication"/"compressed"/logdir.name/(path.name+".gz")
         packed.parent.mkdir(parents=True,exist_ok=True)
         with path.open("rb") as source, gzip.open(packed,"wb",compresslevel=5) as target:

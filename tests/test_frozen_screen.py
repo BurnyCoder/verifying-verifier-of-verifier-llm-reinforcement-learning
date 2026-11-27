@@ -28,6 +28,17 @@ def test_gpu_placement_rejects_partially_offloaded_or_cpu_weights():
             verify_placement(bad)
 
 
+def test_native_graph_log_checks_scheduled_devices_and_rejects_host_compute(tmp_path):
+    from study.frozen_device import graph_assignments
+    log=tmp_path/"server.log"
+    log.write_text("## SPLIT #0: CUDA0 # 4 inputs\n## SPLIT #1: CUDA0 # 1 inputs\n")
+    assert graph_assignments(log)["graph_assignments"]=={"CUDA0":2}
+    with log.open("a") as f:
+        f.write("## SPLIT #2: CPU # 3 inputs\n")
+    with pytest.raises(ValueError,match="CPU-free computation"):
+        graph_assignments(log)
+
+
 def test_template_prefill_never_becomes_a_judge_answer(monkeypatch, tmp_path):
     server = LocalCUDA(tmp_path/"weights",tmp_path/"log")
     rendered = "user question\n<|im_start|>assistant\n<think>\n\n</think>\n\n"

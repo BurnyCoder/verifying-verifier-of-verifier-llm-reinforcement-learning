@@ -75,9 +75,11 @@ def device_memory():
 
 
 class LocalCUDA:
-    def __init__(self, path, log_path, template=None):
+    def __init__(self, path, log_path, template=None, telemetry=None):
         self.path, self.log_path = path, log_path
         self.template = template
+        self.telemetry = telemetry
+        self.meter = None
         self.process = None
 
     def __enter__(self):
@@ -121,6 +123,11 @@ class LocalCUDA:
             log = self.log_path.read_text(encoding="utf-8",errors="replace")
             self.placement = dict(**verify_placement(log),before=self.before,after=device_memory(),
                                   load_seconds=time.monotonic()-start,build=BUILD,command=command)
+            if self.telemetry and os.name=="nt":
+                self.meter=subprocess.Popen(["powershell","-NoProfile","-ExecutionPolicy","Bypass","-File",
+                    str(Path(__file__).with_name("frozen_device.ps1")),"-ServerId",str(self.process.pid),
+                    "-Destination",str(self.telemetry)],stdout=subprocess.DEVNULL,stderr=self.stream,
+                    creationflags=subprocess.CREATE_NO_WINDOW)
             return self
         except BaseException:
             self.__exit__(None,None,None)
@@ -153,4 +160,10 @@ class LocalCUDA:
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 self.process.wait()
+        if self.meter:
+            try:
+                self.meter.wait(timeout=8)
+            except subprocess.TimeoutExpired:
+                self.meter.terminate()
+                self.meter.wait()
         self.stream.close()
