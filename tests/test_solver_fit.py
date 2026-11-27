@@ -49,3 +49,21 @@ def test_precision_trial_rescores_literal_outputs_and_preserves_partial_denomina
         solver_fit.starting_scores([problem, other], [{**row, "correct": 1}])
     with pytest.raises(ValueError, match="calibration"):
         solver_fit.starting_scores([other, problem], [row])
+
+
+def test_paired_precision_summary_counts_the_same_questions(tmp_path):
+    from study.online_report import fit_assessment
+    from study.storage import append
+    for key, scores in (("original-nf4",[1,0,1]),("base-2b",[0,1,1])):
+        model,revision,precision=solver_fit.CANDIDATES[key]
+        folder=tmp_path/key
+        write_json(folder/"result.json",dict(model=model,revision=revision,precision=precision,correct=2,parsed=3,
+                   n=3,updates=1,group_rewards=[0,1,1,0],gradient_norm=1.5,status="One update completed"))
+        for i,correct in enumerate(scores):
+            problem = Problem.from_expression(f"({i}+3)-1")
+            answer=",".join(map(str,problem.values)) if correct else "90,90"
+            append(folder/"starting-answers.jsonl",dict(key=problem.key,expression=problem.expression,answer=answer,correct=correct,parsed=True))
+    data=fit_results(tmp_path)
+    change=data[1]["paired_vs_nf4"]
+    assert (change["fixed"],change["harmed"],change["delta"])==(1,1,0)
+    assert "pretraining-only" in fit_assessment(data)
