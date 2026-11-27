@@ -1,6 +1,7 @@
 // The same public renderer consumes immutable Pages data or the local live endpoint.
 const byId = id => document.getElementById(id);
 let study;
+let renderedComparisons;
 const pct = n => n == null ? "—" : (100*n).toFixed(1)+"%";
 function drawTrend(groups) {
   const chart = byId("trend");
@@ -58,6 +59,10 @@ function exampleCard(title, lines, error) {
 }
 function showMatched(grids) {
   const section=byId("matched-section"), target=byId("matched-tables");
+  const revision=JSON.stringify(grids);
+  if (renderedComparisons===revision) return;
+  renderedComparisons=revision;
+  const openPhases=new Set(Array.from(target.querySelectorAll("details[open]"),item=>item.dataset.phase));
   target.replaceChildren();
   section.hidden=grids.length===0;
   for (const grid of [...grids].reverse()) {
@@ -83,6 +88,8 @@ function showMatched(grids) {
     }
     if (grid.frozen_changes?.length) {
       const details=document.createElement("details"), summary=document.createElement("summary");
+      details.dataset.phase=grid.phase;
+      details.open=openPhases.has(grid.phase);
       summary.textContent="Every changed frozen-judge verdict on the starting solver";
       const wrap=document.createElement("div"), table=document.createElement("table");
       wrap.className="scroll";
