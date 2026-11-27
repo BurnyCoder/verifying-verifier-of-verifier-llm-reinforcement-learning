@@ -4,7 +4,35 @@ The solver adapter starts from exact-prefix3 with seed 17. Its reward rule is d3
 
 | Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |
 |---|---|---:|---:|---:|---:|---:|
-| alt-exact-solver | solver | 256 | — | 0 | — | 0 |
+| alt-exact-solver | solver | 256 | 6.2% | 32 | — | 0 |
+
+### Replaying the same solver outputs
+
+| Split | Rule | Verdict agreement | Exact evidence / traces | False accepts / invalid | False rejects / valid | Malformed / reports |
+| --- | --- | --- | --- | --- | --- | --- |
+| Development | D1 | 6.2% | 2/32 | 30/30 | 0/2 | 0/32 |
+| Development | D2 | 6.2% | 2/32 | 30/30 | 0/2 | 0/32 |
+| Development | D3 | 6.2% | 2/32 | 30/30 | 0/2 | 0/32 |
+| Development | Flat | 6.2% | — | 30/30 | 0/2 | 0/96 |
+
+The flat panel contributes three ballots per trace. A zero denominator means the relevant class was absent.
+
+| Split | Natural traces | J3 fixes | J3 harms | D3 − D2 verdict accuracy (pp) |
+| --- | --- | --- | --- | --- |
+| Development | 32 | 0 | 0 | +0.00 |
+
+### Paired evidence interventions
+
+| Split | Problem pairs | Whole pair exact | Masked whole pair exact |
+| --- | --- | --- | --- |
+| dev | 8 | 0.0% | 0.0% |
+
+| Condition | Twin reports | Six fields parsed | Correct solution bit | Correct audit bit | Fault located and repaired / faulty reviews |
+| --- | --- | --- | --- | --- | --- |
+| visible | 16 | 16 | 16 | 8 | 0/8 |
+| masked | 16 | 6 | 6 | 3 | 0/8 |
+
+These evidence measurements use the identical frozen reviewer from alt-exact-j3. They are shared observations.
 
 ### Training generation cost
 
