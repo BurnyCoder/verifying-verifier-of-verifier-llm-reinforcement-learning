@@ -5,10 +5,12 @@
 | Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 |
-| Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | Trained |
+| Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | 29/32 |
 | Frozen Qwen3.5-4B Judge 3 | 0 | — | Scheduled |
 
 The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
+
+![Exact solver accuracy and the fraction of groups with mixed rewards](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/raw/refs/heads/main/docs/assets/online-solvers.png)
 
 [Run inventory, including upcoming experiments](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/run-inventory.md) · [Newer frozen Qwen protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md) · [Paused solver checkpoint, update 16](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/5274be501a83e4c881664370cfe75f912c69413f/resumable/calibrated/top-depth2/checkpoint-16)
 

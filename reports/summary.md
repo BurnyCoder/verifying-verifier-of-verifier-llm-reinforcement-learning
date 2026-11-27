@@ -5,10 +5,12 @@
 | Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 |
-| Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | Trained |
+| Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | 29/32 |
 | Frozen Qwen3.5-4B Judge 3 | 0 | — | Scheduled |
 
 The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
+
+![Exact solver accuracy and the fraction of groups with mixed rewards](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/raw/refs/heads/main/docs/assets/online-solvers.png)
 
 **Independent frozen-judge confirmation.** On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The selected judge qualified for the online solver comparison.
 
@@ -282,7 +284,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | [new-judges/q38-27b-iq1s](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q38-27b-iq1s) | Frozen 27B IQ1_S, fresh screen conditional on sustained latency at higher precision | Complete | J3 verdict 36/64, twins 5/32, masked 0/32 | — |
 | [new-judges/confirm-control](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-control) | Frozen Qwen2.5 control, fresh confirmation | Complete | J3 verdict 61/128, twins 1/64, masked 0/64 | — |
 | [new-judges/confirm-winner](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-winner) | Selected newer frozen judge, fresh confirmation · Qwen3.5-4B | Complete | J3 verdict 73/128, twins 10/64, masked 0/64 | — |
-| [new-judges/winner-d2](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d2) | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B | Trained | Pending | — |
+| [new-judges/winner-d2](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d2) | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B | Evaluated | 29/32 (90.6%) exact solver traces | — |
 | new-judges/winner-d3 | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B | Scheduled | Pending | — |
 
 ### Solver hardware and train-split calibration

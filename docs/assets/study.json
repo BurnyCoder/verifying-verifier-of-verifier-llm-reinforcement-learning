@@ -240328,8 +240328,8 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/winner-d2",
       "treatment": "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B",
-      "status": "Trained",
-      "result": "Pending",
+      "status": "Evaluated",
+      "result": "29/32 (90.6%) exact solver traces",
       "held_out": "—",
       "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d2"
     },
@@ -240404,10 +240404,10 @@
       {
         "name": "new-judges/winner-d2",
         "depth": 2,
-        "status": "Trained",
+        "status": "Evaluated",
         "updates": 256,
-        "n": null,
-        "correct": null,
+        "n": 32,
+        "correct": 29,
         "elapsed_seconds": 1869.875,
         "signal": {
           "groups": 256,
