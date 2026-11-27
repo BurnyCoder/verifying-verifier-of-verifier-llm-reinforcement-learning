@@ -167,6 +167,7 @@ def inventory(root, profile, observed, contrasts=None):
         ("runtime-format-pilot","Qwen3.5-9B server-output formatting diagnostic",False),
         *((m.key,m.title+" frozen, Ollama Q4_K_M deployment replicate",False) for m in LOCAL_REPLICATES),
         *((m.key, m.title+" frozen, same-runtime screen", False) for m in MODELS),
+        ("q38-27b-iq1s", "Frozen 27B IQ1_S, fresh screen conditional on sustained latency at higher precision", True),
         ("confirm-control", "Frozen Qwen2.5 control, fresh confirmation", True),
         ("confirm-winner", "Selected newer frozen judge, fresh confirmation", True),
         ("winner-d2", "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17", True),

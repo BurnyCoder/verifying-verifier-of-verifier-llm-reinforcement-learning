@@ -137,3 +137,53 @@ def test_failed_gpu_fit_is_visible_before_any_model_answers(tmp_path):
     assert not data["results"]
     assert data["fit_failures"] == [{"key":"q38-27b", "file":"larger.gguf", "reason":"Insufficient dedicated memory"}]
     assert "larger.gguf" in " ".join(interpretation(data))
+
+
+def test_gpu_engine_time_uses_physical_deltas_and_excludes_counter_resets():
+    from study.frozen_device import measured_engine_times
+    def sample(second,pid,counter):
+        return {"time":f"2026-11-27T00:00:{second:02d}+00:00", "pid":pid,
+                "engines":[{"engine":"3D","seconds":counter}]}
+    observations = [sample(0,7,1), sample(5,7,3), sample(10,7,1e12), sample(15,7,1e12+4),
+                    sample(20,7,1), sample(25,11,100), sample(30,11,104)]
+    total, = measured_engine_times(observations)
+    assert total == {"engine":"3D", "seconds":10, "interval_seconds":15, "usable":3, "discarded":2}
+
+
+def test_sustained_latency_requires_a_measured_slow_call_after_reload():
+    from study.frozen_latency import slow_segment
+    fits = [{"fit":True,"file":"same.gguf","time":"00"}]
+    calls = [{"id":f"fixed/{i}","time":f"0{i}","elapsed_seconds":40} for i in (1,2,3)]
+    assert not slow_segment(calls,fits)['reloaded']
+    fits.append({"fit":True,"file":"same.gguf","time":"04"})
+    assert slow_segment(calls,fits) is None
+    later = {"id":"fixed/5","time":"05","elapsed_seconds":41}
+    report = slow_segment([*calls,later],fits)
+    assert report['reloaded'] and len(report['evidence'])==4
+    assert slow_segment([*calls,{**later,'elapsed_seconds':2}],fits) is None
+
+
+def test_fresh_throughput_fallback_can_win_without_its_partial_predecessor(tmp_path,monkeypatch):
+    from contextlib import nullcontext
+    from study import cli, frozen_device, frozen_suite as suite
+    from study.storage import write_json
+    observed=[]
+    def run(key,model,phase,confirmed_file=None):
+        observed.append((key,model.key,confirmed_file))
+        if key=='q38-27b':
+            return dict(status='Incomplete, sustained latency',file='earlier.gguf')
+        if key.startswith('confirm-'):
+            write_json(tmp_path/key/'result.json',{'status':'Complete'})
+        rate = {'q35-9b':1,'q35-4b':2,'q38-27b-iq1s':3}.get(key,0)
+        return dict(status='Complete',file=confirmed_file or model.filename,cost={'elapsed_seconds':1},
+                    metrics={'twins':{'visible':rate},'balanced':{'depths':[{}, {}, {'accuracy':.5}]}})
+    monkeypatch.setattr(suite,'ROOT',tmp_path)
+    monkeypatch.setattr(suite,'run_one',run)
+    monkeypatch.setattr(suite,'paired_confirmation',lambda *args:{'twins':{'delta':0},'balanced_verdict':{'delta':0}})
+    monkeypatch.setattr(cli,'study_lock',lambda name:nullcontext())
+    monkeypatch.setattr(cli,'worker',lambda *args:None)
+    monkeypatch.setattr(frozen_device,'close_device_records',lambda:None)
+    decision=suite.campaign()
+    assert decision['original_completed_selection']=='q35-4b' and decision['selected']=='q38-27b-iq1s'
+    assert ('confirm-winner','q38-27b',suite.SMALLER_FILES['q38-27b'][-1][0]) in observed
+    assert not decision['online_gate']

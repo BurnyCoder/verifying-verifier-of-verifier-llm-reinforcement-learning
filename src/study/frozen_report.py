@@ -3,6 +3,7 @@
 from functools import lru_cache
 
 from .frozen_audit import audit
+from .frozen_device import measured_engine_times
 from .frozen_models import LOCAL_REPLICATES, MODELS
 from .storage import atomic, read_json, rows
 from .tables import markdown
@@ -56,7 +57,7 @@ def conversion_findings(root, results):
 
 def collect_frozen(root):
     results, failed = [], []
-    for key in ("runtime-format-pilot",*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"confirm-control","confirm-winner"):
+    for key in ("runtime-format-pilot",*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"q38-27b-iq1s","confirm-control","confirm-winner"):
         for fit in read_json(root/key/"fit.json",[]):
             if not fit["fit"]:
                 failed.append(dict(key=key,file=fit["file"],reason=fit["reason"].splitlines()[0]))
@@ -68,7 +69,7 @@ def collect_frozen(root):
                 samples = list(rows(root/key/"gpu-telemetry.jsonl"))
                 if samples:
                     receipt["gpu"] = dict(peak_dedicated_mib=max(r["dedicated_bytes"] for r in samples)/2**20,
-                                          engines=samples[-1]["engines"],last_sample=samples[-1]["time"])
+                                          engines=measured_engine_times(samples),last_sample=samples[-1]["time"])
             results.append({**receipt,"key":key})
     return dict(results=results,decision=read_json(root/"decision.json",{}),conversions=conversion_findings(root,results),fit_failures=failed)
 
@@ -112,6 +113,9 @@ def interpretation(study):
         parts += ["The comparison of two conversions of the same model was exploratory. Both used the same llama.cpp CUDA executable. The experiment varies each complete model file, so a specific conversion difference cannot be identified as the cause.",*study["conversions"]]
     decision = study["decision"]
     if decision:
+        if decision.get('original_completed_selection'):
+            old = next(r for r in study['results'] if r['key']==decision['original_completed_selection'])
+            parts.append(f"Among the completed original screens, {old['model']} ranked first. The amended ranking also considers the separately restarted 27B file when it completes.")
         selected = next((r for r in study["results"] if r["key"]==decision.get("selected")),None)
         if selected:
             parts.append(f"The screen selected {selected['model']} ({selected['file']}) for independent confirmation against the original frozen model.")
@@ -186,10 +190,13 @@ def experiment_pages(study, dest):
             gpu = r.get("gpu")
             if gpu:
                 method += ("\n\nWindows sampled the dedicated allocation of the llama.cpp process at up to "
-                           f"{gpu['peak_dedicated_mib']:,.0f} MiB. At its last sample, per-process engine running time was "
-                           +", ".join(f"{e['engine']} {e['seconds']:.1f} s" for e in gpu["engines"])+
-                           ". Engine counters include model loading. Sampling can end before the final kernel completes. "
-                           "[Windows GPU accounting](https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/).")
+                           f"{gpu['peak_dedicated_mib']:,.0f} MiB. Measured active time between usable adjacent samples was "
+                           +", ".join(f"{e['engine']} {e['seconds']:.1f} s across {e['interval_seconds']:.1f} s ({e['usable']} usable intervals, {e['discarded']} discarded)" for e in gpu["engines"])+
+                           ". The sampling window can miss startup and final kernels. Discontinuities supply no time estimate. "
+                           "[Windows timer counters](https://learn.microsoft.com/en-us/windows/win32/wmisdk/timer-algorithm-counter-types).")
+        elif r.get('latency'):
+            note += ["The throughput decision used recorded wall times before and after a reload of the same model. Each row is a completed call.",
+                     markdown(['Call ID','Completion time (UTC)','Seconds'],[[c['id'],c['time'],f"{c['seconds']:.1f}"] for c in r['latency']['evidence']])]
         else:
             note += ["The archived attempt is excluded from accuracy comparisons. Its recorded termination reason is available in the raw evidence."]
         atomic(folder/"experiment.md",method+"\n")

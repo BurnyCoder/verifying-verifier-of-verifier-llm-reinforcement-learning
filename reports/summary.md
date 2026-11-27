@@ -241,6 +241,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | [new-judges/q35-4b](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q35-4b) | Qwen3.5-4B frozen, same-runtime screen | Complete | J3 verdict 35/64, twins 7/32, masked 0/32 | — |
 | [new-judges/q35-9b](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q35-9b) | Qwen3.5-9B frozen, same-runtime screen | Complete | J3 verdict 43/64, twins 4/32, masked 0/32 | — |
 | [new-judges/q38-27b](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q38-27b) | Qwen3.8-27B frozen, same-runtime screen | Checking GPU fit | Pending | — |
+| new-judges/q38-27b-iq1s | Frozen 27B IQ1_S, fresh screen conditional on sustained latency at higher precision | Conditional | Pending | — |
 | new-judges/confirm-control | Frozen Qwen2.5 control, fresh confirmation | Conditional | Pending | — |
 | new-judges/confirm-winner | Selected newer frozen judge, fresh confirmation | Conditional | Pending | — |
 | new-judges/winner-d2 | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 | Conditional, later day | Pending | — |
