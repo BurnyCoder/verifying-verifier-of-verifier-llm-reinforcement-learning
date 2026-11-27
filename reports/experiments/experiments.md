@@ -28,6 +28,7 @@ All learned models use grouped reinforcement learning with one active LoRA adapt
 | alt-exact-j3 | j3 | exact | 17 | exact-prefix3 | 100.0% | 31.2% | — |
 | alt-exact-solver | solver | d3 | 17 | arithmetic | 100.0% | 6.2% | — |
 | alt-top-j3 | j3 | exact | 17 | top-prefix3 | 100.0% | 31.2% | — |
+| exact-depth1 | solver | d1 | 17 | arithmetic | — | — | — |
 | learn-oracle-17 | solver | oracle | 17 | arithmetic | — | — | — |
 | learn-shuffle-17 | solver | oracle-shuffle | 17 | arithmetic | — | — | — |
 
@@ -57,6 +58,7 @@ All learned models use grouped reinforcement learning with one active LoRA adapt
 - [alt-exact-j3](calibrated/alt-exact-j3/experiment.md)
 - [alt-exact-solver](calibrated/alt-exact-solver/experiment.md)
 - [alt-top-j3](calibrated/alt-top-j3/experiment.md)
+- [exact-depth1](calibrated/exact-depth1/experiment.md)
 - [learn-oracle-17](learn-oracle-17/experiment.md)
 - [learn-shuffle-17](learn-shuffle-17/experiment.md)
 - [Original base](base/experiment.md)
