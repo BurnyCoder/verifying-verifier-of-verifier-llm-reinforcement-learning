@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .depth_review import collect_depth_review, readme_depth, review_text as depth_review_text
 from .design import GITHUB, PAGES, PILOTS, Run, matrix
+from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
 from .records import named_values
@@ -461,6 +462,12 @@ def paper(data, date):
 
 def build():
     data = collect()
+    final_review = review_completed(ORIGINAL_RESULTS,data)
+    review_path = REPORTS/"reviews/final.md"
+    if final_review:
+        atomic(review_path,final_review_text(final_review))
+    else:
+        review_path.unlink(missing_ok=True)
     scoped = ORIGINAL_RESULTS / ("calibrated" if data["profile"] else "")
     data["depth_review"] = collect_depth_review(scoped, data["profile"])
     depth_file = REPORTS/"reviews/depth-diagnosis.md"
@@ -491,6 +498,8 @@ def build():
     summary = status+"\n\n"+score
     if data["depth_review"]:
         summary += f"\n\n[How the third judge changed actual training rewards and worked examples]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md)."
+    if final_review:
+        summary += f"\n\n[Independent rescoring, split checks and paired outcomes against one, two and three independent judges]({GITHUB}/blob/main/reports/reviews/final.md)."
     learning = data["learnability"]
     if learning["screen"]:
         chosen = learning["screen"]["selected"]
