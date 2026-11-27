@@ -27,7 +27,7 @@ Every judge grades the same 32 saved responses from the starting solver. A verdi
 | --- | --- | --- | --- |
 | Original frozen judges | 19/32 (59.4%) | 19/32 (59.4%) | 17/32 (53.1%) |
 | Exact labels · only final judge trained | 20/32 (62.5%) | 19/32 (59.4%) | 18/32 (56.2%) |
-| Exact labels · all participating judges trained | 20/32 (62.5%) | Pending | Pending |
+| Exact labels · all participating judges trained | 20/32 (62.5%) | 20/32 (62.5%) | 20/32 (62.5%) |
 | Top-down supervision · only final judge trained | 20/32 (62.5%) | 19/32 (59.4%) | 18/32 (56.2%) |
 | Top-down supervision · all participating judges trained | 20/32 (62.5%) | Pending | Pending |
 

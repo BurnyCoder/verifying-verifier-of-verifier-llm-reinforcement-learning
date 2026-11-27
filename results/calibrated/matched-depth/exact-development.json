@@ -1,0 +1,35 @@
+{
+  "time": "2026-11-27T04:28:30.735+00:00",
+  "phase": "development",
+  "weights": {
+    "exact-j1": "2f6ea05e0b2fdd23daf3b88c27d013aab51f5db93ebdb76bc551448cf7c04f98",
+    "exact-j2": "3a7df39f9f9404d7582d1ab09632417fda3eab293189332856c13c478cecfa5e",
+    "exact-j3": "047aeff61dfe6ec6590f14281392c66d8e2bc0932320e5e5f351701ca95a1792"
+  },
+  "source": "replay.jsonl",
+  "n": 32,
+  "usage": {
+    "j1": {
+      "calls": 32,
+      "input_tokens": 9052,
+      "output_tokens": 218,
+      "gpu_seconds": 5.3832177734375,
+      "wall_seconds": 5.374999999992724
+    },
+    "j2": {
+      "calls": 32,
+      "input_tokens": 14198,
+      "output_tokens": 436,
+      "gpu_seconds": 8.771068359375,
+      "wall_seconds": 8.796000000002095
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 17162,
+      "output_tokens": 436,
+      "gpu_seconds": 9.657172119140625,
+      "wall_seconds": 9.656999999999243
+    }
+  },
+  "unfinished_generation_batches": 0
+}
