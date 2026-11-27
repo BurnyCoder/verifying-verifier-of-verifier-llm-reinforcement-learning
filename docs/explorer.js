@@ -3,8 +3,7 @@ const byId = id => document.getElementById(id);
 let study;
 let renderedComparisons;
 const pct = n => n == null ? "—" : (100*n).toFixed(1)+"%";
-function drawTrend(groups) {
-  const chart = byId("trend");
+function drawTrend(groups, chart = byId("trend")) {
   chart.hidden = !groups.length;
   if (!groups.length) return;
   const width = Math.max(270,chart.getBoundingClientRect().width), height = 220;
@@ -125,6 +124,23 @@ function showInventory() {
     }
   }
 }
+function showOnline() {
+  const online=study?.online_solvers, block=byId("online-section");
+  block.hidden=!online?.arms;
+  if (block.hidden) return;
+  const body=byId("online-scores"), effect=online.comparison?.d3_minus_d2;
+  body.replaceChildren();
+  row(body,["Starting solver","Evaluated",0,"—","—",online.base.correct+"/"+online.base.n]);
+  for (const arm of online.arms) {
+    const probe=arm.probes.at(-1), sig=arm.signal;
+    row(body,["Judge "+arm.depth,arm.status,arm.updates+"/"+online.plan.updates,sig.groups ? sig.mixed+"/"+sig.groups : "—",
+      probe ? Math.round(probe.development_accuracy*probe.development_n)+"/"+probe.development_n+" at step "+probe.step : "—",
+      arm.n ? arm.correct+"/"+arm.n : "Pending"]);
+  }
+  byId("online-result").textContent=effect ? "Three judges minus two on the same development questions: "+(effect.delta*100).toFixed(1)+" percentage points (paired 95% interval "+effect.interval.map(x=>(100*x).toFixed(1)).join(" to ")+")." :
+    "Fresh seed-17 solver adapters receive the final judge’s verdict. The independent integer checker scores every arithmetic step.";
+  drawTrend(online.arms.find(a=>a.depth===Number(byId("online-depth").value)).signal.curves,byId("online-trend"));
+}
 function showNewJudges() {
   const body = byId("frozen-scores");
   body.replaceChildren();
@@ -221,6 +237,7 @@ async function update() {
     if (study.profile?.family) byId("progress").textContent += " Amended benchmark · "+study.profile.family+" arithmetic with "+study.profile.style+" prompts.";
     showMatched(study.matched_depth ?? []);
     showInventory();
+    showOnline();
     showNewJudges();
     const trajectory=byId("depth-trajectory");
     const ready=study.profile?.family==="two-add" && ["d2-17","d3-17"].every(id=>study.runs.some(r=>r.name===id && r.completed_development));
@@ -266,6 +283,7 @@ async function update() {
 }
 byId("run").addEventListener("change",showRun);
 byId("out").addEventListener("change",showRun);
+byId("online-depth").addEventListener("change",showOnline);
 window.addEventListener("resize",()=>drawTrend(study?.runs.find(r=>r.name===byId("run").value)?.curves ?? []));
 update();
 if (live) setInterval(update,15000);

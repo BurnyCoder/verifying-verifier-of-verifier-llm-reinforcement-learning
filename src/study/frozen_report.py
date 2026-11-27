@@ -105,7 +105,7 @@ def confirmation_headline(study):
     records={r['key']:r for r in study['results']}
     winner,control=(records[key] for key in ('confirm-winner','confirm-control'))
     w,c=winner['metrics'],control['metrics']
-    followup = 'The eligible online solver comparison is deferred.' if study['decision']['online_gate'] else 'The selected judge did not meet both conditions for online solver training.'
+    followup = 'The selected judge qualified for the online solver comparison.' if study['decision']['online_gate'] else 'The selected judge did not meet both conditions for online solver training.'
     fixed,harmed=(w['balanced'][key] for key in ('fixed','harmed'))
     changes = (f"For {winner['model']}, Judge 3 agreed with Judge 2 on every solution verdict." if fixed+harmed==0 else
                f"For {winner['model']}, Judge 3 fixed {fixed} Judge 2 errors and overturned {harmed} correct verdicts.")
@@ -150,12 +150,13 @@ def interpretation(study):
         selected = next((r for r in study["results"] if r["key"]==decision.get("selected")),None)
         if selected:
             parts.append(f"The screen selected {selected['model']} ({selected['file']}) for independent confirmation against the original frozen model.")
-        parts.append(decision["result"]+".")
+        if not decision.get("online_gate"):
+            parts.append(decision["result"]+".")
         for metric, estimate in decision.get("estimates",{}).items():
             lo,hi = estimate["ci"]
             parts.append(f"The candidate-minus-control difference in {metric.replace('_',' ')} was {estimate['delta']*100:+.2f} percentage points on {estimate['n']} paired problems (95% interval {100*lo:+.2f} to {100*hi:+.2f}).")
         if decision.get("estimates"):
-            parts.append("Intervals resample confirmation problems in pairs and condition on the deployed model files. The solver responses were fixed throughout. Measuring what the solver learns from these rewards requires the deferred online comparison.")
+            parts.append("Intervals resample confirmation problems in pairs and condition on the deployed model files. The solver responses were fixed throughout this measurement. The online comparison measures learning from those rewards.")
     return parts
 
 

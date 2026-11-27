@@ -46,7 +46,7 @@ def publish(milestone, run=None):
     operations.append(CommitOperationAdd(path_in_repo="README.md",path_or_fileobj=dataset_card.encode()))
     logdir = log_directory()/(milestone if not run else run)
     if milestone.endswith("-development") or milestone.endswith("-final"):
-        logdir = log_directory()/milestone
+        logdir = log_directory()/(run+"-development" if run and run.startswith("new-judges/") else milestone)
     native_logs = list(logdir.glob("*-server.log")) if milestone.startswith("new-judges-") else []
     for path in sorted([*logdir.glob("*.jsonl"),*native_logs]):
         packed=STATE/"publication"/"compressed"/logdir.name/(path.name+".gz")

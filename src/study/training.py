@@ -67,8 +67,9 @@ def training_data(backend, run, count):
 class Reward:
     """Supply only the assigned training signal while separately writing oracle observations."""
 
-    def __init__(self, backend, run):
+    def __init__(self, backend, run, external_chain=None):
         self.backend, self.run = backend, run
+        self.external_chain = external_chain
         self.__name__ = "registered_reward"
 
     def __call__(self, prompts, completions, expression, trace, history_json, trainer_state, **kwargs):
@@ -90,7 +91,8 @@ class Reward:
                 rewards = [majority(h) for h in histories]
             else:
                 depth = {"d1": 1, "d2": 2}.get(run.reward, 3)
-                histories = chain(self.backend, dataset, completions, run.judges, depth, seed)
+                histories = (self.external_chain(dataset, completions, depth, step) if self.external_chain
+                             else chain(self.backend, dataset, completions, run.judges, depth, seed))
                 rewards = [terminal(h[-1], depth) for h in histories]
                 if run.reward == "hybrid":
                     rewards = [j*o for j, o in zip(rewards, labels, strict=True)]
@@ -163,7 +165,7 @@ def record_timing_budget(result):
     write_json(RESULTS / "budget.json", dict(updates=count, seconds_per_update=seconds, time=stamp()))
 
 
-def train(run, steps):
+def train(run, steps, external_chain=None):
     out = RESULTS / run.name
     finished = read_json(out / "trained.json")
     if finished and (adapter(run.name) / "adapter_config.json").is_file():
@@ -174,6 +176,10 @@ def train(run, steps):
     backend = Backend(journal, run.initial, frozen_sources(run), run.seed)
     backend.label = run.role
     backend.prompt_style = run.prompt_style
+    identity = {}
+    if external_chain is not None:
+        from .online_solvers import initial_policy_digest
+        identity["initial_adapter_sha256"] = initial_policy_digest(backend.model)
     data = training_data(backend, run, steps)
     work = STATE / "runs" / run.name / "trainer"
     work.mkdir(parents=True, exist_ok=True)
@@ -197,9 +203,13 @@ def train(run, steps):
                       report_to="none", disable_tqdm=True, remove_unused_columns=False, dataloader_num_workers=0)
     monitor = Metrics(backend, run, steps,latest_cost.get("elapsed_seconds",0))
     trainer = GRPOTrainer(model=backend.model, args=args, processing_class=backend.tokenizer, train_dataset=data,
-                          reward_funcs=Reward(backend, run), callbacks=[monitor])
+                          reward_funcs=Reward(backend, run, external_chain), callbacks=[monitor])
     before = frozen_fingerprint(backend.model)
-    write_json(out / "recipe.json", {"run": asdict(run), "updates": steps, "group": 4, "started": stamp()})
+    recipe = {"run": asdict(run), "updates": steps, "group": 4, **identity}
+    previous = read_json(out/"recipe.json", {})
+    if external_chain and previous and any(previous.get(k)!=v for k,v in json.loads(json.dumps(recipe)).items()):
+        raise ValueError("Online solver initialization or optimizer recipe changed on resume")
+    write_json(out / "recipe.json", {**recipe, "started": previous.get("started") or stamp()})
     journal.event("training_start", resume=resume, updates=steps, completed=last_step)
     trainer.train(resume_from_checkpoint=resume)
     elapsed = monitor.prior_seconds+time.monotonic()-monitor.started
@@ -208,7 +218,7 @@ def train(run, steps):
         raise RuntimeError("Frozen judge adapter changed during optimization")
     backend.model.save_pretrained(adapter(run.name), selected_adapters=["default"])
     result = dict(time=stamp(), run=asdict(run), updates=trainer.state.global_step,
-                  elapsed_seconds=elapsed, resumed_at=last_step, frozen_checksum=after, **generation_cost(run.name,backend.totals))
+                  elapsed_seconds=elapsed, resumed_at=last_step, frozen_checksum=after, **identity, **generation_cost(run.name,backend.totals))
     if run.name == "timing":
         record_timing_budget(result)
     write_json(out / "trained.json", result)

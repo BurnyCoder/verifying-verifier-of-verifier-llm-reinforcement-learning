@@ -183,6 +183,14 @@ def inventory(root, profile, observed, contrasts=None):
         decision = read_json(root/"new-judges/decision.json",{})
         if key.startswith("winner-d") and decision:
             state = "Eligible, deferred" if decision.get("online_gate") else "Gate not met" if "online_gate" in decision else "Deferred"
+            plan = read_json(root/"new-judges/online-plan.json")
+            if plan and decision.get("online_gate"):
+                from .online_report import arm_progress
+                arm = arm_progress(folder, plan["updates"])
+                state = arm["status"]
+                description += " · "+plan["judge"]
+                if arm["n"]:
+                    receipt["result"] = cell(arm["correct"],arm["n"])+" exact solver traces"
         if key=="confirm-winner" and receipt.get("model"):
             description += " · "+receipt["model"]
         add("Newer frozen Qwen judges", "new-judges/"+key, description, state, receipt.get("result","Pending"),
