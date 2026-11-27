@@ -11,6 +11,7 @@ from .exposures import check_exposures
 from .learnability_analysis import paired_change
 from .learning_review import execute_steps
 from .online_solvers import NAMES
+from .online_trajectory import trajectory_evidence, trajectory_note, trajectory_text
 from .prompts import messages
 from .records import terminal
 from .storage import atomic, read_json, rows, write_json
@@ -177,6 +178,7 @@ def verify_pair(root):
     comparison = dict(vs_base=[paired_change(s,baseline) for s in scores], d3_minus_d2=difference,
                       initial_adapter_sha256=identity, first_four_answers_matched=first[0]==first[1],
                       final_adapter_sha256=weights, matched_groups=same, development_replays=replays,
+                      trajectory=trajectory_evidence(*trajectories),
                       prompt_order_sha256=signatures, examples=cases)
     write_json(root/"new-judges/online-comparison.json", comparison)
     return comparison
@@ -207,7 +209,8 @@ def conclusion(study):
             f"During three-judge training, Judge 3 fixed {signal['j3_fixed']} solution verdicts and introduced "
             f"{signal['j3_harmed']} errors across {signal['samples']:,} sampled answers. Using Judge 3 changed "
             f"the within-group advantages in {signal['changed_advantage_groups']}/{signal['groups']} groups on those same samples. "
-            "The interval conditions on these seed-17 checkpoints and the development population.")
+            "The interval conditions on these seed-17 checkpoints and the development population. "+
+            (trajectory_note(c["trajectory"]) if "trajectory" in c else "")).rstrip()
 
 
 def online_text(study):
@@ -329,7 +332,7 @@ def paired_review(study):
                 "Every finished checkpoint contributed one greedy trace per development problem. The training and development IDs were disjoint.")
     return ("# Independent review of the Qwen3.5-4B solver-reward comparison\n\n"+online_text(study)+
             markdown(["Paired comparison","Problems","Gained","Lost","Difference (pp)","95% interval (pp)"],data)+
-            "\n\n"+provenance+"\n\n"+solver_examples(study))
+            "\n\n"+provenance+"\n\n"+trajectory_text(c.get("trajectory"))+solver_examples(study))
 
 
 def plot_online(study, path):
