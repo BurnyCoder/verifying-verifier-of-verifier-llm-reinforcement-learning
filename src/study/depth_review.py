@@ -11,6 +11,7 @@ from .learning_review import execute_steps
 from .paired_examples import differing_examples, explain_report, outcome_counts, output_table, pair_saved_outputs, report_key
 from .storage import read_json, rows
 from .tables import markdown
+from .trajectory import late_rewards, quarter_table, training_quarters
 
 
 def numbers(text, width):
@@ -140,7 +141,8 @@ def audit_arm(directory, depth):
         cases[kind] += 1
     windows = [[sum(r[k] for r in quarter) for k in ("label", "reward")]
                for quarter in (training[:updates], training[-updates:])]
-    return training, dev, dict(training=parts, rewarded=paid, dev=cases, first_quarter=windows[0], last_quarter=windows[1])
+    return training, dev, dict(training=parts, rewarded=paid, dev=cases, first_quarter=windows[0],
+                               last_quarter=windows[1], quarters=training_quarters(training))
 
 
 def fixed_answer_replay(records):
@@ -312,9 +314,10 @@ def readme_depth(data):
         "Each run sampled from its own evolving solver.",
         markdown(["Within the same training question", "Correct answer ranks higher", "Tied", "Wrong answer ranks higher"],
                  [["Judge 2 on those answers",*r["j2_pairs"]],["Judge 3 on those answers",*r["j3_pairs"]]]),
-        f"In its first quarter of training, the three-judge solver produced {deep['first_quarter'][0]} correct "
-        f"answers per {r['groups']} samples and received {deep['first_quarter'][1]} positive rewards. In the last "
-        f"quarter it produced {deep['last_quarter'][0]} correct answers and received {deep['last_quarter'][1]} positive rewards."]
+        "Each column pair below splits the assigned rewards by the independent arithmetic grade. All four "
+        "training quarters use the same question schedule across runs, and each solver samples its own answers.",
+        quarter_table(r), late_rewards(r),
+        "![Fraction of training answers exactly correct and fraction rewarded in each quarter for both solvers](docs/assets/depth-trajectory.png)"]
     matched = r["matched_training"]
     sections.append(f"We also compared the **two actual training runs** while matching the prompt, all four solver "
                     f"texts and all Judge 1 and Judge 2 reports word for word. This held at {len(matched['matched'])}/"
@@ -457,9 +460,7 @@ def review_text(reviews):
             "Pairs within and across rows share observations.",
             markdown(["Reward applied to these answers", "Correct ranks higher", "Tied", "Incorrect ranks higher"],
                      [["Judge 2",*r["j2_pairs"]],["Judge 3",*r["j3_pairs"]]]),
-            markdown(["Training run and window", "Correct", "Rewarded", "Sampled"],
-                     [[role+" / "+label, *r[key][window], r["groups"]] for role,key in (("Two judges","two"),("Three judges","three"))
-                      for label,window in (("first quarter","first_quarter"),("last quarter","last_quarter"))])])
+            quarter_table(r), late_rewards(r)])
         if third["transitions"]:
             sections.extend(["Every development verdict change on the three-judge solver’s fixed responses is shown below.",
                 markdown(["Expression", "Solver", "Exact values", "Judge 2 report", "Judge 3 report", "Verdict change"],

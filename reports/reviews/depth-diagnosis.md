@@ -35,12 +35,14 @@ Within-question pairs compare correct and incorrect completions of the same prob
 | Judge 2 | 28 | 81 | 25 |
 | Judge 3 | 22 | 84 | 28 |
 
-| Training run and window | Correct | Rewarded | Sampled |
-| --- | --- | --- | --- |
-| Two judges / first quarter | 105 | 186 | 256 |
-| Two judges / last quarter | 186 | 189 | 256 |
-| Three judges / first quarter | 80 | 173 | 256 |
-| Three judges / last quarter | 15 | 171 | 256 |
+| Updates | J2-trained solver correct | J2 paid correct | J2 paid wrong | J3-trained solver correct | J3 paid correct | J3 paid wrong |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1–64 | 105/256 | 83 | 103 | 80/256 | 59 | 114 |
+| 65–128 | 170/256 | 130 | 56 | 42/256 | 24 | 134 |
+| 129–192 | 187/256 | 141 | 49 | 7/256 | 3 | 152 |
+| 193–256 | 186/256 | 136 | 53 | 15/256 | 2 | 169 |
+
+In the last quarter Judge 3 rewarded **2/15 correct attempts** and **169/241 wrong attempts**. On these identical late answers, Judge 2 would have rewarded 4/15 correct attempts and 176/241 wrong ones. Both grades depend on which answers the evolving solver produces. These trajectories establish when the gap appeared. The contributions of individual updates and seed variation remain distinct questions.
 
 Every development verdict change on the three-judge solver’s fixed responses is shown below.
 

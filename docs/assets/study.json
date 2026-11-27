@@ -229995,8 +229995,51 @@
       ],
       "solver_n": 32,
       "judge_n": 32,
+      "frozen_changes": [
+        {
+          "key": "92f5d94354a5034766d138463c71c62b40bfec70de25249d63bdf4549088714d",
+          "expression": "(46 + 3) - 10",
+          "trace": "56,46",
+          "expected_values": [
+            49,
+            39
+          ],
+          "correct": 0,
+          "reports": [
+            "1,0,46",
+            "1,0,46,0,1,46",
+            "0,3,46,1,0,46"
+          ],
+          "verdicts": [
+            1,
+            0,
+            1
+          ]
+        },
+        {
+          "key": "5596a51e9f9c6827aff57fb92020fe7c229b9186407e93a8e3c38e9c43a96f3e",
+          "expression": "(1 + 6) - 6",
+          "trace": "-5,-1",
+          "expected_values": [
+            7,
+            1
+          ],
+          "correct": 0,
+          "reports": [
+            "1,0,-5",
+            "-1,-1,-5,1,0,-5",
+            "1,0,-5,1,0,-5"
+          ],
+          "verdicts": [
+            1,
+            0,
+            1
+          ]
+        }
+      ],
+      "solver_note": "With judges first trained on exact labels, the one-judge and two-judge solver runs wrote identical text on 1,024/1,024 training completions. Their applied rewards matched on 1,024/1,024, with 1,024 and 1,024 positive rewards respectively. Their solver outputs also matched on 32/32 development questions.",
       "frozen_solver": "20/32 (62.5%)",
-      "judge_note": "Always accepting scores 20/32 (62.5%) on these same responses. The stack trained on exact labels approved all 32 answers at every depth, including all 12 incorrect solutions. The stack trained top-down approved 32, 30, 30 answers at depths one, two and three, respectively. It accepted all 12 incorrect solutions at every depth."
+      "judge_note": "On the original frozen judges’ row, Judge 3 fixed Judge 2’s verdict on 0/32 answers and introduced a grading error on 2/32. Always accepting scores 20/32 (62.5%) on these same responses. The stack trained on exact labels approved all 32 answers at every depth, including all 12 incorrect solutions. The stack trained top-down approved 32, 30, 30 answers at depths one, two and three, respectively. It accepted all 12 incorrect solutions at every depth."
     }
   ],
   "primary": {
@@ -230482,6 +230525,48 @@
         "last_quarter": [
           186,
           189
+        ],
+        "quarters": [
+          {
+            "first_update": 1,
+            "last_update": 64,
+            "n": 256,
+            "correct": 105,
+            "rewarded_correct": 83,
+            "rewarded_wrong": 103,
+            "j2_rewarded_correct": 83,
+            "j2_rewarded_wrong": 103
+          },
+          {
+            "first_update": 65,
+            "last_update": 128,
+            "n": 256,
+            "correct": 170,
+            "rewarded_correct": 130,
+            "rewarded_wrong": 56,
+            "j2_rewarded_correct": 130,
+            "j2_rewarded_wrong": 56
+          },
+          {
+            "first_update": 129,
+            "last_update": 192,
+            "n": 256,
+            "correct": 187,
+            "rewarded_correct": 141,
+            "rewarded_wrong": 49,
+            "j2_rewarded_correct": 141,
+            "j2_rewarded_wrong": 49
+          },
+          {
+            "first_update": 193,
+            "last_update": 256,
+            "n": 256,
+            "correct": 186,
+            "rewarded_correct": 136,
+            "rewarded_wrong": 53,
+            "j2_rewarded_correct": 136,
+            "j2_rewarded_wrong": 53
+          }
         ]
       },
       "three": {
@@ -230512,6 +230597,48 @@
         "last_quarter": [
           15,
           171
+        ],
+        "quarters": [
+          {
+            "first_update": 1,
+            "last_update": 64,
+            "n": 256,
+            "correct": 80,
+            "rewarded_correct": 59,
+            "rewarded_wrong": 114,
+            "j2_rewarded_correct": 63,
+            "j2_rewarded_wrong": 120
+          },
+          {
+            "first_update": 65,
+            "last_update": 128,
+            "n": 256,
+            "correct": 42,
+            "rewarded_correct": 24,
+            "rewarded_wrong": 134,
+            "j2_rewarded_correct": 31,
+            "j2_rewarded_wrong": 141
+          },
+          {
+            "first_update": 129,
+            "last_update": 192,
+            "n": 256,
+            "correct": 7,
+            "rewarded_correct": 3,
+            "rewarded_wrong": 152,
+            "j2_rewarded_correct": 6,
+            "j2_rewarded_wrong": 162
+          },
+          {
+            "first_update": 193,
+            "last_update": 256,
+            "n": 256,
+            "correct": 15,
+            "rewarded_correct": 2,
+            "rewarded_wrong": 169,
+            "j2_rewarded_correct": 4,
+            "j2_rewarded_wrong": 176
+          }
         ]
       },
       "paired_outputs": [

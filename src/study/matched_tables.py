@@ -1,6 +1,7 @@
 """Compare judge depths only when the arithmetic questions or saved solver answers are identical."""
 
 from .design import ROUTES
+from .paired_examples import explain_report, literal
 from .storage import rows
 from .tables import markdown
 
@@ -29,6 +30,29 @@ def read_cohort(path,reference,judge=False):
     return data
 
 
+def shallow_feedback_note(root):
+    """Directly test whether the two shallow, exact-supervised runs sampled and rewarded the same attempts."""
+    first, second = [root/name for name in solver_arms("exact")[:2]]
+    if not all((path/"development.json").is_file() for path in (first,second)):
+        return ""
+    training = [list(rows(path/"rollouts.jsonl")) for path in (first,second)]
+    n = len(training[0])
+    equal_answers = equal_rewards = 0
+    for a,b in zip(*training,strict=True):
+        if any(a[field] != b[field] for field in ("key","step","sample")):
+            raise ValueError("The two shallow solver runs have different training schedules")
+        equal_answers += a["answer"] == b["answer"]
+        equal_rewards += a["reward"] == b["reward"]
+    rewards = [sum(r["reward"] for r in run) for run in training]
+    original = list(rows(first/"replay.jsonl"))
+    other = read_cohort(second/"replay.jsonl",original)
+    equal_dev = sum(a["trace"]==b["trace"] for a,b in zip(original,other,strict=True))
+    return (f"With judges first trained on exact labels, the one-judge and two-judge solver runs wrote "
+            f"identical text on {equal_answers:,}/{n:,} training completions. Their applied rewards matched "
+            f"on {equal_rewards:,}/{n:,}, with {rewards[0]:,} and {rewards[1]:,} positive rewards respectively. "
+            f"Their solver outputs also matched on {equal_dev}/{len(original)} development questions.")
+
+
 def accuracy_grid(root,profile):
     if not profile:
         return []
@@ -45,7 +69,11 @@ def accuracy_grid(root,profile):
             raise ValueError(f"Incomplete base cohort for the {phase} tables")
         solver_table,judge_table = [],[]
         valid = sum(r["correct"] for r in shared)
-        notes = [f"Always accepting scores {cell(valid,len(shared))} on these same responses."]
+        changed = [r for r in shared if r["verdicts"][1] != r["verdicts"][2]]
+        fixes = sum(r["verdicts"][2] == r["correct"] for r in changed)
+        notes = [f"On the original frozen judges’ row, Judge 3 fixed Judge 2’s verdict on {fixes}/{len(shared)} "
+                 f"answers and introduced a grading error on {len(changed)-fixes}/{len(shared)}.",
+                 f"Always accepting scores {cell(valid,len(shared))} on these same responses."]
         route_labels = {"frozen":"Only solver trained · original judges","exact":"Exact-trained judges, then solver",
                         "top":"Top-down-trained judges, then solver"}
         for route,label in route_labels.items():
@@ -96,7 +124,10 @@ def accuracy_grid(root,profile):
                     notes.append(f"The {stack_label} approved {total_text} answers at depths one, two and three, "
                                  f"respectively. {errors}")
             judge_table.append([label+" · all participating judges trained",*fitted])
+        frozen_changes = [{k: r[k] for k in ("key","expression","trace","expected_values","correct","reports","verdicts")}
+                          for r in changed]
         grids.append(dict(phase=phase,solver=solver_table,judge=judge_table,solver_n=len(base),judge_n=len(shared),
+                          frozen_changes=frozen_changes, solver_note=shallow_feedback_note(root) if is_dev else "",
                           frozen_solver=cell(sum(r["correct"] for r in base),len(base)),judge_note=" ".join(notes)))
     return grids
 
@@ -112,10 +143,23 @@ def grid_markdown(grids):
         split = "Development" if grid["phase"]=="development" else "Held-out"
         sections += [f"### {split} solver accuracy",f"Every solver answers the same {grid['solver_n']:,} questions. "
             "A solution is correct when every intermediate value is correct. Fitted judges stay frozen during solver updates.",
-            markdown(HEADERS,grid["solver"]),f"### {split} judge verdict accuracy",
+            markdown(HEADERS,grid["solver"])]
+        if grid["solver_note"]:
+            sections.append(grid["solver_note"])
+        sections += [f"### {split} judge verdict accuracy",
             f"Every judge grades the same {grid['judge_n']} saved responses from the starting solver. A verdict is correct "
             f"when it agrees with the arithmetic checker. In all judge-only conditions the solver itself stays at {grid['frozen_solver']} "
             f"on the {grid['solver_n']:,} solver-evaluation questions.",markdown(HEADERS,grid["judge"]),grid["judge_note"]]
+        if grid["frozen_changes"]:
+            examples = []
+            for record in grid["frozen_changes"]:
+                j2, j3 = [explain_report(record["reports"][i], i+1, record["verdicts"][i]) for i in (1, 2)]
+                outcome = "Fixed a grading error" if record["verdicts"][2] == record["correct"] else "Introduced a grading error"
+                examples.append([literal(record["expression"]), literal(record["trace"]),
+                                 literal(",".join(map(str,record["expected_values"]))),j2,j3,outcome])
+            table = markdown(["Problem","Starting solver wrote","Correct steps","Judge 2","Judge 3","Effect"],examples)
+            sections.append("<details><summary>Every verdict Judge 3 changed on the starting solver’s saved answers</summary>\n\n"
+                            +table+"\n\n</details>")
     sections.append("“Only final judge trained” fits the judge used for that column’s terminal decision and uses original "
                     "judges for preceding calls. “All participating judges trained” uses fitted adapters at every depth. "
                     "Top-down training uses the shared exact-trained Judge 3. Pending cells have no completed matched measurement. "
