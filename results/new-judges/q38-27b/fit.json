@@ -1,0 +1,8 @@
+[
+  {
+    "time": "2026-11-27T07:04:47.582+00:00",
+    "file": "Qwen3.8-27B-UD-IQ2_XS.gguf",
+    "fit": false,
+    "reason": "The process has 7094.4 MiB in dedicated GPU memory, below 7539.8 MiB of weights and state"
+  }
+]

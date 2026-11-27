@@ -240292,10 +240292,10 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/q38-27b",
       "treatment": "Qwen3.8-27B frozen, same-runtime screen",
-      "status": "Planned",
+      "status": "Checking GPU fit",
       "result": "Pending",
       "held_out": "—",
-      "evidence": null
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q38-27b"
     },
     {
       "group": "Newer frozen Qwen judges",
@@ -241123,6 +241123,13 @@
     "conversions": [
       "Qwen3.5-9B passed 4/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 39 produced identical output text.",
       "Qwen3.5-4B passed 7/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 27 produced identical output text."
+    ],
+    "fit_failures": [
+      {
+        "key": "q38-27b",
+        "file": "Qwen3.8-27B-UD-IQ2_XS.gguf",
+        "reason": "The process has 7094.4 MiB in dedicated GPU memory, below 7539.8 MiB of weights and state"
+      }
     ]
   },
   "matched_depth": [
