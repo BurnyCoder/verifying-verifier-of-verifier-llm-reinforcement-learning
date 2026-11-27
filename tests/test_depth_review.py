@@ -58,6 +58,20 @@ def test_training_example_keeps_duplicate_samples_and_actual_terminal_rewards():
     assert example["samples"] == [["7,4",True,1,0], ["7,4",True,1,1], ["5,2",False,0,0], ["5,2",False,0,1]]
 
 
+def test_actual_training_comparison_requires_identical_solver_text_and_lower_reports():
+    from study.depth_review import compare_training_groups
+
+    left = [dict(key="p", answer="7,4", reports=["1,0,4", "1,0,4,1,0,4"], reward=1)
+            for _ in range(8)]
+    right = [{**r, "reports": [*r["reports"], "1,0,4,1,0,4"]} for r in left]
+    right[1]["reward"] = 0
+    right[1]["reports"][2] = "1,0,4,0,1,0"
+    right[5]["reports"][1] = "1,0,7,1,0,4"
+    assert compare_training_groups(left, right) == {"matched": [1], "different_credits": [1]}
+    right[0]["answer"] = "7, 4"
+    assert compare_training_groups(left, right) == {"matched": [], "different_credits": []}
+
+
 def test_fixed_answer_replay_keeps_exact_grades_separate_from_judge_approvals():
     from study.depth_review import fixed_answer_replay
 
