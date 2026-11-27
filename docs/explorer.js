@@ -164,6 +164,7 @@ function showNewJudges() {
   }
   for (const r of study.inventory ?? []) if (r.id.startsWith("new-judges/") &&
       (r.status.startsWith("Evaluating") || r.status.startsWith("Checking GPU"))) messages.push(r.id+" · "+r.status);
+  for (const fit of newer.fit_failures ?? []) messages.push(fit.file+" failed the fit check before inference. "+fit.reason);
   for (const finding of newer.conversions ?? []) messages.push(finding.replace(/\.$/,""));
   if (newer.decision?.result) messages.push(newer.decision.result);
   for (const [name, estimate] of Object.entries(newer.decision?.estimates ?? {})) {
