@@ -492,14 +492,22 @@ def paper(data, date):
         line("Original solver trained with frozen Qwen3.5-4B judges","Heading2")
         table(*online_report.score_table(data["online_solvers"]))
         line(escape(online_report.conclusion(data["online_solvers"])))
-        if data["online_solvers"].get("three_depths"):
+        complete = data["online_solvers"].get("three_depths")
+        if complete:
             table(*online_report.single_contrasts(data["online_solvers"]))
+            table(*online_report.cost_table(complete))
+            line("Fixed training answers graded at different depths","Heading3")
+            table(*online_report.intervention_table(complete))
+            line("Fixes and introduced errors count individual verdicts. The final column counts four-answer groups whose normalized GRPO rewards would change under the recorded alternative grader.")
         online_figure=DOCS/"assets/online-solvers.png"
         if online_figure.is_file():
             story.append(Image(str(online_figure),width=164*mm,height=62.32*mm))
-        for example in data["online_solvers"].get("comparison",{}).get("examples",[]):
+        examples = (complete or data["online_solvers"].get("comparison",{})).get("examples",[])
+        for example in examples:
             ref=", ".join(map(str,example["expected"]))
-            line(escape(f"{example['expression']} requires {ref}. The two-judge solver wrote {example['traces'][0]!r}, and the three-judge solver wrote {example['traces'][1]!r}."))
+            start = 1 if complete else 2
+            predictions = ", ".join(f"Judge {d} reward {t!r}" for d,t in enumerate(example["traces"],start))
+            line(escape(f"{example['expression']} requires {ref}. The trained solvers wrote {predictions}."))
     if data["solver_fit"]:
         line("Solver precision and pretraining-only hardware measurements","Heading2")
         table(*online_report.fit_table(data["solver_fit"]))
