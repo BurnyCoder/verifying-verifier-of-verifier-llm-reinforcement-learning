@@ -12,6 +12,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 from .benchmark import active_profile
 from .design import MATCHED_NAMES, PILOTS, ROUTES, Run, matched_runs, matrix
+from .online_solvers import NAMES as ONLINE_NAMES
 from .storage import ORIGINAL_RESULTS, RESULTS, ROOT, STATE, TRACK, read_json, stamp, write_json
 
 
@@ -54,7 +55,7 @@ def worker(*args):
 def study_lock(name):
     """Use an OS-held lock that releases on crash or restart and prevents competing supervisors."""
     STATE.mkdir(parents=True,exist_ok=True)
-    with (STATE/(name+".lock")).open("a+b") as lock:
+    with (STATE/(name.replace("/", "--")+".lock")).open("a+b") as lock:
         lock.seek(0)
         if os.name == "nt":
             import msvcrt
@@ -189,9 +190,11 @@ def main():
     schedule.add_argument("--publish",action="store_true")
     frozen=actions.add_parser("frozen-judges",help="Run the GPU-only cross-model screen and independent confirmation")
     frozen.add_argument("--publish",action="store_true")
+    online=actions.add_parser("online-solvers",help="Train fresh solvers with the independently confirmed frozen J2 and J3")
+    online.add_argument("--publish",action="store_true")
     schedule.add_argument("--registered-only", action="store_true",
                           help="Reproduce the original signed-arithmetic matrix independently")
-    names=[*(r.name for r in matrix({})),*MATCHED_NAMES]
+    names=[*(r.name for r in matrix({})),*MATCHED_NAMES,*ONLINE_NAMES]
     actions.add_parser("train").add_argument("--run",required=True,choices=["timing",*PILOTS,*names])
     calibration=actions.add_parser("learnability",description="Calibrate arithmetic and test actual solver improvement")
     calibration.add_argument("phase",choices=["screen","confirm","audit","evaluate","compare","campaign"])
@@ -210,7 +213,16 @@ def main():
     pub.add_argument("--milestone",required=True)
     pub.add_argument("--run")
     args=parser.parse_args()
-    if args.action == "frozen-judges":
+    if args.action == "online-solvers":
+        from .online_solvers import campaign as online_campaign
+        online_campaign(args.publish)
+    elif args.action in ("train","evaluate") and args.run in ONLINE_NAMES:
+        from .online_solvers import evaluate_online, train_online
+        if getattr(args,"final",False):
+            parser.error("The online frozen-judge extension evaluates development questions only")
+        with study_lock(args.action+"-"+args.run):
+            (train_online if args.action=="train" else evaluate_online)(args.run)
+    elif args.action == "frozen-judges":
         from .frozen_suite import campaign as frozen_campaign
         print(json.dumps(frozen_campaign(args.publish),ensure_ascii=False),flush=True)
     elif args.action == "campaign":

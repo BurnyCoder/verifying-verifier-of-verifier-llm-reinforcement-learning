@@ -1,4 +1,4 @@
-"""Verify interruption and optimizer/RNG recovery through the ordinary train CLI on a tiny CPU model."""
+"""Verify interruption and optimizer/RNG recovery through the ordinary train CLI on a tiny CUDA model."""
 
 import sys
 
@@ -8,6 +8,8 @@ import pytest
 def test_normal_train_entry_resumes_at_complete_grpo_group(tmp_path, monkeypatch):
     tr = pytest.importorskip("study.training")
     import torch
+    if not torch.cuda.is_available():
+        pytest.skip("The training and inference resume test requires CUDA")
     from peft import LoraConfig, get_peft_model
     from tokenizers import Tokenizer
     from tokenizers.models import WordLevel
@@ -39,13 +41,13 @@ def test_normal_train_entry_resumes_at_complete_grpo_group(tmp_path, monkeypatch
                     else ("1,0,5,1,0,5" if i%2 else "1,0,5,0,1,5") for i in range(len(prompts))]
 
     original_config = tr.GRPOConfig
-    def cpu_config(**options):
-        options.update(use_cpu=True,bf16=False,gradient_checkpointing=False,max_completion_length=4,
+    def tiny_config(**options):
+        options.update(use_cpu=False,bf16=False,gradient_checkpointing=False,max_completion_length=4,
                        gradient_checkpointing_kwargs=None,save_steps=1,dataloader_pin_memory=False)
         return original_config(**options)
 
     monkeypatch.setattr(tr,"Backend",TinyBackend)
-    monkeypatch.setattr(tr,"GRPOConfig",cpu_config)
+    monkeypatch.setattr(tr,"GRPOConfig",tiny_config)
     monkeypatch.setattr(sys,"argv",["study","train","--run","d3-17"])
     torch.set_num_threads(1)
 

@@ -17,6 +17,7 @@ from .learning_review import check_release, review_text
 from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
 from .frozen_report import collect_frozen, confirmation_headline, confirmation_review_text, depth_rows as frozen_rows, experiment_pages, frozen_text, interpretation, plot_scores
 from .matched_tables import accuracy_grid, grid_markdown
+from . import online_report
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
@@ -138,6 +139,7 @@ def collect():
                 archive.append(dict(name=name, correct=sum(r["correct"] for r in sample), n=len(sample)))
     contrasts = dict(primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"))
     return dict(runs=runs, inventory=inventory(ORIGINAL_RESULTS,profile,runs,contrasts),
+                online_solvers=online_report.collect_online(ORIGINAL_RESULTS/"new-judges"),
                 newer_judges=collect_frozen(ORIGINAL_RESULTS/"new-judges"), matched_depth=accuracy_grid(source,profile),
                 **contrasts, planned=registered,
                 learnability=learning, profile=profile, original_development=archive,
@@ -316,6 +318,8 @@ def paper(data, date):
     frozen_lead=confirmation_headline(data['newer_judges'])
     if frozen_lead:
         line(escape(frozen_lead))
+    if data["online_solvers"].get("comparison"):
+        line(escape(online_report.conclusion(data["online_solvers"])))
     line("Motivation and related work","Heading2")
     line("Wen et al. studied third-order pairwise critique and reward-model-guided best-of-N selection [1]. DeepSeekMath-V2 used a learned meta-verifier to review identified proof defects [2]. Our intervention uses the terminal solution verdict as an online policy reward and tests the review itself through an exact counterfactual. Comparing a chain with three independent votes measures the contribution of reviewing previous claims at a comparable generation budget.")
     story.append(Image(str(DOCS/"assets/architecture.png"), width=164*mm, height=37*mm))
@@ -481,6 +485,10 @@ def paper(data, date):
     story.append(PageBreak())
     line("Run inventory","Heading1")
     line(GUIDE)
+    if data["online_solvers"]:
+        line("Original solver trained with frozen Qwen3.5-4B judges","Heading2")
+        table(*online_report.score_table(data["online_solvers"]))
+        line(escape(online_report.conclusion(data["online_solvers"])))
     if data["newer_judges"]["results"]:
         line("Frozen Qwen verdict and evidence scores", "Heading2")
         chart=DOCS/"assets/frozen-judge-scores.png"
@@ -531,6 +539,7 @@ def paper(data, date):
 
 
 def build():
+    online_report.verify_pair(ORIGINAL_RESULTS)
     data = collect()
     final_review = review_completed(ORIGINAL_RESULTS,data)
     review_path = REPORTS/"reviews/final.md"
@@ -613,6 +622,8 @@ def build():
     frozen_summary = frozen_text(data["newer_judges"])
     headline = confirmation_headline(data['newer_judges'])
     highlight = f"**Independent frozen-judge confirmation.** {headline}\n\n" if headline else ""
+    online_summary = online_report.online_text(data["online_solvers"])
+    highlight = online_summary + highlight
     if data['newer_judges'].get('review'):
         atomic(REPORTS/'reviews/frozen-confirmation.md',confirmation_review_text(data['newer_judges']))
         frozen_summary += f"\n\n[Case identities, selection and interval audit]({GITHUB}/blob/main/reports/reviews/frozen-confirmation.md)."
@@ -620,6 +631,7 @@ def build():
                     if (DOCS/"assets/frozen-judge-scores.png").is_file() else "")
     frozen_summary += frozen_chart
     experiment_pages(data["newer_judges"], REPORTS/"experiments/new-judges")
+    online_report.experiment_pages(data["online_solvers"], REPORTS/"experiments/new-judges")
     atomic(REPORTS/"experiments/new-judges/experiment.md", frozen_summary+"\n\n[Protocol and case selection](../../newer-frozen-judges.md).\n")
     findings = interpretation(data["newer_judges"])
     if findings:
@@ -706,16 +718,16 @@ def build():
     references="\n".join(f"- [{r['name']}]({'' if r['diagnostic'] else prefix}{r['name']}/experiment.md)" for r in data["runs"])
     references+="".join(f"\n- [Original {r['name']}]({r['name']}/experiment.md)" for r in data["original_development"])
     methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
-    atomic(experiments/"experiments.md","# Experiment index\n\n"+ledger_links+"\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
+    atomic(experiments/"experiments.md","# Experiment index\n\n"+online_summary+ledger_links+"\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     link_to_findings = "[Frozen judge comparisons and independent confirmation](new-judges/learnings.md).\n\n" if findings else ""
-    atomic(experiments/"learnings.md","# Experimental learnings\n\n"+link_to_findings+("\n".join(notes) or "No experimental observations yet.")+"\n")
+    atomic(experiments/"learnings.md","# Experimental learnings\n\n"+online_summary+link_to_findings+("\n".join(notes) or "No experimental observations yet.")+"\n")
     core=[r for r in data["runs"] if r["name"]!="base" and not r["diagnostic"] and not r["supplemental"]]
     complete=sum(r["completed_final"] for r in core)
     trained=sum(r["updates"] is not None for r in core)
-    activity = [ledger_links]
+    activity = [online_summary.rstrip(), ledger_links] if online_summary else [ledger_links]
     operations=read_json(ORIGINAL_RESULTS/"run-snapshot.json",{})
     if operations.get("campaign")=="deferred":
-        activity.append(operations["reason"]+" Any conditional solver training with a newer judge is also deferred.")
+        activity.append(operations["reason"])
         for entry in data["inventory"]:
             if entry["status"].startswith("Paused"):
                 activity.append(entry["id"]+" · "+entry["status"]+".")
