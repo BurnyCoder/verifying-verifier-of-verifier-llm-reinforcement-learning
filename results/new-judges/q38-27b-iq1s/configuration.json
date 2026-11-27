@@ -1,0 +1,14 @@
+{
+  "model": "Qwen3.8-27B",
+  "repository": "unsloth/Qwen3.8-27B-GGUF",
+  "revision": "4af51b3542f775b0a8e4b310bfb3f17e01c306c9",
+  "file": "Qwen3.8-27B-UD-IQ1_S.gguf",
+  "sha256": "3895b6eaa91e705c06ad1938d16c22e86f073c6a67df86260a1da79be3d1f887",
+  "base_revision": "37561816e66b5b9153b1b64c10968c18c1e6f4a0",
+  "build": "b12807",
+  "context": 2048,
+  "output_limit": 48,
+  "phase": "amended screen",
+  "decoder": "greedy, thinking disabled, raw generated tokens",
+  "placement": "CUDA0"
+}

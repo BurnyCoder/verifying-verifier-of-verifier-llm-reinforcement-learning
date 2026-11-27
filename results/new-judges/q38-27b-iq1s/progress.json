@@ -1,0 +1,11 @@
+{
+  "time": "2026-11-27T07:59:14.887+00:00",
+  "status": "Evaluating",
+  "model": "Qwen3.8-27B",
+  "phase": "amended screen",
+  "file": "Qwen3.8-27B-UD-IQ1_S.gguf",
+  "calls": 420,
+  "target": 420,
+  "cases": 128,
+  "timing_seconds": 1.6484999999956926
+}
