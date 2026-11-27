@@ -27,6 +27,7 @@ Every depth grades the same solver responses within a cohort. A visible-pair suc
 | Qwen3.8-27B · amended screen · balanced | 35/64 | 35/64 | 36/64 | 5/32 | 0/32 | 1 / 0 |
 | Qwen3.8-27B · amended screen · natural | 20/32 | 14/32 | 13/32 | — | — | 0 / 1 |
 | Qwen2.5-1.5B-Instruct · confirmation · balanced | 64/128 | 63/128 | 61/128 | 1/64 | 0/64 | 23 / 25 |
+| Qwen3.5-4B · confirmation · balanced | 72/128 | 73/128 | 73/128 | 10/64 | 0/64 | 0 / 0 |
 
 Qwen3.5-9B · Archived, invalid scoring. Empty reasoning wrapper on 65/65 delivered messages. No accuracy estimate..
 
@@ -45,6 +46,8 @@ Qwen3.8-27B · Incomplete, sustained latency. The 4 pilot calls averaged 2.56 se
 Qwen3.8-27B (amended screen, Qwen3.8-27B-UD-IQ1_S.gguf) used 197,374 input and 4,029 output tokens in 866.0 seconds of end-to-end calls.
 
 Qwen2.5-1.5B-Instruct (confirmation, qwen2.5-1.5b-instruct-q4_k_m.gguf) used 298,364 input and 7,883 output tokens in 101.4 seconds of end-to-end calls.
+
+Qwen3.5-4B (confirmation, Qwen3.5-4B-Q4_K_M.gguf) used 301,038 input and 7,660 output tokens in 262.0 seconds of end-to-end calls.
 
 Qwen3.8-27B-UD-IQ2_XS.gguf failed the GPU fit check before generating any answers. The process has 7094.4 MiB in dedicated GPU memory, below 7539.8 MiB of weights and state.
 

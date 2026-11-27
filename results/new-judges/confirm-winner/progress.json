@@ -1,0 +1,11 @@
+{
+  "time": "2026-11-27T08:08:45.929+00:00",
+  "status": "Evaluating",
+  "model": "Qwen3.5-4B",
+  "phase": "confirmation",
+  "file": "Qwen3.5-4B-Q4_K_M.gguf",
+  "calls": 644,
+  "target": 644,
+  "cases": 192,
+  "timing_seconds": 0.5037499999962165
+}
