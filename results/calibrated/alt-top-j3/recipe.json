@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "alt-top-j3",
+    "seed": 17,
+    "role": "j3",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": "exact-j3",
+    "teacher": null,
+    "corpus": "top-prefix3",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-27T04:02:45.124+00:00"
+}

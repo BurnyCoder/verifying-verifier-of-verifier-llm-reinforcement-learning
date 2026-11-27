@@ -1,0 +1,54 @@
+{
+  "time": "2026-11-27T04:25:52.002+00:00",
+  "run": {
+    "name": "alt-top-j3",
+    "seed": 17,
+    "role": "j3",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": "exact-j3",
+    "teacher": null,
+    "corpus": "top-prefix3",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 1385.438000000002,
+  "resumed_at": 0,
+  "frozen_checksum": "bd5123619e7e15b286afd429c608afa7172c85615cfa5e8e3f9481f4b6fe47f5",
+  "usage": {
+    "corpus_solver": {
+      "calls": 64,
+      "input_tokens": 10517,
+      "output_tokens": 386,
+      "gpu_seconds": 14.29815222167969,
+      "wall_seconds": 14.311000000001513
+    },
+    "j1": {
+      "calls": 64,
+      "input_tokens": 18131,
+      "output_tokens": 439,
+      "gpu_seconds": 15.52735754394531,
+      "wall_seconds": 15.499999999978172
+    },
+    "j2": {
+      "calls": 64,
+      "input_tokens": 28426,
+      "output_tokens": 878,
+      "gpu_seconds": 29.85771447753906,
+      "wall_seconds": 29.840999999993073
+    },
+    "j3": {
+      "calls": 1024,
+      "input_tokens": 549292,
+      "output_tokens": 14044,
+      "gpu_seconds": 490.2150965576173,
+      "wall_seconds": 490.43599999999424
+    }
+  },
+  "unfinished_generation_batches": 0
+}

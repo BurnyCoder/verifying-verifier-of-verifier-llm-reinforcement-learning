@@ -143,6 +143,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | alt-exact-j2 | j2 | 256 | 46.9% | 32 | — | 0 |
 | alt-exact-j3 | j3 | 256 | 31.2% | 32 | — | 0 |
 | alt-exact-solver | solver | 256 | 6.2% | 32 | — | 0 |
+| alt-top-j3 | j3 | 256 | — | 0 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
