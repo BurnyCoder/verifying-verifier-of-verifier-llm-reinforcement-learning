@@ -15,7 +15,7 @@ from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
 from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
-from .frozen_report import collect_frozen, depth_rows as frozen_rows, frozen_text
+from .frozen_report import collect_frozen, depth_rows as frozen_rows, experiment_pages, frozen_text, plot_scores
 from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
@@ -159,6 +159,7 @@ def figures(data):
 
     dest = DOCS/"assets"
     dest.mkdir(parents=True, exist_ok=True)
+    plot_scores(data["newer_judges"],dest/"frozen-judge-scores.png")
     learning_figure(data["learnability"],dest/"learnability.png")
     colors = ("#1e5260", "#177267", "#b65127")
     fig, ax = plt.subplots(figsize=(11, 2.45))
@@ -479,6 +480,12 @@ def paper(data, date):
     line(GUIDE)
     if data["newer_judges"]["results"]:
         line("Frozen Qwen verdict and evidence scores", "Heading2")
+        chart=DOCS/"assets/frozen-judge-scores.png"
+        if chart.is_file():
+            image=Image(str(chart))
+            image.drawHeight=image.imageHeight*165*mm/image.imageWidth
+            image.drawWidth=165*mm
+            story.append(image)
         for values in frozen_rows(data["newer_judges"]):
             name,*scores = values
             line(escape(f"{name}. J1, J2 and J3 verdict accuracy: {', '.join(scores[:3])}. Visible and masked whole-pair accuracy: {', '.join(scores[3:])}."))
@@ -605,6 +612,10 @@ def build():
                            f" [All four quarters, denominators and original records]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md).")
     ledger = inventory_markdown(data["inventory"])
     frozen_summary = frozen_text(data["newer_judges"])
+    frozen_chart = (f"\n\n![Frozen verdict and whole-pair accuracy]({GITHUB}/raw/refs/heads/main/docs/assets/frozen-judge-scores.png)"
+                    if (DOCS/"assets/frozen-judge-scores.png").is_file() else "")
+    frozen_summary += frozen_chart
+    experiment_pages(data["newer_judges"], REPORTS/"experiments/new-judges")
     atomic(REPORTS/"experiments/new-judges/experiment.md", frozen_summary+"\n\n[Protocol and case selection](../../newer-frozen-judges.md).\n")
     ledger_links = (f"[Run inventory, including upcoming experiments]({GITHUB}/blob/main/reports/run-inventory.md) · "
                     f"[Newer frozen Qwen protocol]({GITHUB}/blob/main/reports/newer-frozen-judges.md)")

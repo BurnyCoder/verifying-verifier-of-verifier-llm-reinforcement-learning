@@ -130,6 +130,9 @@ function showNewJudges() {
   body.replaceChildren();
   const newer = study.newer_judges ?? {};
   const messages = [];
+  const examples=byId("frozen-evidence");
+  const openKeys=new Set([...examples.querySelectorAll("details[open]")].map(e=>e.dataset.key));
+  examples.replaceChildren();
   for (const result of newer.results ?? []) {
     messages.push(result.model+" · "+result.phase+" · "+result.result);
     for (const name of ["balanced","natural"]) {
@@ -138,6 +141,26 @@ function showNewJudges() {
       row(body,[result.model+" · "+result.phase+" · "+name,...cohort.depths.map(d => d.correct+"/"+cohort.n),
         ...["visible","masked"].map(k => name==="balanced" ? twins[k]+"/"+twins.n : "—")]);
     }
+    if (result.audit?.examples) {
+      const details=document.createElement("details"), summary=document.createElement("summary");
+      details.dataset.key=result.key; details.open=openKeys.has(result.key);
+      summary.textContent="Evidence examples · "+result.model+" · "+result.phase;
+      details.append(summary);
+      for (const [outcome,x] of Object.entries(result.audit.examples)) {
+        const lines=["Solver "+x.trace,"Judge 1 "+x.first,...x.reviews.map((v,i)=>
+          "Judge 2 "+v+"\nJudge 3 "+x.outputs[i]+"\nExpected "+x.expected[i])];
+        details.append(exampleCard(x.expression+" · pair "+outcome,lines,outcome==="failed"));
+      }
+      examples.append(details);
+    }
+  }
+  const chart=byId("frozen-chart");
+  const version=(newer.results ?? []).filter(r=>r.metrics).map(r=>r.key).join(",");
+  if (version && chart.dataset.version!==version) {
+    chart.dataset.version=version;
+    chart.onload=()=>{chart.hidden=false;};
+    chart.onerror=()=>{chart.hidden=true;delete chart.dataset.version;};
+    chart.src="assets/frozen-judge-scores.png?v="+encodeURIComponent(version);
   }
   for (const r of study.inventory ?? []) if (r.id.startsWith("new-judges/") &&
       (r.status.startsWith("Evaluating") || r.status.startsWith("Checking GPU"))) messages.push(r.id+" · "+r.status);
