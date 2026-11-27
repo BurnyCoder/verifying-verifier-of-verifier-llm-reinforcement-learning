@@ -619,6 +619,10 @@ def build():
                "\n\n".join(findings)+"\n\n[All scored runs and costs](experiment.md) · [Protocol](../../newer-frozen-judges.md).\n")
     ledger_links = (f"[Run inventory, including upcoming experiments]({GITHUB}/blob/main/reports/run-inventory.md) · "
                     f"[Newer frozen Qwen protocol]({GITHUB}/blob/main/reports/newer-frozen-judges.md)")
+    paused = read_json(ORIGINAL_RESULTS/"calibrated/top-depth2/resume-checkpoint.json", {})
+    if paused:
+        ledger_links += (f" · [Paused solver checkpoint, update {paused['checkpoint_step']}]"
+                         f"(https://huggingface.co/{paused['repo']}/tree/{paused['revision']}/{paused['path']})")
     atomic(REPORTS/"run-inventory.md","# Run inventory\n\n"+ledger+"\n\n"+ledger_links+"\n")
     atomic(REPORTS/"summary.md","# Study summary\n\n"+ledger_links+"\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
            summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n\n"+frozen_summary+"\n\n## Run inventory\n\n"+ledger+"\n")

@@ -1,0 +1,62 @@
+{
+  "time": "2026-11-27T06:53:30.173+00:00",
+  "repo": "BurnyCoder/recursive-judge-grpo-adapters",
+  "revision": "5274be501a83e4c881664370cfe75f912c69413f",
+  "path": "resumable/calibrated/top-depth2/checkpoint-16",
+  "run": "top-depth2",
+  "track": "calibrated",
+  "status": "Paused",
+  "checkpoint_step": 16,
+  "last_logged_step": 20,
+  "target_updates": 256,
+  "files": {
+    "adapter_config.json": {
+      "sha256": "553c7a6ef5d8e6ccee11c81c7211f4a36e719ba45dec93740d284413c52ec8f5",
+      "bytes": 1202
+    },
+    "adapter_model.safetensors": {
+      "sha256": "e80b58ca7bce383981860262ead3af9e57daf1ccb483ab4ca345e1bfad129ce3",
+      "bytes": 8746152
+    },
+    "optimizer.pt": {
+      "sha256": "b1a0e716663a3612da017423d83139bb47294cc2d77e2f7bc89829fae8bac2d4",
+      "bytes": 17621067
+    },
+    "rng_state.pth": {
+      "sha256": "b4bda89aaa75f39e6e17a571ea8b3b43578b2f622dc6849ea1fc22ea998b58ed",
+      "bytes": 14709
+    },
+    "scheduler.pt": {
+      "sha256": "3e1fc6a53a78b2163c0e8ba32e31fa67278427e99dedeafe73a0e5ff659efaa9",
+      "bytes": 1465
+    },
+    "snapshot_0/adapter_config.json": {
+      "sha256": "ea89afee27848e44b71c745eaef9a4be21c11f56a5dbd81479e72b2ce0eff232",
+      "bytes": 1202
+    },
+    "snapshot_0/adapter_model.safetensors": {
+      "sha256": "cb0d84ad02e22397e1f298f61ac34128e668c1789454a13f34bb543e5c1cfb83",
+      "bytes": 17462432
+    },
+    "snapshot_1/adapter_config.json": {
+      "sha256": "ea89afee27848e44b71c745eaef9a4be21c11f56a5dbd81479e72b2ce0eff232",
+      "bytes": 1202
+    },
+    "snapshot_1/adapter_model.safetensors": {
+      "sha256": "a50967f8efd83ab3f817854c7d7e2ede29c863d4c45c9e9b1694bb3f12e1c7ed",
+      "bytes": 17462432
+    },
+    "snapshot_2/adapter_config.json": {
+      "sha256": "553c7a6ef5d8e6ccee11c81c7211f4a36e719ba45dec93740d284413c52ec8f5",
+      "bytes": 1202
+    },
+    "snapshot_2/adapter_model.safetensors": {
+      "sha256": "86e76b8be94b96c252d8ede22468ebeeeea81918e72a873582e3f5bd36ab6bc1",
+      "bytes": 17462432
+    },
+    "trainer_state.json": {
+      "sha256": "81d7f4371b62b70801cd7b830332e49ff65bd7692ea77262f099d8022216a7fb",
+      "bytes": 15273
+    }
+  }
+}
