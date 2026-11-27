@@ -1,0 +1,18 @@
+{
+  "loads": [
+    {
+      "log": "2026-11-27T07-24-26.117+00-00-server.log",
+      "sha256": "f7ca52a72aa65098dcd9a7341ab2bc105451f8bb0f9e3400c83021a0e6da5651",
+      "graph_assignments": {
+        "CUDA0": 524
+      }
+    },
+    {
+      "log": "2026-11-27T07-31-30.999+00-00-server.log",
+      "sha256": "ad180cf9eb0622df6a188799fe0dbabe20bd2aea9f09f30a63c673c566f781a3",
+      "graph_assignments": {
+        "CUDA0": 32
+      }
+    }
+  ]
+}

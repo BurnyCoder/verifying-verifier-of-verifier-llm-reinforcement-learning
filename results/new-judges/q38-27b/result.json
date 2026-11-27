@@ -1,0 +1,47 @@
+{
+  "time": "2026-11-27T07:42:10.424+00:00",
+  "phase": "screen",
+  "model": "Qwen3.8-27B",
+  "status": "Incomplete, sustained latency",
+  "result": "The 4 pilot calls averaged 2.56 seconds. Stopped after 51 scored requests. Consecutive requests exceeded the 30-second ceiling and the slowdown persisted after reloading the same file. No cohort accuracy estimate",
+  "file": "Qwen3.8-27B-UD-IQ1_M.gguf",
+  "latency": {
+    "reloaded": true,
+    "file": "Qwen3.8-27B-UD-IQ1_M.gguf",
+    "evidence": [
+      {
+        "id": "natural/f5c50f1e9c2b39262ff407dba817d18d9a739fa3af66af120f8a6723ab175c7f/j2",
+        "time": "2026-11-27T07:26:41.297+00:00",
+        "seconds": 34.23500000000058
+      },
+      {
+        "id": "natural/f5c50f1e9c2b39262ff407dba817d18d9a739fa3af66af120f8a6723ab175c7f/j3",
+        "time": "2026-11-27T07:29:07.352+00:00",
+        "seconds": 146.0
+      },
+      {
+        "id": "natural/4b6262bff92fb1fc5c27fa64c6847b87db8a3a739f6951b5b38b88992856df45/j1",
+        "time": "2026-11-27T07:30:31.323+00:00",
+        "seconds": 83.90600000000268
+      },
+      {
+        "id": "natural/4b6262bff92fb1fc5c27fa64c6847b87db8a3a739f6951b5b38b88992856df45/j2",
+        "time": "2026-11-27T07:34:03.325+00:00",
+        "seconds": 141.0
+      },
+      {
+        "id": "natural/4b6262bff92fb1fc5c27fa64c6847b87db8a3a739f6951b5b38b88992856df45/j3",
+        "time": "2026-11-27T07:36:55.483+00:00",
+        "seconds": 172.1090000000113
+      }
+    ],
+    "calls": 51,
+    "latest_load": "2026-11-27T07:31:42.212+00:00"
+  },
+  "timing_seconds": 2.562000000008993,
+  "cost": {
+    "input_tokens": 22483,
+    "output_tokens": 566,
+    "elapsed_seconds": 655.3809999999794
+  }
+}
