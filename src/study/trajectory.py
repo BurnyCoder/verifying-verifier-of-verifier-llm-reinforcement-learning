@@ -59,9 +59,9 @@ def save_trajectory_figure(review, target):
     for ax, arm, title in zip(axes, ("two", "three"), ("Trained with two judges", "Trained with three judges"), strict=True):
         windows = review[arm]["quarters"]
         x = [w["last_update"] for w in windows]
-        ax.plot(x, [w["correct"]/w["n"] for w in windows], marker="o", color="#006B60", label="Exactly correct")
+        ax.plot(x, [w["correct"]/w["n"] for w in windows], marker="o", color="#B65127", label="Exactly correct")
         ax.plot(x, [(w["rewarded_correct"]+w["rewarded_wrong"])/w["n"] for w in windows], marker="s",
-                color="#9B4728", linestyle="--", label="Awarded reward")
+                color="#1E5260", linestyle="--", label="Awarded reward")
         ax.set(ylim=(0, 1), yticks=[0, .25, .5, .75, 1], xticks=x, xlabel="Last update in quarter", title=title)
         ax.yaxis.set_major_formatter(PercentFormatter(1))
         ax.grid(axis="y", alpha=.2)
