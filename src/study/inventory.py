@@ -51,8 +51,9 @@ def inventory(root, profile, observed, contrasts=None):
     ledger = []
 
     def add(group, key, description, status="Planned", result="Pending", held="—", evidence=None):
+        target = "blob" if evidence and (root/evidence).is_file() else "tree"
         ledger.append(dict(group=group, id=key, treatment=description, status=status, result=result,
-                           held_out=held, evidence=f"{GITHUB}/tree/main/results/{evidence}" if evidence else None))
+                           held_out=held, evidence=f"{GITHUB}/{target}/main/results/{evidence}" if evidence else None))
 
     def measured(group, key, description, path, score, *, held="—"):
         receipt = read_json(root / path)
@@ -94,13 +95,16 @@ def inventory(root, profile, observed, contrasts=None):
     cohort = "calibrated" if profile else "original"
     source = root / cohort if profile else root
     records = {r["name"]:r for r in observed}
-    progress = {**(read_json(root/"run-snapshot.json",{}).get("training",{})), **training_observations(root)}
+    snapshot = read_json(root/"run-snapshot.json",{})
+    deferred = snapshot.get("campaign")=="deferred"
+    archived_state = snapshot.get("training",{})
+    progress = {**archived_state, **training_observations(root)}
     extras = matched_runs(profile)
     for spec in (None, *matrix(profile), *extras):
         name = spec.name if spec else "base"
         r = records.get(name,{})
         group = "Matched trained judge depths" if spec in extras else "Main solver and judge study"
-        state = "Planned"
+        state = "Deferred" if deferred else "Planned"
         if r.get("completed_final"):
             state = "Final complete"
         elif r.get("completed_development"):
@@ -110,11 +114,15 @@ def inventory(root, profile, observed, contrasts=None):
         elif name in progress:
             p = progress[name]
             state = f"Training started · {p['step']}/{p['target']}"
+            stopped = archived_state.get(name,{})
+            if stopped.get("status")=="Paused" and p["step"] <= stopped["step"]:
+                state = f"Paused · {stopped['step']}/{stopped['target']} logged, checkpoint {stopped['resume_step']}"
         def result(split, complete):
             n = r.get(split+"_n",0)
             return cell(round(r[split]*n),n) if complete and n and r.get(split) is not None else "Pending"
+        held = result("test",r.get("completed_final"))
         add(group, f"{cohort}/{name}", treatment(spec) if spec else "Frozen starting solver", state,
-            result("dev",r.get("completed_development")), result("test",r.get("completed_final")),
+            result("dev",r.get("completed_development")), "Deferred" if deferred and held=="Pending" else held,
             (f"calibrated/{name}" if profile else name) if (source/name).is_dir() else None)
     for route in ROUTES:
         base = f"matched-depth/{route}-"
@@ -126,7 +134,7 @@ def inventory(root, profile, observed, contrasts=None):
         dev, final = agreement("development"), agreement("final")
         status = "Final complete" if final!="Pending" else "Development complete" if dev!="Pending" else "Planned"
         add("Matched trained judge depths", "replay/"+route, "Frozen fitted stack, J1/J2/J3 on identical base traces",
-            status, dev, final, "calibrated/matched-depth" if dev!="Pending" else None)
+            status, dev, "Deferred" if deferred and final=="Pending" else final, "calibrated/matched-depth" if dev!="Pending" else None)
 
     for arm, description in (("primary", "D3 minus D2, paired across seeds 17, 29 and 43"),
                              ("flat", "D3 minus three independent votes, same seeds")):
@@ -135,7 +143,7 @@ def inventory(root, profile, observed, contrasts=None):
         if "delta" in effect:
             low, high = effect["ci"]
             final = f"{100*effect['delta']:+.2f} pp [{100*low:+.2f}, {100*high:+.2f}]"
-        add("Final evaluation and transfer", "analysis/"+arm, description, "Complete" if final!="Pending" else "Planned",
+        add("Final evaluation and transfer", "analysis/"+arm, description, "Complete" if final!="Pending" else "Deferred" if deferred else "Planned",
             "—", final)
     if profile:
         solvers = ["base", *(s.name for s in (*matrix(profile), *extras) if s.role=="solver")]
@@ -145,7 +153,7 @@ def inventory(root, profile, observed, contrasts=None):
                 continue
             done = [name for name in solvers if records.get(name,{}).get("completed_final")]
             add("Final evaluation and transfer", "cohort/"+split, label+" per solver",
-                "Complete" if len(done)==len(solvers) else "In progress" if done else "Planned", "—",
+                "Complete" if len(done)==len(solvers) else "In progress" if done else "Deferred" if deferred else "Planned", "—",
                 f"{len(done)}/{len(solvers)} checkpoints evaluated" if done else "Pending")
         for field, label in (("mechanism","Familiar evidence and layout"),("unseen-evidence","Unseen error pattern"),
                              ("layout-evidence","Reserved layout"),("transfer-evidence","Unseen error and reserved layout")):
@@ -153,7 +161,7 @@ def inventory(root, profile, observed, contrasts=None):
                                 ("exact-prefix3","top-prefix3","alt-exact-solver","alt-top-solver"))]
             done = sum(bool(records.get(n,{}).get("completed_final")) for n in eligible)
             add("Final evaluation and transfer","cohort/"+field,label+", 128 evidence pairs, visible and masked",
-                "Complete" if done==len(eligible) else "In progress" if done else "Planned", "—",
+                "Complete" if done==len(eligible) else "In progress" if done else "Deferred" if deferred else "Planned", "—",
                 f"{done}/{len(eligible)} eligible checkpoints evaluated" if done else "Pending")
     for key, description, conditional in (
         *((m.key, m.title+" frozen, same-runtime screen", False) for m in MODELS),
@@ -164,7 +172,8 @@ def inventory(root, profile, observed, contrasts=None):
     ):
         folder = root/"new-judges"/key
         receipt = read_json(folder/"result.json",{})
-        state = receipt.get("status", "Started" if (folder/"calls.jsonl").exists() else "Conditional" if conditional else "Planned")
+        planned = "Conditional, later day" if deferred and key.startswith("winner-d") else "Conditional" if conditional else "Planned"
+        state = receipt.get("status", "Started" if (folder/"calls.jsonl").exists() else planned)
         add("Newer frozen Qwen judges", "new-judges/"+key, description, state, receipt.get("result","Pending"),
             evidence="new-judges/"+key if folder.is_dir() else None)
     return ledger

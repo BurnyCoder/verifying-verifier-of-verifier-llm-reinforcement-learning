@@ -1,0 +1,14 @@
+{
+  "time": "2026-11-27T06:59:05.0572109+01:00",
+  "campaign": "deferred",
+  "training": {
+    "top-depth2": {
+      "target": 256,
+      "step": 20,
+      "started": "2026-11-27T05:56:35.522+00:00",
+      "status": "Paused",
+      "resume_step": 16
+    }
+  },
+  "reason": "Owner prioritized GPU-only frozen newer Qwen judging and deferred optimization and sealed evaluation to a later day."
+}
