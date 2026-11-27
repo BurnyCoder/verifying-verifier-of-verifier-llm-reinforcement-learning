@@ -4,7 +4,7 @@ import hashlib
 
 from .backend import Backend, stream_seed
 from .benchmark import active_profile, population
-from .design import matrix
+from .design import MATCHED_NAMES, ROUTES, matched_runs, matrix
 from .domain import problems
 from .exposures import check_exposures
 from .judging import chain, majority, twin, votes
@@ -36,6 +36,20 @@ def seal():
     if not previous:
         exposures = check_exposures(RESULTS, matrix())
         write_json(path, {"time": stamp(), "weights": manifest, "ordered_training_exposures": exposures})
+    extra = matched_runs(active_profile())
+    if extra:
+        weights = {r.name:weights_digest(r.name) for r in extra}
+        for r in extra:
+            if weights[r.name] != read_json(RESULTS/r.name/"development.json",{}).get("weights"):
+                raise RuntimeError(f"Unverified matched-depth checkpoint for {r.name}")
+        references = [r for r in matrix() if r.name in ("d1-17","d2-17","d3-17","exact-prefix3","top-prefix3")]
+        exposures = check_exposures(RESULTS,[*references,*extra])
+        extra_path = RESULTS/"matched-depth/seal.json"
+        recorded = read_json(extra_path)
+        if recorded and (recorded["weights"]!=weights or recorded["ordered_training_exposures"]!=exposures):
+            raise RuntimeError("The matched-depth seal differs from the realized solver checkpoints or inputs")
+        if not recorded:
+            write_json(extra_path,dict(time=stamp(),weights=weights,ordered_training_exposures=exposures))
 
 
 def batches(split, n, path, size=8, population=None):
@@ -48,7 +62,7 @@ def batches(split, n, path, size=8, population=None):
             yield pos, batch, seen
 
 
-def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=None, pool=None):
+def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=None, pool=None, panel=True):
     policy = run.name if run and run.role == "solver" else None
     for pos, batch, seen in batches(split, n, path, population=pool):
         seed = stream_seed("eval", split, pos)
@@ -57,7 +71,7 @@ def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=Non
         else:
             traces = backend.generate([backend.prompt("solver", p) for p in batch], policy, "eval_solver", seed, False)
         histories = chain(backend, batch, traces, snapshots, 3, seed) if replay else [[] for _ in batch]
-        ballots = votes(backend, batch, traces, seed, snapshots) if replay else [[] for _ in batch]
+        ballots = votes(backend, batch, traces, seed, snapshots) if replay and panel else [[] for _ in batch]
         for p, t, h, v in zip(batch, traces, histories, ballots, strict=True):
             if p.key in seen:
                 continue
@@ -68,7 +82,7 @@ def solutions(backend, run, snapshots, split, n, path, replay, stored_traces=Non
                          malformed=numbers is None, split=split, reports=h, votes=v)
             if replay:
                 bits = [terminal(report, i) for i, report in enumerate(h, 1)]
-                entry.update(verdicts=bits, flat=majority(v), full_report_correct=[
+                entry.update(verdicts=bits, flat=majority(v) if panel else None, full_report_correct=[
                     int(sound(report, expected(p, t, h[:i]))) for i, report in enumerate(h)],
                     judge_malformed=[parse(report, 3 if i == 0 else 6) is None for i, report in enumerate(h)],
                     fixed=int(bits[1] != oracle[0] and bits[2] == oracle[0]),
@@ -124,7 +138,8 @@ def evaluate(name, final=False):
     marker = directory / (phase+".json")
     if marker.is_file():
         return read_json(marker)
-    run = next((r for r in matrix() if r.name == name), None)
+    profile = active_profile()
+    run = next((r for r in [*matrix(profile),*matched_runs(profile)] if r.name == name), None)
     if not run and name != "base":
         raise ValueError(f"Unknown evaluation {name}")
     snapshots = list(run.judges if run else (None,)*3)
@@ -132,12 +147,16 @@ def evaluate(name, final=False):
         snapshots[int(run.role[1:])-1] = run.name
     if final:
         frozen = read_json(RESULTS / "seal.json")
+        if profile and not (RESULTS/"matched-depth/seal.json").is_file():
+            raise RuntimeError("The calibrated final evaluation also requires the matched-depth seal")
         used = {s for s in snapshots if s}
         if run:
             used.add(name)
-        if not frozen or any(frozen["weights"].get(s) != weights_digest(s) for s in used):
+        weights = dict((frozen or {}).get("weights",{}))
+        if name in MATCHED_NAMES:
+            weights.update(read_json(RESULTS/"matched-depth/seal.json",{}).get("weights",{}))
+        if not frozen or any(weights.get(s) != weights_digest(s) for s in used):
             raise RuntimeError("Final evaluation requires every participating checkpoint to match the seal")
-    profile = active_profile()
     backend = Backend(Journal(name+"-"+phase), frozen=[*snapshots, name if run else None])
     backend.prompt_style = profile.get("style", "registered")
     evidence_sources = {}
@@ -172,3 +191,38 @@ def evaluate(name, final=False):
               **generation_cost(name+"-"+phase,backend.totals), "evidence_sources": evidence_sources, "profile": profile}
     write_json(marker, result)
     return result
+
+
+def stack_replay(route,final=False):
+    """Score all prefixes of the fitted stack on the literal responses archived for the starting solver."""
+    profile = active_profile()
+    if not profile:
+        raise ValueError("The matched-depth extension uses the calibrated benchmark")
+    phase = "final" if final else "development"
+    split = "test" if final else "dev"
+    count = 128 if final else 32
+    target = RESULTS/"matched-depth"/f"{route}-{phase}"
+    if target.with_suffix(".json").exists():
+        return
+    if not (RESULTS/"base"/(phase+".json")).is_file():
+        raise RuntimeError("Wait for the base evaluation receipt")
+    pool = population(profile,split,count)
+    source = RESULTS/"base"/("judge-test.jsonl" if final else "replay.jsonl")
+    saved = list(rows(source))
+    if [(r["key"],r["expression"]) for r in saved] != [(p.key,p.expression) for p in pool]:
+        raise ValueError("The fitted stack requires the complete saved base-solver answers in registered order")
+    snapshots = ROUTES[route]
+    weights = {name:weights_digest(name) for name in snapshots}
+    if final:
+        sealed = read_json(RESULTS/"seal.json",{}).get("weights",{})
+        if not (RESULTS/"matched-depth/seal.json").exists() or any(sealed.get(k)!=v for k,v in weights.items()):
+            raise RuntimeError("Fitted-stack final evaluation requires both recorded seals")
+    name = f"stack-{route}-{phase}"
+    backend = Backend(Journal(name),frozen=snapshots)
+    backend.prompt_style = profile["style"]
+    traces = {r["key"]:r["trace"] for r in saved}
+    solutions(backend,None,snapshots,split,count,target.with_suffix(".jsonl"),True,traces,pool,panel=False)
+    from .matched_tables import read_cohort
+    scored = read_cohort(target.with_suffix(".jsonl"),saved,judge=True)
+    write_json(target.with_suffix(".json"),dict(time=stamp(),phase=phase,weights=weights,source=source.name,n=len(scored),
+               **generation_cost(name,backend.totals)))

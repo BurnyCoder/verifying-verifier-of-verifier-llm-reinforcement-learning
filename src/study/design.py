@@ -4,6 +4,8 @@ from dataclasses import dataclass, replace
 
 SEEDS = (17, 29, 43)
 PILOTS = ("learn-oracle-17","learn-shuffle-17")
+ROUTES = {"exact":("exact-j1","exact-j2","exact-j3"), "top":("top-j1","top-j2","exact-j3")}
+MATCHED_NAMES = tuple(f"{route}-depth{d}" for route in ROUTES for d in (1,2))
 BASE = "Qwen/Qwen2.5-1.5B-Instruct"
 REVISION = "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
 PROJECT = "verifying-verifier-of-verifier-llm-reinforcement-learning"
@@ -35,8 +37,7 @@ def matrix(profile=None):
         from .benchmark import active_profile
         profile = active_profile()
     rows = [Run(f"{arm}-17", reward=arm) for arm in ("d3", "d2", "d1", "flat", "oracle", "hybrid", "shuffle")]
-    direct = tuple(f"exact-j{i}" for i in (1, 2, 3))
-    top = ("top-j1", "top-j2", direct[2])
+    direct, top = ROUTES["exact"], ROUTES["top"]
     rows.extend(Run(name, role=f"j{i}", reward="exact") for i, name in enumerate(direct, 1))
     rows.extend((Run(top[1], role="j2", reward="teacher", teacher=direct[2]),
                  Run(top[0], role="j1", reward="teacher", teacher=top[1])))
@@ -57,6 +58,15 @@ def matrix(profile=None):
     if profile:
         return [replace(row, family=profile["family"], prompt_style=profile["style"]) for row in rows]
     return rows
+
+
+def matched_runs(profile):
+    """Clone each fresh deep solver's complete training recipe and vary only the reward depth."""
+    if not profile:
+        return []
+    originals = {r.name:r for r in matrix(profile)}
+    return [replace(originals[route+"-prefix3"],name=f"{route}-depth{level}",reward=f"d{level}")
+            for route in ROUTES for level in (1,2)]
 
 
 def permute_groups(values, rng):

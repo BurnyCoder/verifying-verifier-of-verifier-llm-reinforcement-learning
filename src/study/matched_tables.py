@@ -1,11 +1,11 @@
 """Compare judge depths only when the arithmetic questions or saved solver answers are identical."""
 
-from .storage import read_json, rows
+from .design import ROUTES
+from .storage import rows
 from .tables import markdown
 
 
 HEADERS = ["Training condition","One judge · J1","Two judges · J2 checks J1","Three judges · J3 checks J2"]
-ROUTES = {"exact":("exact-j1","exact-j2","exact-j3"), "top":("top-j1","top-j2","exact-j3")}
 PENDING = "Pending"
 
 
@@ -75,8 +75,9 @@ def accuracy_grid(root,profile):
             if replay.with_suffix(".json").is_file():
                 records = read_cohort(replay.with_suffix(".jsonl"),shared,judge=True)
                 fitted = [score(records,i) for i in range(3)]
-                if fitted[0] != isolated[0]:
-                    raise ValueError(f"Identical trained Judge 1 differs across {route} conditions")
+                first = read_cohort(root/ROUTES[route][0]/judge_file,shared,judge=True)
+                if any(a["reports"][0]!=b["reports"][0] for a,b in zip(first,records,strict=True)):
+                    raise ValueError(f"Identical trained Judge 1 reports differ across {route} conditions")
             judge_table.append([label+" · all participating judges trained",*fitted])
         grids.append(dict(phase=phase,solver=solver_table,judge=judge_table,solver_n=len(base),judge_n=len(shared),
                           frozen_solver=cell(sum(r["correct"] for r in base),len(base))))

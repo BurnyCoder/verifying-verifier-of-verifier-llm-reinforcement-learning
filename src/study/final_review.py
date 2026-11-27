@@ -6,7 +6,7 @@ from math import isclose
 from .benchmark import population
 from .curriculum import EXAMPLES
 from .depth_review import numbers
-from .design import SEEDS, matrix
+from .design import ROUTES, SEEDS, matched_runs, matrix
 from .domain import Problem, problems
 from .exposures import check_exposures
 from .learning_review import execute_steps
@@ -31,7 +31,7 @@ def cohort_rows(path, pool, split):
         raise ValueError(f"Incomplete cohort in {path}")
 
 
-def grade_solutions(path, pool, split, fixed_traces=None):
+def grade_solutions(path, pool, split, fixed_traces=None, panel=True):
     """Execute the recorded steps and separately check the submitted trace, last value and format."""
     outcomes = {}
     for p,r in cohort_rows(path,pool,split):
@@ -46,9 +46,9 @@ def grade_solutions(path, pool, split, fixed_traces=None):
             reports = r["reports"]
             bits = [terminal(report,i) for i,report in enumerate(reports,1)]
             sound = [numbers(raw,3 if i==0 else 6) == expected(p,r["trace"],reports[:i]) for i,raw in enumerate(reports)]
-            flat = sum(terminal(v,1) for v in r["votes"]) >= 2
+            flat = sum(terminal(v,1) for v in r["votes"]) >= 2 if panel else None
             correct = outcomes[p.key]
-            if (r["trace"] != fixed_traces[p.key] or len(bits) != 3 or len(r["votes"]) != 3 or
+            if (r["trace"] != fixed_traces[p.key] or len(bits) != 3 or len(r["votes"]) != (3 if panel else 0) or
                     bits != r["verdicts"] or sound != r["full_report_correct"] or flat != r["flat"] or
                     (r["fixed"],r["harmed"]) != (bits[1]!=correct and bits[2]==correct, bits[1]==correct and bits[2]!=correct)):
                 raise ValueError(f"Natural review mismatch in {path} at {p.key}")
@@ -92,6 +92,13 @@ def review_completed(original, data):
     if (set(seal["weights"]) != {r.name for r in schedule} or
             seal["ordered_training_exposures"] != check_exposures(root,schedule)):
         raise ValueError("The training exposures or checkpoint manifest differ from the published seal")
+    extra=matched_runs(profile)
+    supplemental_seal = read_json(root/"matched-depth/seal.json",{})
+    if extra:
+        references=[r for r in schedule if r.name in ("d1-17","d2-17","d3-17","exact-prefix3","top-prefix3")]
+        if (set(supplemental_seal.get("weights",{}))!={r.name for r in extra} or
+                supplemental_seal.get("ordered_training_exposures")!=check_exposures(root,[*references,*extra])):
+            raise ValueError("Unmatched input exposure or checkpoint manifest in the depth extension")
     suites = dict(test=2048,layout=128,long=128,mechanism=128)
     if profile and profile["family"] != "registered":
         suites["original-difficulty"] = 2048
@@ -108,16 +115,17 @@ def review_completed(original, data):
     if leakage:
         raise ValueError(f"Found {leakage} final IDs among previously observed study examples")
 
-    sealed_at = datetime.fromisoformat(seal["time"])
     outcomes, origins = {}, {}
     graded = natural = twins = 0
     unique_twins = {}
-    names = {"base":"solver",**{r.name:r.role for r in schedule}}
+    names = {"base":"solver",**{r.name:r.role for r in [*schedule,*extra]}}
     prefix = dict(list(pools["test"].items())[:128])
     for name,role in names.items():
         directory = root/name
         dev, final = [read_json(directory/(phase+".json")) for phase in ("development","final")]
-        weights = seal["weights"].get(name,"frozen base")
+        manifest = supplemental_seal if name in supplemental_seal.get("weights",{}) else seal
+        sealed_at = datetime.fromisoformat(manifest["time"])
+        weights = manifest["weights"].get(name,"frozen base")
         if (dev["weights"] != weights or final["weights"] != weights or
                 not datetime.fromisoformat(dev["time"]) <= sealed_at <= datetime.fromisoformat(final["time"])):
             raise ValueError(f"Evaluation receipt does not match the checkpoint seal for {name}")
@@ -145,6 +153,12 @@ def review_completed(original, data):
                 twins += count
                 unique_twins[source,filename] = count
 
+    for route in ROUTES if extra else ():
+        fixed = root/"matched-depth"/f"{route}-final"
+        marker=read_json(fixed.with_suffix(".json"))
+        if marker["weights"]!={j:seal["weights"][j] for j in ROUTES[route]}:
+            raise ValueError(f"Fixed-solver judge stack differs from its seal for {route}")
+        natural += len(grade_solutions(fixed.with_suffix(".jsonl"),prefix,"test",origins["base"],panel=False))
     comparisons = []
     for reference in ("d2","flat","d1"):
         seeds = SEEDS[:1] if reference=="d1" else SEEDS
@@ -158,7 +172,7 @@ def review_completed(original, data):
                 if not isclose(change,published,abs_tol=1e-12):
                     raise ValueError("Paired published effect differs from independently rescored solutions")
             comparisons.append([seed,reference.upper(),len(a),gains,losses,f"{100*change:+.2f}"])
-    return dict(checkpoints=len(schedule),prior_ids=len(old),test_ids=len(all_test),overlap=leakage,solver_grades=graded,
+    return dict(checkpoints=len(schedule)+len(extra),prior_ids=len(old),test_ids=len(all_test),overlap=leakage,solver_grades=graded,
                 natural_reviews=natural,paired_records=twins,distinct_paired_records=sum(unique_twins.values()),
                 comparisons=comparisons)
 
