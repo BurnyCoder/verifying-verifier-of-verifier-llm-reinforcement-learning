@@ -1,0 +1,71 @@
+{
+  "time": "2026-11-27T04:27:24.205+00:00",
+  "phase": "development",
+  "weights": "640e5177c52ed779f684e47d41886065b8aef58c4e9c311dcec8c8fa3efb0e50",
+  "usage": {
+    "eval_solver": {
+      "calls": 32,
+      "input_tokens": 5257,
+      "output_tokens": 182,
+      "gpu_seconds": 3.465959228515625,
+      "wall_seconds": 3.4839999999967404
+    },
+    "j1": {
+      "calls": 32,
+      "input_tokens": 9052,
+      "output_tokens": 220,
+      "gpu_seconds": 3.771061889648437,
+      "wall_seconds": 3.7660000000105356
+    },
+    "j2": {
+      "calls": 32,
+      "input_tokens": 14200,
+      "output_tokens": 437,
+      "gpu_seconds": 7.082373901367188,
+      "wall_seconds": 7.09500000000844
+    },
+    "j3": {
+      "calls": 32,
+      "input_tokens": 17164,
+      "output_tokens": 436,
+      "gpu_seconds": 9.565516357421874,
+      "wall_seconds": 9.578999999997905
+    },
+    "flat_j1": {
+      "calls": 96,
+      "input_tokens": 27156,
+      "output_tokens": 659,
+      "gpu_seconds": 10.878147338867187,
+      "wall_seconds": 10.875000000014552
+    },
+    "j3_visible": {
+      "calls": 16,
+      "input_tokens": 8584,
+      "output_tokens": 220,
+      "gpu_seconds": 4.945379394531249,
+      "wall_seconds": 4.953000000001339
+    },
+    "j3_masked": {
+      "calls": 16,
+      "input_tokens": 8492,
+      "output_tokens": 166,
+      "gpu_seconds": 4.3113193359375,
+      "wall_seconds": 4.3290000000051805
+    }
+  },
+  "unfinished_generation_batches": 0,
+  "evidence_sources": {
+    "development-twins.jsonl": "alt-top-j3"
+  },
+  "profile": {
+    "family": "two-add",
+    "style": "demonstrated",
+    "updates": 256,
+    "sources": {
+      "learnability/screen.json": "1f9a0a7e56f7179ab33b806d30ed350ce9bc18ed2e004b780e4830419cc2f910",
+      "learnability/confirm.json": "99ec496776f0f579a244af088038ec52a60affac2d0e2e3a32420e8f9702f6bb",
+      "learnability/learning.json": "ad2374b0a4b531b1f7133044d33e925e0cf161be2df2121a2af90b8659669bca",
+      "budget.json": "dedb9ff1007a5d48d6f23e376bf3d3a0852014604d5c0834643f7992c86a6574"
+    }
+  }
+}

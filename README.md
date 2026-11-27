@@ -96,6 +96,7 @@ The paired audit changes a numerical claim in Judge 2’s report while preservin
 | Frozen | Development | 14/16 | 0/8 | 0/8 | 0/8 |
 | Trained on exact labels | Development | 15/16 | 0/8 | 0/8 | 0/8 |
 | Alternating, exact route | Development | 16/16 | 0/8 | 0/8 | 0/8 |
+| Alternating, top-down route | Development | 16/16 | 0/8 | 0/8 | 0/8 |
 
 A separate experiment keeps **all three judge calls** and varies which reviewers had already been trained before a fresh solver learned. These development scores are exact solver solutions.
 
@@ -143,7 +144,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | alt-exact-j2 | j2 | 256 | 46.9% | 32 | — | 0 |
 | alt-exact-j3 | j3 | 256 | 31.2% | 32 | — | 0 |
 | alt-exact-solver | solver | 256 | 6.2% | 32 | — | 0 |
-| alt-top-j3 | j3 | 256 | — | 0 | — | 0 |
+| alt-top-j3 | j3 | 256 | 31.2% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
