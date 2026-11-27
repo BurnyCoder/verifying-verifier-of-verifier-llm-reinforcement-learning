@@ -240283,10 +240283,10 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/q35-9b",
       "treatment": "Qwen3.5-9B frozen, same-runtime screen",
-      "status": "Planned",
-      "result": "Pending",
+      "status": "Complete",
+      "result": "J3 verdict 43/64, twins 4/32, masked 0/32",
       "held_out": "—",
-      "evidence": null
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q35-9b"
     },
     {
       "group": "Newer frozen Qwen judges",
@@ -240959,10 +240959,169 @@
           "last_sample": "2026-11-27T06:34:33.5119098Z"
         },
         "key": "q35-4b"
+      },
+      {
+        "time": "2026-11-27T07:01:41.546+00:00",
+        "phase": "screen",
+        "model": "Qwen3.5-9B",
+        "status": "Complete",
+        "result": "J3 verdict 43/64, twins 4/32, masked 0/32",
+        "file": "Qwen3.5-9B-Q4_K_M.gguf",
+        "metrics": {
+          "natural": {
+            "n": 32,
+            "valid": 20,
+            "depths": [
+              {
+                "correct": 24,
+                "accuracy": 0.75,
+                "full": 15,
+                "malformed": 0,
+                "false_accept": 8,
+                "false_reject": 0
+              },
+              {
+                "correct": 23,
+                "accuracy": 0.71875,
+                "full": 13,
+                "malformed": 0,
+                "false_accept": 8,
+                "false_reject": 1
+              },
+              {
+                "correct": 24,
+                "accuracy": 0.75,
+                "full": 13,
+                "malformed": 1,
+                "false_accept": 7,
+                "false_reject": 1
+              }
+            ],
+            "fixed": 1,
+            "harmed": 0
+          },
+          "balanced": {
+            "n": 64,
+            "valid": 32,
+            "depths": [
+              {
+                "correct": 36,
+                "accuracy": 0.5625,
+                "full": 29,
+                "malformed": 0,
+                "false_accept": 27,
+                "false_reject": 1
+              },
+              {
+                "correct": 45,
+                "accuracy": 0.703125,
+                "full": 24,
+                "malformed": 0,
+                "false_accept": 18,
+                "false_reject": 1
+              },
+              {
+                "correct": 43,
+                "accuracy": 0.671875,
+                "full": 19,
+                "malformed": 8,
+                "false_accept": 15,
+                "false_reject": 6
+              }
+            ],
+            "fixed": 3,
+            "harmed": 5
+          },
+          "twins": {
+            "n": 32,
+            "visible": 4,
+            "masked": 0
+          }
+        },
+        "cost": {
+          "input_tokens": 191371,
+          "output_tokens": 5018,
+          "elapsed_seconds": 251.16900000005262,
+          "calls": 416,
+          "prompt_ms": 154997.694,
+          "generation_ms": 91238.289
+        },
+        "timing_seconds": 0.8982500000056461,
+        "audit": {
+          "calls": 416,
+          "matched_masked_outputs": 32,
+          "error_positions": {
+            "nonfinal": 16,
+            "final": 16
+          },
+          "examples": {
+            "failed": {
+              "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
+              "expression": "(15 - 6) - 12",
+              "trace": "9,-2",
+              "first": "0,2,-2",
+              "reviews": [
+                "0,3,-3,0,2,-3",
+                "0,3,-2,0,2,-3"
+              ],
+              "outputs": [
+                "0,3,-2,0,3,-2",
+                "0,3,-2,0,2,-3"
+              ],
+              "expected": [
+                "1,0,-3,0,2,-3",
+                "0,3,-3,0,2,-3"
+              ]
+            },
+            "passed": {
+              "key": "085628ff6411ff42d06849820dded0cb8e48f09f1172716e9ee026cede9ebd67",
+              "expression": "(57 + 6) + 12",
+              "trace": "63,75",
+              "first": "1,0,75",
+              "reviews": [
+                "1,0,75,1,0,75",
+                "1,0,74,1,0,75"
+              ],
+              "outputs": [
+                "1,0,75,1,0,75",
+                "0,3,75,1,0,75"
+              ],
+              "expected": [
+                "1,0,75,1,0,75",
+                "0,3,75,1,0,75"
+              ]
+            }
+          }
+        },
+        "devices": [
+          {
+            "log": "2026-11-27T06-56-35.219+00-00-server.log",
+            "sha256": "3188ac747c8698e98f521217a4baa275bf24c150d7230c6debf0b7c2014aba6f",
+            "graph_assignments": {
+              "CUDA0": 4110
+            }
+          }
+        ],
+        "gpu": {
+          "peak_dedicated_mib": 5677.6796875,
+          "engines": [
+            {
+              "engine": "Copy",
+              "seconds": 4.5312259
+            },
+            {
+              "engine": "3D",
+              "seconds": 193.2695304
+            }
+          ],
+          "last_sample": "2026-11-27T07:01:37.1673096Z"
+        },
+        "key": "q35-9b"
       }
     ],
     "decision": {},
     "conversions": [
+      "Qwen3.5-9B passed 4/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 39 produced identical output text.",
       "Qwen3.5-4B passed 7/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 27 produced identical output text."
     ]
   },

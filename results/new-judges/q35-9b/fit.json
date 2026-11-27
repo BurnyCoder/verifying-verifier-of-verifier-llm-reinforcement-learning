@@ -1,0 +1,67 @@
+[
+  {
+    "time": "2026-11-27T06:57:00.334+00:00",
+    "file": "Qwen3.5-9B-Q4_K_M.gguf",
+    "fit": true,
+    "placement": {
+      "layers": 33,
+      "weights_mib": 5406.91,
+      "cache_mib": 114.25,
+      "device": "CUDA0",
+      "before": {
+        "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+        "total_mib": 8151,
+        "free_mib": 5955
+      },
+      "after": {
+        "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+        "total_mib": 8151,
+        "free_mib": 414
+      },
+      "load_seconds": 16.75,
+      "build": "b12807",
+      "command": [
+        "D:\\AI\\recursive-judge-study\\frozen\\b12807\\llama-server.exe",
+        "-m",
+        "D:\\AI\\recursive-judge-study\\frozen\\q35-9b\\Qwen3.5-9B-Q4_K_M.gguf",
+        "--alias",
+        "judge",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65304",
+        "--device",
+        "CUDA0",
+        "-ngl",
+        "all",
+        "--fit",
+        "off",
+        "-ot",
+        ".*=CUDA0",
+        "--no-host",
+        "--op-offload",
+        "--backend-sampling",
+        "--no-warmup",
+        "-fa",
+        "on",
+        "-c",
+        "2048",
+        "-np",
+        "1",
+        "-b",
+        "128",
+        "-ub",
+        "64",
+        "--cache-ram",
+        "0",
+        "--jinja",
+        "--no-mmproj",
+        "--verbosity",
+        "5",
+        "--chat-template-kwargs",
+        "{\"enable_thinking\":false}"
+      ],
+      "dedicated_mib_before_inference": 5667.578125
+    }
+  }
+]

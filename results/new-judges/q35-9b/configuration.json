@@ -1,0 +1,14 @@
+{
+  "model": "Qwen3.5-9B",
+  "repository": "unsloth/Qwen3.5-9B-GGUF",
+  "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+  "file": "Qwen3.5-9B-Q4_K_M.gguf",
+  "sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+  "base_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "build": "b12807",
+  "context": 2048,
+  "output_limit": 48,
+  "phase": "screen",
+  "decoder": "greedy, thinking disabled, raw generated tokens",
+  "placement": "CUDA0"
+}
