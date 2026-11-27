@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "exact-depth2",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d2",
+    "judges": [
+      "exact-j1",
+      "exact-j2",
+      "exact-j3"
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-27T04:54:59.140+00:00"
+}

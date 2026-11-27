@@ -2,7 +2,7 @@
 
 23 of 32 registered training blocks have completed. 0 have completed final evaluation. Amended primary comparison is pending. Every arm uses two-add problems and demonstrated prompts.
 
-The matched-depth extension has trained 1 of 4 additional shallow solvers. [Extension](matched-depth-protocol.md).
+The matched-depth extension has trained 2 of 4 additional shallow solvers. [Extension](matched-depth-protocol.md).
 
 The timing pilot selected 256 updates per block at 38.3 seconds per pilot update. A block at that rate would take 2.72 hours.
 
