@@ -1,5 +1,33 @@
 # Study summary
 
+## Matched accuracy by judge depth
+
+Each column adds one review of the preceding judge. Judge 1 checks the solver, Judge 2 checks Judge 1, and Judge 3 checks Judge 2. Across a solver-training row only the depth of its reward changes. All solver comparisons here use seed 17.
+
+### Development solver accuracy
+
+Every solver answers the same 32 questions. A solution is correct when every intermediate value is correct. Fitted judges stay frozen during solver updates.
+
+| Training condition | One judge · J1 | Two judges · J2 checks J1 | Three judges · J3 checks J2 |
+| --- | --- | --- | --- |
+| Only solver trained · original judges | 21/32 (65.6%) | 25/32 (78.1%) | 3/32 (9.4%) |
+| Exact-trained judges, then solver | Pending | Pending | 25/32 (78.1%) |
+| Top-down-trained judges, then solver | Pending | Pending | 28/32 (87.5%) |
+
+### Development judge verdict accuracy
+
+Every judge grades the same 32 saved responses from the starting solver. A verdict is correct when it agrees with the arithmetic checker. In all judge-only conditions the solver itself stays at 20/32 (62.5%) on the 32 solver-evaluation questions.
+
+| Training condition | One judge · J1 | Two judges · J2 checks J1 | Three judges · J3 checks J2 |
+| --- | --- | --- | --- |
+| Original frozen judges | 19/32 (59.4%) | 19/32 (59.4%) | 17/32 (53.1%) |
+| Exact labels · only final judge trained | 20/32 (62.5%) | 19/32 (59.4%) | 18/32 (56.2%) |
+| Exact labels · all participating judges trained | 20/32 (62.5%) | Pending | Pending |
+| Top-down supervision · only final judge trained | 20/32 (62.5%) | 19/32 (59.4%) | 18/32 (56.2%) |
+| Top-down supervision · all participating judges trained | 20/32 (62.5%) | Pending | Pending |
+
+“Only final judge trained” fits the judge used for that column’s terminal decision and uses original judges for preceding calls. “All participating judges trained” uses fitted adapters at every depth. Top-down training uses the shared exact-trained Judge 3. Pending cells have no completed matched measurement. [Matched comparison protocol](matched-depth-protocol.md)
+
 Amended primary comparison is pending. Every arm uses two-add problems and demonstrated prompts.
 
 | Run | Updated role | Updates | Development exact | Development n | Held-out exact | Held-out n |

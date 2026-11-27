@@ -17,6 +17,8 @@ Each solver row starts from the same untrained solver adapter for its seed excep
 
 On the natural replay set report J2→J3 fixes and harms on identical traces. For the evidence intervention, generate twins from the same arithmetic instance and score responses against exact records. Report both the visible and masked conditions. Report actual model tokens, timing, zero-variance groups, malformed outputs and judge/oracle disagreement. Never fill a missing result with an assumed zero.
 
+The [matched-depth extension](matched-depth-protocol.md) adds four fresh shallow solvers with pretrained reviewers and replays the two complete trained judge stacks on fixed starting-solver traces. It reuses the measured three-call solvers and preserves the original primary cohort.
+
 ## Learnability amendment
 
 | Phase | Model and trainable roles | Data and budget | Decision |

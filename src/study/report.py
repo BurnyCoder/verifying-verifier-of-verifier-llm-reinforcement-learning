@@ -12,6 +12,7 @@ from .design import GITHUB, PAGES, PILOTS, Run, matrix
 from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
+from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
 from .tables import contrast_rows, markdown, rate as percent, run_evidence, training_method
@@ -130,7 +131,8 @@ def collect():
             if (target/"development.json").exists():
                 sample = list(rows(target/"replay.jsonl"))
                 archive.append(dict(name=name, correct=sum(r["correct"] for r in sample), n=len(sample)))
-    return dict(runs=runs, primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=registered,
+    return dict(runs=runs, matched_depth=accuracy_grid(source,profile),
+                primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=registered,
                 learnability=learning, profile=profile, original_development=archive,
                 budget=read_json(source/"budget.json"), sealed=(source/"seal.json").is_file(),
                 completed=(source/"completed.json").is_file())
@@ -330,6 +332,14 @@ def paper(data, date):
             table(["Original development","Correct complete trace","Problems"],
                   [[r["name"],r["correct"],r["n"]] for r in data["original_development"]])
     line("Results and interpretation","Heading1")
+    for grid in reversed(data["matched_depth"]):
+        split = "Development" if grid["phase"]=="development" else "Held-out"
+        line(f"{split} accuracy by actual judge depth","Heading2")
+        line(f"Solver scores require the complete calculation on {grid['solver_n']} common problems. Judge scores use "
+             f"verdict agreement with the checker on {grid['judge_n']} identical saved base-solver responses. Each extra call "
+             "reviews its predecessor. Fitted judges stay frozen during solver optimization.")
+        table(["Solver training","One judge","Two judges","Three judges"],grid["solver"])
+        table(["Judge training","One judge","Two judges","Three judges"],grid["judge"])
     line("Development accuracy for a solver requires every arithmetic step to be correct. For a judge it requires its whole record to match the executable audit. Held-out solver accuracy uses one response per problem. A dash denotes a pending measurement.")
     if data["runs"]:
         table(["Run","Role","Updates","Dev. n","Dev. exact","Test n","Test exact"],
@@ -528,7 +538,9 @@ def build():
     if comparisons:
         summary += "\n\n" + markdown(["Contrast", "Seed", "Difference (pp)", "95% lower", "95% upper"], comparisons)
     explanation = "Solver scores require every intermediate value. Judge scores require all fields of the evidence record. Intervals condition on the trained checkpoints."
-    atomic(REPORTS/"summary.md","# Study summary\n\n"+summary.replace("(reports/learnability.md)","(learnability.md)")+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
+    grid_text = grid_markdown(data["matched_depth"])
+    atomic(REPORTS/"summary.md","# Study summary\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
+           summary.replace("(reports/learnability.md)","(learnability.md)")+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)
@@ -556,7 +568,7 @@ def build():
     diagnostic = readme_depth(data)
     if diagnostic:
         diagnostic += "## Study results\n\n"
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+grid_text+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     methods=[]

@@ -56,6 +56,27 @@ function exampleCard(title, lines, error) {
   card.append(heading, record);
   return card;
 }
+function showMatched(grids) {
+  const section=byId("matched-section"), target=byId("matched-tables");
+  target.replaceChildren();
+  section.hidden=grids.length===0;
+  for (const grid of [...grids].reverse()) {
+    const split=grid.phase==="development" ? "Development" : "Held-out";
+    for (const [label,records] of [["solver accuracy",grid.solver],["judge verdict accuracy",grid.judge]]) {
+      const wrapper=document.createElement("div"), table=document.createElement("table");
+      wrapper.className="scroll";
+      table.createCaption().textContent=split+" "+label+" · seed 17";
+      const header=table.createTHead().insertRow();
+      for (const label of ["Training condition","One judge","Two · J2 checks J1","Three · J3 checks J2"]) {
+        const cell=document.createElement("th");
+        cell.scope="col"; cell.textContent=label; header.append(cell);
+      }
+      const body=table.createTBody();
+      for (const fields of records) row(body,fields);
+      wrapper.append(table); target.append(wrapper);
+    }
+  }
+}
 function showRun() {
   const r = study?.runs.find(item => item.name === byId("run").value);
   for(const name of ["examples","evidence","curve","replay"]) byId(name).replaceChildren();
@@ -99,6 +120,7 @@ async function update() {
     byId("primary").textContent=p.delta == null ? "Awaiting matched final checkpoints for all registered seeds." : "Three judges minus two: "+(p.delta*100).toFixed(2)+" points. 95% interval "+p.ci.map(x=>(100*x).toFixed(2)).join(" to ")+". Decision: "+p.status+".";
     byId("progress").textContent=study.runs.filter(r=>r.updates != null && !r.diagnostic).length+" of "+study.planned+" registered training blocks completed. "+(study.sealed?"Checkpoint manifest sealed.":"Final test sealed during development.");
     if (study.profile?.family) byId("progress").textContent += " Amended benchmark · "+study.profile.family+" arithmetic with "+study.profile.style+" prompts.";
+    showMatched(study.matched_depth ?? []);
     const cal=study.learnability;
     byId("calibration").replaceChildren();
     byId("readiness").textContent=cal?.screen?.selected ? "Selected "+cal.screen.selected.family+" with "+cal.screen.selected.style+" prompts." :
