@@ -61,6 +61,7 @@ def publish(milestone, run=None):
             f"[Load an adapter]({GITHUB}/blob/main/docs/usage.md#using-a-published-adapter).\n\n"
             +(ROOT/"reports/summary.md").read_text(encoding="utf-8")
               .replace("(preregistration.md)",f"({GITHUB}/blob/main/reports/preregistration.md)")
+              .replace("(matched-depth-protocol.md)",f"({GITHUB}/blob/main/reports/matched-depth-protocol.md)")
               .replace("(learnability.md)",f"({GITHUB}/blob/main/reports/learnability.md)"))
     api.upload_file(path_or_fileobj=card.encode(),path_in_repo="README.md",repo_id=MODELS,
                     commit_message=f"Update study card at {release}")
