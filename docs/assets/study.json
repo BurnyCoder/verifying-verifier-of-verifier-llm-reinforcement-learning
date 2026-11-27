@@ -240328,7 +240328,7 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/winner-d2",
       "treatment": "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17",
-      "status": "Conditional, later day",
+      "status": "Eligible, deferred",
       "result": "Pending",
       "held_out": "—",
       "evidence": null
@@ -240337,7 +240337,7 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/winner-d3",
       "treatment": "Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17",
-      "status": "Conditional, later day",
+      "status": "Eligible, deferred",
       "result": "Pending",
       "held_out": "—",
       "evidence": null
@@ -241698,7 +241698,32 @@
         "key": "confirm-winner"
       }
     ],
-    "decision": {},
+    "decision": {
+      "time": "2026-11-27T08:09:17.760+00:00",
+      "status": "Confirmed comparison",
+      "selected": "q35-4b",
+      "estimates": {
+        "twins": {
+          "n": 64,
+          "delta": 0.140625,
+          "ci": [
+            0.0625,
+            0.234375
+          ]
+        },
+        "balanced_verdict": {
+          "n": 64,
+          "delta": 0.09375,
+          "ci": [
+            0.015625,
+            0.1796875
+          ]
+        }
+      },
+      "online_gate": true,
+      "result": "Online comparison eligible on a later day",
+      "original_completed_selection": "q35-4b"
+    },
     "conversions": [
       "Qwen3.5-9B passed 4/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 39 produced identical output text.",
       "Qwen3.5-4B passed 7/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 27 produced identical output text."
@@ -241715,7 +241740,12 @@
         "reason": "The process has 7034.1 MiB in dedicated GPU memory, below 7139.4 MiB of weights and state"
       }
     ],
-    "review": {}
+    "review": {
+      "screen_ids": 64,
+      "fresh_ids": 64,
+      "matched_cases": 192,
+      "ranked_candidates": 3
+    }
   },
   "matched_depth": [
     {

@@ -1,0 +1,26 @@
+{
+  "time": "2026-11-27T08:09:17.760+00:00",
+  "status": "Confirmed comparison",
+  "selected": "q35-4b",
+  "estimates": {
+    "twins": {
+      "n": 64,
+      "delta": 0.140625,
+      "ci": [
+        0.0625,
+        0.234375
+      ]
+    },
+    "balanced_verdict": {
+      "n": 64,
+      "delta": 0.09375,
+      "ci": [
+        0.015625,
+        0.1796875
+      ]
+    }
+  },
+  "online_gate": true,
+  "result": "Online comparison eligible on a later day",
+  "original_completed_selection": "q35-4b"
+}
