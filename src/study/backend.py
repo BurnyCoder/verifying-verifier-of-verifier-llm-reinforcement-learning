@@ -8,7 +8,7 @@ import time
 import torch
 from huggingface_hub import try_to_load_from_cache
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_kbit_training
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from .design import BASE, REVISION
 from .prompts import messages
@@ -48,22 +48,40 @@ class TokenStream:
 
 
 class Backend:
-    def __init__(self, journal, initial=None, frozen=(), seed=17):
+    def __init__(self, journal, initial=None, frozen=(), seed=17, *, model_id=BASE, revision=REVISION, precision="nf4", text_only=False):
         if not torch.cuda.is_available():
             raise RuntimeError("The registered GPU profile requires a CUDA device")
         torch.manual_seed(seed)
         self.journal, self.label = journal, "solver"
         # A complete immutable snapshot can be opened locally without repository discovery requests.
-        required=("config.json","generation_config.json","model.safetensors","tokenizer.json","tokenizer_config.json")
-        cached=all(isinstance(try_to_load_from_cache(BASE,filename,revision=REVISION),str) for filename in required)
-        self.tokenizer = AutoTokenizer.from_pretrained(BASE, revision=REVISION, padding_side="left",local_files_only=cached)
+        weight_index = "model.safetensors.index.json" if text_only else "model.safetensors"
+        required=("config.json",weight_index,"tokenizer.json","tokenizer_config.json")
+        cached=all(isinstance(try_to_load_from_cache(model_id,filename,revision=revision),str) for filename in required)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, padding_side="left",local_files_only=cached)
         self.tokenizer.padding_side = "left"
-        quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
-                                   bnb_4bit_compute_dtype=torch.bfloat16)
-        base = AutoModelForCausalLM.from_pretrained(BASE, revision=REVISION, quantization_config=quant,
-                                                    dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa",
-                                                    local_files_only=cached)
-        base = prepare_model_for_kbit_training(base, use_gradient_checkpointing=False)
+        options = dict(dtype=torch.bfloat16, device_map={"":0}, attn_implementation="sdpa",local_files_only=cached)
+        if precision == "nf4":
+            options["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16)
+        elif precision == "int8":
+            options["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+        elif precision != "bf16":
+            raise ValueError(f"Unknown solver precision {precision}")
+        self.text_only = text_only
+        if text_only:
+            # Transformers maps the VLM checkpoint's language_model prefix to the text-only model.
+            # https://huggingface.co/docs/transformers/model_doc/qwen3_5
+            options["config"] = AutoConfig.from_pretrained(model_id, revision=revision, local_files_only=cached).get_text_config()
+            options["output_loading_info"] = True
+        loaded = AutoModelForCausalLM.from_pretrained(model_id, revision=revision, **options)
+        if text_only:
+            base, info = loaded
+            if info["missing_keys"] or info["mismatched_keys"] or info["error_msgs"]:
+                raise ValueError(f"Incomplete pretrained language weights: {info}")
+        else:
+            base = loaded
+        if precision != "bf16":
+            base = prepare_model_for_kbit_training(base, use_gradient_checkpointing=False)
         if initial:
             self.model = PeftModel.from_pretrained(base, adapter(initial), is_trainable=True)
         else:
@@ -79,7 +97,7 @@ class Backend:
         self.totals = {}
         self._instrument()
         journal.event("hardware", device=torch.cuda.get_device_name(), capability=torch.cuda.get_device_capability(),
-                      torch=torch.__version__, base=BASE, revision=REVISION, pid=os.getpid())
+                      torch=torch.__version__, base=model_id, revision=revision, precision=precision, pid=os.getpid())
 
     def _instrument(self):
         """Record both TRL policy sampling and our explicit judge calls through generate()."""
@@ -115,8 +133,9 @@ class Backend:
         self.model.generate = generate
 
     def prompt(self, role, problem, trace="", history=()):
+        kwargs = {"enable_thinking":False} if getattr(self,"text_only",False) else {}
         return self.tokenizer.apply_chat_template(messages(role, problem, trace, history,style=getattr(self,"prompt_style","registered")), tokenize=False,
-                                                  add_generation_prompt=True)
+                                                  add_generation_prompt=True, **kwargs)
 
     @contextlib.contextmanager
     def inference(self, snapshot, label, seed):

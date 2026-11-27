@@ -192,6 +192,10 @@ def main():
     frozen.add_argument("--publish",action="store_true")
     online=actions.add_parser("online-solvers",help="Train fresh solvers with the independently confirmed frozen J2 and J3")
     online.add_argument("--publish",action="store_true")
+    from .solver_fit import CANDIDATES
+    fit=actions.add_parser("solver-fit",help="Measure less-quantized and pretraining-only solvers on the study GPU")
+    fit.add_argument("--candidate",choices=CANDIDATES)
+    fit.add_argument("--publish",action="store_true")
     schedule.add_argument("--registered-only", action="store_true",
                           help="Reproduce the original signed-arithmetic matrix independently")
     names=[*(r.name for r in matrix({})),*MATCHED_NAMES,*ONLINE_NAMES]
@@ -213,7 +217,16 @@ def main():
     pub.add_argument("--milestone",required=True)
     pub.add_argument("--run")
     args=parser.parse_args()
-    if args.action == "online-solvers":
+    if args.action == "solver-fit":
+        from .solver_fit import fit_candidates,probe
+        if TRACK!="original":
+            parser.error("Use the original results root for hardware probes")
+        if args.candidate:
+            with study_lock("fit-"+args.candidate):
+                print(json.dumps(probe(args.candidate)),flush=True)
+        else:
+            fit_candidates(args.publish)
+    elif args.action == "online-solvers":
         from .online_solvers import campaign as online_campaign
         online_campaign(args.publish)
     elif args.action in ("train","evaluate") and args.run in ONLINE_NAMES:

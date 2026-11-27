@@ -125,6 +125,11 @@ function showInventory() {
   }
 }
 function showOnline() {
+  const fits=study?.solver_fit ?? [], bodyFit=byId("solver-fit-rows");
+  byId("solver-fit-section").hidden=!fits.length;
+  bodyFit.replaceChildren();
+  for (const f of fits) row(bodyFit,[f.model,f.precision.toUpperCase(),f.status,f.n ? f.parsed+"/"+f.n : "—",
+    f.n ? f.correct+"/"+f.n : "—",f.after_step ? Math.round(f.after_step.solver_peak_mib)+" MiB" : "—"]);
   const online=study?.online_solvers, block=byId("online-section");
   block.hidden=!online?.arms;
   if (block.hidden) return;
