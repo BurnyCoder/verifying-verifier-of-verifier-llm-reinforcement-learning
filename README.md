@@ -5,6 +5,74 @@ A small language model solves numbered arithmetic problems. A second call judges
 For example, a solver can give the right final answer to (4 + 3) × 2 while recording 8 in the first step. A reviewer can endorse the correct rejection and still give the wrong correction. The study distinguishes both mistakes.
 
 <!-- RESULTS:START -->
+## Why did the two-judge and three-judge solvers diverge?
+
+**With seed 17, training the solver with two frozen judges gave 25/32 correct solutions (78.1%). Training it with three gave 3/32 (9.4%).** The gap was 22 complete solutions (-68.75 percentage points, three minus two). Both solvers started from the same model and saw the same problems in the same order. An integer program graded every intermediate step. On the paired problems, only the two-judge solver was correct on 23, only the three-judge solver on 1, both on 2, and neither on 6. These are development results on the calibrated arithmetic benchmark.
+
+The same evaluation gave 20/32 for the starting solver, 21/32 for one judge, 24/32 for three independent votes, 32/32 for the exact checker, 31/32 for the third judge gated by the exact checker, 5/32 for shuffled three-judge rewards.
+
+### What happens if we stop at Judge 2 on the same answers?
+
+The three-judge-trained solver still solved **3/32**. Its written answers were already fixed before grading. On those answers, Judge 3 changed 2 of Judge 2’s verdicts. It corrected 1 and wrongly overturned 1.
+
+| Stopping point on the fixed answers | Answers approved | Verdicts agreeing with the checker |
+| --- | --- | --- |
+| Judge 2 | 21/32 | 12/32 |
+| Judge 3 | 21/32 | 12/32 |
+
+Every changed development verdict appears here.
+
+| Problem | Submitted steps | Correct steps | Judge 2 | Judge 3 |
+| --- | --- | --- | --- | --- |
+| (36 - 7) + 7 | 8,15 | 29,36 | Accepted | Rejected |
+| (1 + 6) - 6 | -5,-1 | 7,1 | Rejected (invalid audit flag -1) | Accepted |
+
+On `(39 + 12) - 5`, the two-judge-trained solver wrote `51,46`. The three-judge-trained solver wrote `16,11`, and all three judges approved it in the replay.
+
+### What changed during training?
+
+On the same 1,024 training answers sampled by the three-judge solver, Judge 3 fixed 58 of Judge 2’s verdicts and spoiled 44. Substituting Judge 2’s reward would have changed the relative credits in **81/256 optimizer updates**. Each GRPO update compares four answers to one question. When gradings change early on, the solvers can learn different answers and receive different training data at subsequent updates. [GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)
+
+Judge 3 rewarded **569/880 incorrect answers (64.7%)** and **88/144 correct answers (61.1%)**.
+
+| Within the same training question | Correct answer ranks higher | Tied | Wrong answer ranks higher |
+| --- | --- | --- | --- |
+| Judge 2 on those answers | 28 | 81 | 25 |
+| Judge 3 on those answers | 22 | 84 | 28 |
+
+In its first quarter of training, the three-judge solver produced 80 correct answers per 256 samples and received 173 positive rewards. In the last quarter it produced 15 correct answers and received 171 positive rewards.
+
+The two-judge solver gave the correct first value on 32/32 development problems. The three-judge solver gave a wrong first value on 28 and a malformed answer on 1. In 20 cases it applied the second operation correctly to its own wrong intermediate value. Judge 3 rewarded 357/508 training answers with that error pattern.
+
+### Could a code bug or a training seed explain it?
+
+The audit independently regraded 2,048 training answers and 64 development answers, checked the effective solution-verdict field against each assigned reward, and matched every group mean to TRL’s optimizer log. Prompts and outputs matched the training records for all 7,168 calls, including the solver answer and preceding reports shown to each judge. Both evaluated adapter hashes matched the saved weights. [Transcript and weight checks](results/calibrated/diagnostics/depth-transcripts-17.json)
+
+These checks support a training-signal explanation. The three-judge reward frequently approved incorrect arithmetic and gave little preference to correct answers within a question. The checker-gated control shows that this solver can learn with the same three judge calls when incorrect solutions receive zero reward. The depth analysis is exploratory. The contribution of a particular stochastic update cannot be identified from these trajectories.
+
+### Did Judge 3 actually audit the preceding review?
+
+On a separate replay of the starting solver’s 32 development responses, Judges 1, 2 and 3 agreed with the arithmetic checker on 19, 19 and 17 verdicts, respectively. Three independent first-order votes agreed on 22. On these fixed starting responses Judge 3 repaired 0 earlier verdicts and overturned 2 correct ones.
+
+The paired audit changes a numerical claim in Judge 2’s report while preserving the verdict on the solver. To pass a pair, Judge 3 must endorse the sound report and reject the altered one with the correct location, replacement and solution verdict.
+
+| Judge 3 | Cohort | Correct solver verdict | Altered review located and repaired | Whole pairs correct | Whole pairs with evidence masked |
+| --- | --- | --- | --- | --- | --- |
+| Frozen | Development | 14/16 | 0/8 | 0/8 | 0/8 |
+| Trained on exact labels | Development | 15/16 | 0/8 | 0/8 | 0/8 |
+| Alternating, exact route | Development | 16/16 | 0/8 | 0/8 | 0/8 |
+
+A separate experiment keeps **all three judge calls** and varies which reviewers had already been trained before a fresh solver learned. These development scores are exact solver solutions.
+
+| Judge supervision | Only Judge 1 trained | Judges 1 and 2 trained | All three trained |
+| --- | --- | --- | --- |
+| Exact verdict and evidence | 24/32 | 4/32 | 25/32 |
+| Top-down learned supervision | 2/32 | 31/32 | 28/32 |
+
+The preregistered three-seed comparison on 2,048 unseen problems is pending. [Raw training and development audit](reports/reviews/depth-diagnosis.md) · [Preregistration and decision rule](reports/preregistration.md)
+
+## Study results
+
 ![Study architecture](docs/assets/architecture.png)
 
 ![Learning validation for the exact-reward and shuffled controls](docs/assets/learnability.png)
@@ -41,6 +109,8 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | alt-exact-j3 | j3 | 256 | 31.2% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
+
+[How the third judge changed actual training rewards and worked examples](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/depth-diagnosis.md).
 
 **Benchmark difficulty.** The frozen-model screen selected two-add with demonstrated prompts. On 16 screening problems it produced a mix of correct and incorrect answers on 2 problems. [All difficulty levels](reports/learnability.md).
 
