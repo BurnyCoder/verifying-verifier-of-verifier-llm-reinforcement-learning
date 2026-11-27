@@ -3,8 +3,42 @@
 import hashlib
 import re
 from collections import Counter
+from datetime import datetime
+from itertools import pairwise
 
 from .storage import ORIGINAL_RESULTS, log_directory, read_json, write_json
+
+
+def measured_engine_times(samples):
+    """Sum physical adjacent WDDM counter differences within one server and GPU engine."""
+    # Microsoft defines active time as the difference between samples of a timer counter.
+    # https://learn.microsoft.com/en-us/windows/win32/wmisdk/timer-algorithm-counter-types
+    totals = {}
+    for before, after in pairwise(samples):
+        if (before['pid'], before.get('process_start')) != (after['pid'], after.get('process_start')):
+            continue
+        wall = (datetime.fromisoformat(after['time'])-datetime.fromisoformat(before['time'])).total_seconds()
+        old = {e.get('instance',e['engine']):e for e in before['engines']}
+        old_counts = Counter(e.get('instance',e['engine']) for e in before['engines'])
+        new_counts = Counter(e.get('instance',e['engine']) for e in after['engines'])
+        for reading in after['engines']:
+            identity = reading.get('instance',reading['engine'])
+            if identity not in old:
+                continue
+            previous = old[identity]
+            total = totals.setdefault(reading['engine'],dict(engine=reading['engine'],seconds=0.,interval_seconds=0.,usable=0,discarded=0))
+            elapsed, active = wall, reading['seconds']-previous['seconds']
+            if 'running_ticks' in reading and 'running_ticks' in previous:
+                frequency = reading['frequency']
+                elapsed = (int(reading['sample_ticks'])-int(previous['sample_ticks']))/frequency
+                active = (int(reading['running_ticks'])-int(previous['running_ticks']))/frequency
+            if old_counts[identity]!=1 or new_counts[identity]!=1 or elapsed<=0 or not 0<=active<=elapsed:
+                total['discarded']+=1
+                continue
+            total['seconds']+=active
+            total['interval_seconds']+=elapsed
+            total['usable']+=1
+    return list(totals.values())
 
 
 def graph_assignments(path):
@@ -25,7 +59,8 @@ def close_device_records():
     """Attach the logs for each scored load to its raw receipt. Skip archived/pre-fix pilot calls."""
     for marker in (ORIGINAL_RESULTS/"new-judges").glob("*/result.json"):
         folder = marker.parent
-        if (folder/"gpu-graphs.json").is_file() or not read_json(marker).get("metrics"):
+        receipt = read_json(marker)
+        if (folder/"gpu-graphs.json").is_file() or not (receipt.get("metrics") or receipt.get("latency")):
             continue
         logs = sorted((log_directory()/("new-judges-"+folder.name)).glob("*-server.log"))
         if not logs:
