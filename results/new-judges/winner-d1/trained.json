@@ -1,0 +1,41 @@
+{
+  "time": "2026-11-27T12:01:07.882+00:00",
+  "run": {
+    "name": "new-judges/winner-d1",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d1",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 1252.4370000000054,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "initial_adapter_sha256": "ab3878076992e76c7a0564c053405ae0463c0809a9e61620cf5c35e96f1954d8",
+  "usage": {
+    "solver": {
+      "calls": 1024,
+      "input_tokens": 168240,
+      "output_tokens": 5975,
+      "gpu_seconds": 194.38004455566394,
+      "wall_seconds": 194.69300000001385
+    },
+    "development_solver": {
+      "calls": 64,
+      "input_tokens": 10528,
+      "output_tokens": 346,
+      "gpu_seconds": 7.216309387207031,
+      "wall_seconds": 7.202000000004773
+    }
+  },
+  "unfinished_generation_batches": 0
+}

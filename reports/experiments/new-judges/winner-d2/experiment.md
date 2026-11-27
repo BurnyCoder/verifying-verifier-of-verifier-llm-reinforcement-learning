@@ -5,7 +5,7 @@
 | Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 (62.5%) |
-| Frozen Qwen3.5-4B Judge 1 | 0 | — | Scheduled |
+| Frozen Qwen3.5-4B Judge 1 | 256 | 17/256 | Trained |
 | Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | 29/32 (90.6%) |
 | Frozen Qwen3.5-4B Judge 3 | 256 | 15/256 | 27/32 (84.4%) |
 

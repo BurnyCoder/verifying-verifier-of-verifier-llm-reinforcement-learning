@@ -1,0 +1,33 @@
+{
+  "calls": 1024,
+  "input_tokens": 293965,
+  "output_tokens": 6983,
+  "elapsed_seconds": 284.1179999999731,
+  "prompt_ms": 192754.579,
+  "generation_ms": 79493.353,
+  "gpu_engines": [
+    {
+      "engine": "Copy",
+      "seconds": 9.156573700000008,
+      "interval_seconds": 1303.2849022999992,
+      "usable": 254,
+      "discarded": 0
+    },
+    {
+      "engine": "3D",
+      "seconds": 176.3229149,
+      "interval_seconds": 1303.2849022999992,
+      "usable": 254,
+      "discarded": 0
+    }
+  ],
+  "graphs": [
+    {
+      "log": "2026-11-27T11-39-09.083+00-00-server.log",
+      "sha256": "c50bc75a12a8adfa863db6ef6eaf6cc1d967da28aaf3a370cf8fe0e51b5486be",
+      "graph_assignments": {
+        "CUDA0": 9223
+      }
+    }
+  ]
+}

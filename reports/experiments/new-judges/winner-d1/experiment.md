@@ -5,7 +5,7 @@
 | Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 (62.5%) |
-| Frozen Qwen3.5-4B Judge 1 | 0 | — | Scheduled |
+| Frozen Qwen3.5-4B Judge 1 | 256 | 17/256 | Trained |
 | Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | 29/32 (90.6%) |
 | Frozen Qwen3.5-4B Judge 3 | 256 | 15/256 | 27/32 (84.4%) |
 
@@ -22,4 +22,4 @@ The single-judge arm uses Judge 1's first verdict directly. Each additional judg
 
 A correct verdict accepts correct arithmetic or rejects an arithmetic or format error. Changing a verdict in this replay leaves the solver’s written answer fixed.
 
-No complete training group has been recorded. [Raw solver and judge outputs](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d1)
+The exact checker accepted 669/1024 training answers. The reward accepted 887/1024, including 296 incorrect answers. It rejected 78 correct answers. 17 of 256 groups supplied mixed rewards. [Raw solver and judge outputs](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d1)
