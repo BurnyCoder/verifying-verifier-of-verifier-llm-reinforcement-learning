@@ -2,7 +2,7 @@
 
 The [run inventory](run-inventory.md) records each treatment and its endpoint. The [newer frozen Qwen experiment](newer-frozen-judges.md) tests fixed responses before allocating solver-training time to a selected judge. The original matched-depth comparison has its own deferred sealed evaluation.
 
-On 27 November the owner deferred the unfinished top-down two-judge solver, subsequent original optimization blocks and sealed evaluations. Its saved checkpoint is retained. After independent confirmation, the owner authorized only the two fresh solvers rewarded by frozen Qwen3.5-4B judges. [Online comparison](newer-frozen-judges.md#online-solver-comparison)
+On 27 November the owner deferred the unfinished top-down two-judge solver, subsequent original optimization blocks and sealed evaluations. Its saved checkpoint is retained. After independent confirmation, the owner authorized two fresh solvers rewarded by frozen Qwen3.5-4B judges, followed by short GPU trials of the original solver at higher precision and a pretrained Qwen3.5 base checkpoint. [Online comparison](newer-frozen-judges.md#online-solver-comparison) · [Hardware trials](solver-precision.md)
 
 When training resumes, the interrupted arm can recover its optimizer, scheduler, random-generator state, solver adapter and frozen judge adapters from the archived checkpoint. The study retains the logged groups after the checkpoint as evidence of the interrupted attempt. The training command discards those groups from the active history before replaying them from the saved state. [Checkpoint manifest](../results/calibrated/top-depth2/resume-checkpoint.json) · [Restoring a paused run](../docs/usage.md#restoring-the-paused-solver).
 

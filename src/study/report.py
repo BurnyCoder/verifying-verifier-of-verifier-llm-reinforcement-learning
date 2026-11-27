@@ -748,7 +748,9 @@ def build():
     activity = [online_summary.rstrip(), ledger_links] if online_summary else [ledger_links]
     operations=read_json(ORIGINAL_RESULTS/"run-snapshot.json",{})
     if operations.get("campaign")=="deferred":
-        activity.append(operations["reason"])
+        activity.append("The unfinished original optimizer blocks and their sealed evaluation were deferred. "
+                        "The newer frozen-judge solver comparison and solver hardware checks have separate authorization. "
+                        "[Run priorities](plan.md)." if data["online_solvers"] else operations["reason"])
         for entry in data["inventory"]:
             if entry["status"].startswith("Paused"):
                 activity.append(entry["id"]+" · "+entry["status"]+".")
