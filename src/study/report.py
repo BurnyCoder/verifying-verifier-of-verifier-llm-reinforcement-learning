@@ -15,7 +15,7 @@ from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
 from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
-from .frozen_report import collect_frozen, depth_rows as frozen_rows, experiment_pages, frozen_text, interpretation, plot_scores
+from .frozen_report import collect_frozen, confirmation_review_text, depth_rows as frozen_rows, experiment_pages, frozen_text, interpretation, plot_scores
 from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
@@ -608,6 +608,9 @@ def build():
                            f" [All four quarters, denominators and original records]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md).")
     ledger = inventory_markdown(data["inventory"])
     frozen_summary = frozen_text(data["newer_judges"])
+    if data['newer_judges'].get('review'):
+        atomic(REPORTS/'reviews/frozen-confirmation.md',confirmation_review_text(data['newer_judges']))
+        frozen_summary += f"\n\n[Case identities, selection and interval audit]({GITHUB}/blob/main/reports/reviews/frozen-confirmation.md)."
     frozen_chart = (f"\n\n![Frozen verdict and whole-pair accuracy]({GITHUB}/raw/refs/heads/main/docs/assets/frozen-judge-scores.png)"
                     if (DOCS/"assets/frozen-judge-scores.png").is_file() else "")
     frozen_summary += frozen_chart
