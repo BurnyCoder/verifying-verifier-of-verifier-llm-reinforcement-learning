@@ -75,6 +75,9 @@ function showMatched(grids) {
       for (const fields of records) row(body,fields);
       wrapper.append(table); target.append(wrapper);
     }
+    if (grid.judge_note) {
+      const note=document.createElement("p"); note.textContent=grid.judge_note; target.append(note);
+    }
   }
 }
 function showRun() {
