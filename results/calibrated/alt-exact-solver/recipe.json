@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "alt-exact-solver",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      "alt-exact-j1",
+      "alt-exact-j2",
+      "alt-exact-j3"
+    ],
+    "initial": "exact-prefix3",
+    "teacher": null,
+    "corpus": "exact-prefix3",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-27T03:11:29.227+00:00"
+}
