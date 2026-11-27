@@ -145,7 +145,15 @@ function showOnline() {
   }
   byId("online-result").textContent=effect ? "The accuracy difference on the same development questions (three judges minus two) was "+(effect.delta*100).toFixed(2)+" percentage points (paired 95% interval "+effect.interval.map(x=>(100*x).toFixed(1)).join(" to ")+")." :
     "Fresh seed-17 solver adapters receive the final judge’s verdict. The independent integer checker scores every arithmetic step.";
-  const selected=online.arms.find(a=>a.depth===Number(byId("online-depth").value));
+  const contrasts=online.three_depths?.contrasts, changes=byId("contrast-rows");
+  byId("online-contrasts").hidden=!contrasts;
+  changes.replaceChildren();
+  for (const [key,label] of [["one_minus_base","One minus starting solver"],["two_minus_one","Two minus one"],["three_minus_one","Three minus one"],["three_minus_two","Three minus two"]]) {
+    const change=contrasts?.[key];
+    if (change) row(changes,[label,change.fixed,change.harmed,(100*change.delta).toFixed(2),change.interval.map(x=>(100*x).toFixed(1)).join(" to ")]);
+  }
+  const selected=online.arms.find(a=>a.depth===Number(byId("online-depth").value)) ?? online.arms[0];
+  byId("online-depth").value=selected.depth;
   drawTrend(selected.signal.curves,byId("online-trend"));
   const group=selected.latest_group ?? [];
   byId("online-group").hidden=!group.length;
@@ -153,15 +161,15 @@ function showOnline() {
   groupRows.replaceChildren();
   if (group.length) {
     byId("group-problem").textContent="Update "+(group[0].step+1)+" · "+group[0].expression+" · "+group.at(-1).time;
-    for (const r of group) row(groupRows,[r.answer,r.reports[0],r.reports[1],r.reports[2],r.label,r.reward]);
+    for (const r of group) row(groupRows,[r.answer,r.reports[0],r.reports[1] ?? "—",r.reports[2] ?? "—",r.label,r.reward]);
     byId("online-log").href=live ? "/live/training-log/"+selected.depth :
       "https://huggingface.co/datasets/BurnyCoder/recursive-judge-grpo-study/tree/main/logs/"+selected.name;
   }
-  const replays=online.comparison?.development_replays ?? [];
+  const replays=online.three_depths?.arms ?? online.comparison?.development_replays ?? [];
   byId("online-fixed").hidden=!replays.length;
   const fixed=byId("fixed-rows"), examples=byId("online-examples");
   fixed.replaceChildren(); examples.replaceChildren();
-  replays.forEach((r,i)=>row(fixed,["Judge "+(i+2), ...[r.solver,r.j2_correct,r.j3_correct].map(k=>k+"/"+r.n), r.fixed,r.harmed]));
+  replays.forEach((r,i)=>row(fixed,["Judge "+(r.depth ?? i+2), ...[r.solver,r.j1_correct,r.j2_correct,r.j3_correct].map(k=>k==null ? "—" : k+"/"+r.n), r.fixed,r.harmed]));
   for (const ex of online.comparison?.examples ?? []) {
     const lines=["Exact steps: "+ex.expected.join(", ")];
     ex.traces.forEach((trace,i)=>lines.push("Solver trained with Judge "+(i+2)+" wrote "+JSON.stringify(trace)+

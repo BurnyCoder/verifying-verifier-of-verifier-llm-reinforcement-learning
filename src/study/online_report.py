@@ -10,7 +10,7 @@ from .domain import Problem
 from .exposures import check_exposures
 from .learnability_analysis import paired_change
 from .learning_review import execute_steps
-from .online_solvers import NAMES
+from .online_solvers import NAMES, ORIGINAL_PAIR, SINGLE
 from .online_trajectory import trajectory_evidence, trajectory_note, trajectory_text
 from .prompts import messages
 from .records import terminal
@@ -74,7 +74,8 @@ def collect_online(root):
     keys = [p.key for p in population(profile, "dev", plan["development_n"])]
     base = exact_scores(root.parent/"calibrated/base/replay.jsonl", keys)
     arms = []
-    for name in NAMES:
+    amended = (root/"one-judge-plan.json").is_file()
+    for name in NAMES if amended else ORIGINAL_PAIR:
         folder = root.parent/name
         rollouts = list(rows(folder/"rollouts.jsonl"))
         completed = len(rollouts)//4*4
@@ -82,7 +83,16 @@ def collect_online(root):
         arms.append(dict(name=name, depth=int(name[-1]), **arm_progress(folder, plan["updates"]),
                          signal=signal(rollouts), probes=probes, latest_group=rollouts[max(0,completed-4):completed]))
     return dict(plan=plan, base=dict(correct=sum(base.values()),n=len(base)), arms=arms,
-                comparison=read_json(root/"online-comparison.json", {}))
+                comparison=read_json(root/"online-comparison.json", {}),
+                three_depths=read_json(root/"three-depth-comparison.json", {}) if amended else {})
+
+
+def solver_bit(text, depth):
+    """Reconstruct the published solution verdict independently of the trainer's reward callback."""
+    if depth == 1:
+        record = numbers(text, 3)
+        return int(record is not None and record[0] == 1)
+    return effective_bit(text)
 
 
 def verified_training(folder, depth, keys, identity, updates):
@@ -107,7 +117,7 @@ def verified_training(folder, depth, keys, identity, updates):
     for row in effective:
         p, trace, reports = Problem.from_expression(row["expression"]), row["answer"], row["reports"]
         if (p.key in keys or p.key != row["key"] or len(reports)!=depth or row["label"]!=(numbers(trace,len(p.steps))==execute_steps(p))
-            or row["reward"]!=effective_bit(reports[-1])):
+            or row["reward"]!=solver_bit(reports[-1], depth)):
             raise ValueError(f"Training reward or split mismatch at {row['step']}/{row['sample']}")
         for level, output in enumerate(reports,1):
             call = calls[f"{row['step']}/{row['sample']}/j{level}"]
@@ -135,32 +145,37 @@ def replay_verdicts(records):
     return summary
 
 
+def checked_development(folder, keys):
+    """Regrade each literal answer and ensure that the audits saw the identical trace in order."""
+    score = exact_scores(folder/"solutions.jsonl", keys)
+    evaluation = read_json(folder/"development.json")
+    if (sum(score.values()),len(score)) != (evaluation["correct"],evaluation["n"]):
+        raise ValueError("Final development exact-score receipt differs from the solver outputs")
+    replay = read_json(folder/"replay-audit.json")
+    if [r["key"] for r in replay] != keys:
+        raise ValueError("An audited development solver answer is missing")
+    for row, output in zip(replay,rows(folder/"solutions.jsonl"),strict=True):
+        if row["trace"]!=output["trace"] or row["valid"]!=score[row["key"]]:
+            raise ValueError("Development review supplied a different trace")
+    return score, replay
+
+
 def verify_pair(root):
     """Verify both interventions, held-fixed inputs, raw terminal rewards, and paired endpoint."""
     plan = read_json(root/"new-judges/online-plan.json", {})
-    if not plan or not all((root/name/"development.json").is_file() for name in NAMES):
+    if not plan or not all((root/name/"development.json").is_file() for name in ORIGINAL_PAIR):
         return {}
     profile = read_json(root/"calibrated/profile.json")
     keys = [p.key for p in population(profile,"dev",plan["development_n"])]
     baseline = exact_scores(root/"calibrated/base/replay.jsonl", keys)
-    identity = read_json(root/NAMES[0]/"recipe.json")["initial_adapter_sha256"]
-    signatures = check_exposures(root, [Run(name) for name in NAMES])
+    identity = read_json(root/ORIGINAL_PAIR[0]/"recipe.json")["initial_adapter_sha256"]
+    signatures = check_exposures(root, [Run(name) for name in ORIGINAL_PAIR])
     trajectories, scores, examples, weights, replays = [], [], [], [], []
-    for depth, name in enumerate(NAMES, 2):
+    for depth, name in enumerate(ORIGINAL_PAIR, 2):
         folder = root/name
         trajectories.append(verified_training(folder, depth, keys, identity, plan["updates"]))
-        score = exact_scores(folder/"solutions.jsonl", keys)
-        evaluation = read_json(folder/"development.json")
-        weights.append(evaluation["weights"])
-        if sum(score.values()) != evaluation["correct"]:
-            raise ValueError("Final development exact-score receipt differs from the solver outputs")
-        # Verify the full frozen chain on both checkpoints' literal development answers.
-        replay = read_json(folder/"replay-audit.json")
-        if [r["key"] for r in replay] != keys:
-            raise ValueError("An audited development solver answer is missing")
-        for row, output in zip(replay,rows(folder/"solutions.jsonl"),strict=True):
-            if row["trace"]!=output["trace"] or row["valid"]!=score[row["key"]]:
-                raise ValueError("Development review supplied a different trace")
+        score, replay = checked_development(folder, keys)
+        weights.append(read_json(folder/"development.json")["weights"])
         replays.append(replay_verdicts(replay))
         scores.append(score)
         examples.append({r["key"]:r for r in replay})
@@ -184,15 +199,72 @@ def verify_pair(root):
     return comparison
 
 
+def verify_three_depths(root, pair):
+    """Extend the checked historical pair using its exact exposures and the new arm's raw records."""
+    folder = root/SINGLE
+    if not pair or not (root/"new-judges/one-judge-plan.json").is_file() or not (folder/"development.json").is_file():
+        return {}
+    plan = read_json(root/"new-judges/online-plan.json")
+    keys = [p.key for p in population(read_json(root/"calibrated/profile.json"),"dev",plan["development_n"])]
+    identity = pair["initial_adapter_sha256"]
+    verified_training(folder, 1, keys, identity, plan["updates"])
+    digests = check_exposures(root,[Run(name, seed=plan["seed"]) for name in NAMES])
+    settings = [read_json(root/name/"recipe.json") for name in NAMES]
+    for depth, setting in enumerate(settings,1):
+        run = setting["run"]
+        expected = dict(settings[0]["run"],name=NAMES[depth-1],reward=f"d{depth}")
+        if (run != expected or run["seed"] != plan["seed"] or
+            (setting["updates"],setting["group"]) != (plan["updates"],plan["group"])):
+            raise ValueError("Unmatched online solver recipes")
+    scores = [exact_scores(root/"calibrated/base/replay.jsonl", keys)]
+    arms = []
+    for depth,name in enumerate(NAMES,1):
+        target = root/name
+        score, replay = checked_development(target, keys)
+        scores.append(score)
+        audit = replay_verdicts(replay)
+        direct = [solver_bit(r["reports"][0], 1) for r in replay]
+        if any((bit,int(bit==r["valid"])) != (r["grades"][0]["verdict"],r["grades"][0]["agreement"])
+               for bit,r in zip(direct,replay,strict=True)):
+            raise ValueError("Direct judge verdict differs from its fixed-answer grade")
+        cost = read_json(target/"train-cost.json")
+        arms.append(dict(depth=depth,**audit,j1_correct=sum(b==r["valid"] for b,r in zip(direct,replay,strict=True)),
+                         train_calls=cost["calls"], train_seconds=read_json(target/"trained.json")["elapsed_seconds"],
+                         final_adapter_sha256=read_json(target/"development.json")["weights"]))
+    differences = dict(one_minus_base=paired_change(scores[1],scores[0]),
+                       two_minus_one=paired_change(scores[2],scores[1]), three_minus_one=paired_change(scores[3],scores[1]),
+                       three_minus_two=pair["d3_minus_d2"])
+    result = dict(arms=arms, contrasts=differences, initial_adapter_sha256=identity, prompt_order_sha256=digests)
+    write_json(root/"new-judges/three-depth-comparison.json", result)
+    return result
+
+
 def score_table(study):
     b = study["base"]
     head = ["Solver reward", "Updates", "Groups with mixed rewards", "Exact development solutions"]
-    table = [["Starting solver", "0", "—", f"{b['correct']}/{b['n']}"]]
+    def accuracy(correct, n):
+        return f"{correct}/{n} ({100*correct/n:.1f}%)"
+    table = [["Starting solver", "0", "—", accuracy(b['correct'],b['n'])]]
     for arm in study["arms"]:
         signal = arm["signal"]
         table.append([f"Frozen Qwen3.5-4B Judge {arm['depth']}", str(arm["updates"]),
                       f"{signal['mixed']}/{signal['groups']}" if signal["groups"] else "—",
-                      f"{arm['correct']}/{arm['n']}" if arm["n"] else arm["status"]])
+                      accuracy(arm['correct'],arm['n']) if arm["n"] else arm["status"]])
+    return head,table
+
+
+def single_contrasts(study):
+    """Keep the later-added baseline identifiable alongside the original registered pair."""
+    contrasts = study.get("three_depths",{}).get("contrasts",{})
+    head = ["Solver comparison", "Gained", "Lost", "Difference (pp)", "Paired 95% interval (pp)"]
+    table = []
+    for key,label in (("one_minus_base","One minus starting solver"),("two_minus_one","Two minus one"),
+                      ("three_minus_one","Three minus one"),("three_minus_two","Three minus two")):
+        if key in contrasts:
+            change = contrasts[key]
+            lo,hi = change["interval"]
+            table.append([label, change["fixed"],change["harmed"],f"{100*change['delta']:+.2f}",
+                          f"{100*lo:+.1f} to {100*hi:+.1f}"])
     return head,table
 
 
@@ -202,8 +274,15 @@ def conclusion(study):
         return "The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver."
     effect = c["d3_minus_d2"]
     lo,hi = effect["interval"]
-    signal = study["arms"][1]["signal"]
-    return (f"The three-judge solver changed exact development accuracy by {100*effect['delta']:+.2f} percentage points "
+    signal = next(a["signal"] for a in study["arms"] if a["depth"] == 3)
+    addition = ""
+    if study.get("three_depths"):
+        two = study["three_depths"]["contrasts"]["two_minus_one"]
+        three = study["three_depths"]["contrasts"]["three_minus_one"]
+        addition = (f"Relative to the one-judge solver, two judges changed development accuracy by {100*two['delta']:+.2f} "
+                    f"percentage points and three judges by {100*three['delta']:+.2f}. "
+                    "The one-judge baseline was registered after both deeper scores were known. ")
+    return (addition+f"The three-judge solver changed exact development accuracy by {100*effect['delta']:+.2f} percentage points "
             f"relative to the two-judge solver (paired 95% interval {100*lo:+.1f} to {100*hi:+.1f}). "
             f"It gained {effect['fixed']} solutions and lost {effect['harmed']} on the {effect['n']} shared problems. "
             f"During three-judge training, Judge 3 fixed {signal['j3_fixed']} solution verdicts and introduced "
@@ -220,10 +299,19 @@ def online_text(study):
     text = ("## Solvers trained with frozen Qwen3.5-4B judges\n\n"+markdown(head, table)+"\n\n"+conclusion(study)+
             f" [Protocol and decoder]({GITHUB}/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · "
             f"[Rollouts, rewards and exact scores]({GITHUB}/tree/main/results/new-judges).\n\n")
-    replays = study.get("comparison", {}).get("development_replays", [])
+    amended = any(a["depth"] == 1 for a in study["arms"])
+    complete = study.get("three_depths",{})
+    if amended:
+        text += ("The single-judge arm uses Judge 1's first verdict directly. Each additional judge reads the earlier reports. "
+                 "Only the solver learns. All runs use matched initialization, seed, prompt order and update budget. "
+                 f"[One-judge addendum]({GITHUB}/blob/main/reports/newer-frozen-judges.md#one-judge-baseline-addendum).\n\n")
+    if complete:
+        text += markdown(*single_contrasts(study))+"\n\nGains and losses compare the same problem across checkpoints. Intervals resample problems within this one seed.\n\n"
+    replays = complete.get("arms") or study.get("comparison", {}).get("development_replays", [])
     if replays:
-        columns = ["Whose written answers?", "Exact solver answers", "Correct J2 verdicts", "Correct J3 verdicts", "J3 fixes", "J3 new errors"]
-        data = [[f"Solver trained with Judge {i}", *(f"{r[k]}/{r['n']}" for k in ("solver","j2_correct","j3_correct")),
+        graders = (["j1_correct"] if complete else []) + ["j2_correct","j3_correct"]
+        columns = ["Whose written answers?", "Exact solver answers", *[f"Correct {k[:2].upper()} verdicts" for k in graders], "J3 fixes", "J3 new errors"]
+        data = [[f"Solver trained with Judge {r.get('depth',i)}", *(f"{r[k]}/{r['n']}" for k in ("solver",*graders)),
                  r["fixed"],r["harmed"]] for i,r in enumerate(replays, 2)]
         text += ("### Grading each checkpoint's fixed answers\n\n"+markdown(columns,data)+
                  "\n\nA correct verdict accepts correct arithmetic or rejects an arithmetic or format error. "
@@ -398,8 +486,8 @@ def plot_online(study, path):
         ax.set(ylim=(0,110),ylabel="Percent", title=title,yticks=[0,25,50,75,100])
         ax.bar_label(rectangles,labels=[f"{x}/{n}" for x,n in pairs],padding=3)
         ax.spines[["top","right"]].set_visible(False)
-    labels=[f"{a['depth']} judges" for a in completed]
-    colors=["#24796c","#4776ad"][:len(labels)]
+    labels=["1 judge" if a["depth"]==1 else f"{a['depth']} judges" for a in completed]
+    colors=[{1:"#ab692b",2:"#24796c",3:"#4776ad"}[a["depth"]] for a in completed]
     bars(axes[0],["Starting solver",*labels],[(base["correct"],base["n"]),*((a["correct"],a["n"]) for a in completed)],
          ["#72807f",*colors],"Exact development solutions")
     bars(axes[1],labels,[(a["signal"]["mixed"],a["signal"]["groups"]) for a in completed],colors,

@@ -64,7 +64,7 @@ def publish(milestone, run=None):
     card = (f"---\n{base_model}\nlibrary_name: peft\nlicense: apache-2.0\n---\n"
             "# Recursive judge GRPO adapters\n\nRole-specific adapters use runs/RUN_ID for the original study and runs/calibrated/RUN_ID for the amended comparison. "
             "The original solver revision is 989aa7980e4cf806f80c7fef2b1adb7bc71aa306. "
-            "The two fresh solvers rewarded by Qwen3.5-4B use runs/new-judges/. One-step hardware trials use runs/solver-fit/ and record their own base model, revision and precision. "
+            "The matched solvers rewarded by frozen Qwen3.5-4B use runs/new-judges/winner-d1, winner-d2 and winner-d3 for one, two and three judges respectively. One-step hardware trials use runs/solver-fit/ and record their own base model, revision and precision. "
             f"[Study, run matrix and evaluation]({GITHUB}). "
             f"[Raw data, logs and paper](https://huggingface.co/datasets/{DATA}). "
             f"[Load an adapter]({GITHUB}/blob/main/docs/usage.md#using-a-published-adapter).\n\n"

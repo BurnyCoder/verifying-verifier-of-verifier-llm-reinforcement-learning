@@ -492,6 +492,8 @@ def paper(data, date):
         line("Original solver trained with frozen Qwen3.5-4B judges","Heading2")
         table(*online_report.score_table(data["online_solvers"]))
         line(escape(online_report.conclusion(data["online_solvers"])))
+        if data["online_solvers"].get("three_depths"):
+            table(*online_report.single_contrasts(data["online_solvers"]))
         online_figure=DOCS/"assets/online-solvers.png"
         if online_figure.is_file():
             story.append(Image(str(online_figure),width=164*mm,height=62.32*mm))
@@ -554,7 +556,8 @@ def paper(data, date):
 
 
 def build():
-    online_report.verify_pair(ORIGINAL_RESULTS)
+    pair = online_report.verify_pair(ORIGINAL_RESULTS)
+    online_report.verify_three_depths(ORIGINAL_RESULTS, pair)
     data = collect()
     final_review = review_completed(ORIGINAL_RESULTS,data)
     review_path = REPORTS/"reviews/final.md"
