@@ -99,7 +99,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | --- | --- | --- | --- | --- |
 | [new-judges/runtime-format-pilot](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/runtime-format-pilot) | Qwen3.5-9B server-output formatting diagnostic | Archived, invalid scoring | Empty reasoning wrapper on 65/65 delivered messages. No accuracy estimate. | — |
 | [new-judges/q35-9b-ollama](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q35-9b-ollama) | Qwen3.5-9B frozen, Ollama Q4_K_M deployment replicate | Complete | J3 verdict 43/64, twins 1/32, masked 0/32 | — |
-| new-judges/q35-4b-ollama | Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
+| [new-judges/q35-4b-ollama](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q35-4b-ollama) | Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate | Complete | J3 verdict 32/64, twins 1/32, masked 0/32 | — |
 | new-judges/q25-1p5b | Qwen2.5-1.5B-Instruct frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-4b | Qwen3.5-4B frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-9b | Qwen3.5-9B frozen, same-runtime screen | Planned | Pending | — |

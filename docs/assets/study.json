@@ -240256,10 +240256,10 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/q35-4b-ollama",
       "treatment": "Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate",
-      "status": "Planned",
-      "result": "Pending",
+      "status": "Complete",
+      "result": "J3 verdict 32/64, twins 1/32, masked 0/32",
       "held_out": "—",
-      "evidence": null
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q35-4b-ollama"
     },
     {
       "group": "Newer frozen Qwen judges",
@@ -240490,6 +240490,151 @@
           "last_sample": "2026-11-27T06:24:30.0568777Z"
         },
         "key": "q35-9b-ollama"
+      },
+      {
+        "time": "2026-11-27T06:28:14.555+00:00",
+        "phase": "deployment replicate",
+        "model": "Qwen3.5-4B",
+        "status": "Complete",
+        "result": "J3 verdict 32/64, twins 1/32, masked 0/32",
+        "file": "Ollama-Qwen3.5-4B-Q4_K_M.gguf",
+        "metrics": {
+          "natural": {
+            "n": 32,
+            "valid": 20,
+            "depths": [
+              {
+                "correct": 26,
+                "accuracy": 0.8125,
+                "full": 20,
+                "malformed": 0,
+                "false_accept": 4,
+                "false_reject": 2
+              },
+              {
+                "correct": 26,
+                "accuracy": 0.8125,
+                "full": 18,
+                "malformed": 0,
+                "false_accept": 4,
+                "false_reject": 2
+              },
+              {
+                "correct": 26,
+                "accuracy": 0.8125,
+                "full": 18,
+                "malformed": 2,
+                "false_accept": 4,
+                "false_reject": 2
+              }
+            ],
+            "fixed": 0,
+            "harmed": 0
+          },
+          "balanced": {
+            "n": 64,
+            "valid": 32,
+            "depths": [
+              {
+                "correct": 32,
+                "accuracy": 0.5,
+                "full": 28,
+                "malformed": 0,
+                "false_accept": 27,
+                "false_reject": 5
+              },
+              {
+                "correct": 32,
+                "accuracy": 0.5,
+                "full": 27,
+                "malformed": 0,
+                "false_accept": 27,
+                "false_reject": 5
+              },
+              {
+                "correct": 32,
+                "accuracy": 0.5,
+                "full": 27,
+                "malformed": 0,
+                "false_accept": 27,
+                "false_reject": 5
+              }
+            ],
+            "fixed": 0,
+            "harmed": 0
+          },
+          "twins": {
+            "n": 32,
+            "visible": 1,
+            "masked": 0
+          }
+        },
+        "cost": {
+          "input_tokens": 191363,
+          "output_tokens": 4918,
+          "elapsed_seconds": 158.22400000016205,
+          "calls": 416,
+          "prompt_ms": 100318.803,
+          "generation_ms": 53315.333
+        },
+        "timing_seconds": 0.4334999999991851,
+        "audit": {
+          "calls": 416,
+          "matched_masked_outputs": 32,
+          "examples": {
+            "failed": {
+              "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
+              "expression": "(15 - 6) - 12",
+              "trace": "9,-2",
+              "first": "0,2,-2",
+              "reviews": [
+                "0,3,-3,0,2,-3",
+                "0,3,-2,0,2,-3"
+              ],
+              "outputs": [
+                "0,2,-2,0,3,-3",
+                "0,2,-2,0,2,-3"
+              ],
+              "expected": [
+                "1,0,-3,0,2,-3",
+                "0,3,-3,0,2,-3"
+              ]
+            },
+            "passed": {
+              "key": "9a0a01b8dc0073b26eecd9b2acd1b76450355b7298314025f8f9e0a5b183396f",
+              "expression": "(12 + 12) - 6",
+              "trace": "24,18",
+              "first": "1,0,18",
+              "reviews": [
+                "1,0,18,1,0,18",
+                "1,0,17,1,0,18"
+              ],
+              "outputs": [
+                "1,0,18,1,0,18",
+                "0,3,18,1,0,18"
+              ],
+              "expected": [
+                "1,0,18,1,0,18",
+                "0,3,18,1,0,18"
+              ]
+            }
+          }
+        },
+        "gpu": {
+          "peak_dedicated_mib": 2783.65234375,
+          "engines": [
+            {
+              "engine": "Copy",
+              "seconds": 4.0930045
+            },
+            {
+              "engine": "3D",
+              "seconds": 1844674407025.169
+            }
+          ],
+          "last_sample": "2026-11-27T06:28:10.1969205Z"
+        },
+        "key": "q35-4b-ollama"
       }
     ],
     "decision": {}
