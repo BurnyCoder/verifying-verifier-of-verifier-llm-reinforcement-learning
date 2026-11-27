@@ -203,7 +203,7 @@ def conclusion(study):
     effect = c["d3_minus_d2"]
     lo,hi = effect["interval"]
     signal = study["arms"][1]["signal"]
-    return (f"The three-judge solver changed exact development accuracy by {100*effect['delta']:+.1f} percentage points "
+    return (f"The three-judge solver changed exact development accuracy by {100*effect['delta']:+.2f} percentage points "
             f"relative to the two-judge solver (paired 95% interval {100*lo:+.1f} to {100*hi:+.1f}). "
             f"It gained {effect['fixed']} solutions and lost {effect['harmed']} on the {effect['n']} shared problems. "
             f"During three-judge training, Judge 3 fixed {signal['j3_fixed']} solution verdicts and introduced "
@@ -369,7 +369,7 @@ def paired_review(study):
     for label, change in zip(("Two judges minus starting solver","Three judges minus starting solver","Three minus two"),
                              [*c["vs_base"],c["d3_minus_d2"]],strict=True):
         lo,hi=change["interval"]
-        data.append([label,change["n"],change["fixed"],change["harmed"],f"{100*change['delta']:+.1f}",
+        data.append([label,change["n"],change["fixed"],change["harmed"],f"{100*change['delta']:+.2f}",
                      f"{100*lo:+.1f} to {100*hi:+.1f}"])
     provenance=(f"The two fresh adapters had the same initial SHA-256 `{c['initial_adapter_sha256']}`. The actual prompt-order digest "
                 f"for both training trajectories was `{next(iter(c['prompt_order_sha256'].values()))}`. "

@@ -202,11 +202,15 @@ def inventory(root, profile, observed, contrasts=None):
             path = "solver-fit/"+key
             receipt = read_json(root/path/"result.json",{})
             status = "Scheduled"
+            pending_result = "Pending"
             if key=="original-int8":
-                status = "Conditional on BF16 fit failure" if not bf16 else "Scheduled" if bf16["status"]=="GPU fit unavailable" else "BF16 fit; fallback unnecessary"
+                if bf16 and bf16["status"]=="One update completed":
+                    status, pending_result = "Skipped after BF16 fit", "—"
+                elif not bf16:
+                    status = "Conditional on BF16 fit failure"
             n = receipt.get("n")
             add("Solver hardware and train-split calibration",path,f"{model}, {precision.upper()}, disposable GRPO update",
-                receipt.get("status",status), f"{receipt['correct']}/{n} exact before the update" if n else receipt.get("reason","Pending"),
+                receipt.get("status",status), f"{receipt['correct']}/{n} exact before the update" if n else receipt.get("reason",pending_result),
                 evidence=path if (root/path).exists() else None)
     return ledger
 
