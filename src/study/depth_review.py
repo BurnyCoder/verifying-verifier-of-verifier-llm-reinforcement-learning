@@ -8,7 +8,7 @@ from itertools import batched, combinations
 from .design import SEEDS
 from .domain import Problem
 from .learning_review import execute_steps
-from .paired_examples import differing_examples, outcome_counts, output_table, pair_saved_outputs
+from .paired_examples import differing_examples, outcome_counts, output_table, pair_saved_outputs, report_key
 from .storage import read_json, rows
 from .tables import markdown
 
@@ -252,6 +252,7 @@ def readme_depth(data):
         f"both rejected {counts[0,0]}, Judge 3 caught {counts[1,0]} that Judge 2 approved, and Judge 3 approved "
         f"{counts[0,1]} that Judge 2 rejected. In the reverse direction, only the three-judge-trained solver "
         f"solved {paired['three only']}/{n}.",
+        report_key(r["paired_outputs"]),
         "Each pair shows the same question answered by each solver. The judge cells give the decision on the "
         "solver and the literal output, including any incorrect evidence. For Judges 2 and 3, the first three "
         "numbers review the preceding judge. Field four gives the verdict on the solution. Judge 3 also read "
