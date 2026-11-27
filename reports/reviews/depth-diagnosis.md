@@ -4,7 +4,14 @@ This exploratory analysis began after observing the seed-17 development gap. The
 
 ## Seed 17
 
-On 32 matched development problems the two-judge solver alone was correct on 23, the three-judge solver alone on 1, both on 2, and neither on 6. Holding the three-judge solver's outputs fixed, Judge 2 accepted 21 and Judge 3 accepted 21.
+On 32 matched development problems the two-judge solver alone was correct on 23, the three-judge solver alone on 1, both on 2, and neither on 6. Each row below uses a different trained solver on those same questions. The two graders read identical saved text within each row.
+
+| Final judge used for training | Solutions exactly correct | Judge 2 approved | Judge 3 approved | Grading errors Judge 3 fixed | Grading errors Judge 3 introduced |
+| --- | --- | --- | --- | --- | --- |
+| Judge 2 | 25/32 | 19/32 | 19/32 | 0 | 0 |
+| Judge 3 | 3/32 | 21/32 | 21/32 | 1 | 1 |
+
+[Every paired solver output and all three raw judge reports](paired-outputs-seed-17.md)
 
 | Three-judge solver error | Development answers | Training answers | Training answers rewarded |
 | --- | --- | --- | --- |

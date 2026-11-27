@@ -221654,61 +221654,1329 @@
           171
         ]
       },
+      "paired_outputs": [
+        {
+          "expression": "(7 - 7) + 12",
+          "truth": [
+            0,
+            12
+          ],
+          "outputs": [
+            {
+              "trace": "0,12",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "0,-1,19",
+                "0,1,12,0,-1,12",
+                "0,-1,12,0,-1,12"
+              ],
+              "verdicts": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "19",
+              "correct": 0,
+              "malformed": true,
+              "reports": [
+                "1,0,19",
+                "1,0,19,1,0,19",
+                "1,0,19,1,0,19"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(39 + 12) - 5",
+          "truth": [
+            51,
+            46
+          ],
+          "outputs": [
+            {
+              "trace": "51,46",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,46",
+                "1,0,46,1,0,46",
+                "1,0,46,1,0,46"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "16,11",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,16",
+                "1,0,16,1,0,16",
+                "1,0,16,1,0,16"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(10 - 10) + 11",
+          "truth": [
+            0,
+            11
+          ],
+          "outputs": [
+            {
+              "trace": "0,11",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "0,2,11",
+                "1,0,11,0,2,11",
+                "0,3,11,0,2,11"
+              ],
+              "verdicts": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "1,12",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,12",
+                "1,0,12,1,0,12",
+                "1,0,12,1,0,12"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(11 - 6) - 2",
+          "truth": [
+            5,
+            3
+          ],
+          "outputs": [
+            {
+              "trace": "5,3",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,3",
+                "1,0,3,0,1,3",
+                "1,0,3,0,1,3"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "8,6",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,6",
+                "1,0,6,1,0,6",
+                "1,0,6,1,0,6"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(47 - 9) - 7",
+          "truth": [
+            38,
+            31
+          ],
+          "outputs": [
+            {
+              "trace": "38, 31",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,31",
+                "1,0,31,0,1,31",
+                "1,0,31,0,1,31"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "38,31",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,31",
+                "1,0,31,0,1,31",
+                "1,0,31,0,1,31"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(12 - 12) + 11",
+          "truth": [
+            0,
+            11
+          ],
+          "outputs": [
+            {
+              "trace": "0,13",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "0,-1,0",
+                "0,-1,0,0,1,0",
+                "1,0,0,0,1,0"
+              ],
+              "verdicts": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "11,22",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,22",
+                "1,0,22,1,0,22",
+                "1,0,22,1,0,22"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(7 + 9) + 4",
+          "truth": [
+            16,
+            20
+          ],
+          "outputs": [
+            {
+              "trace": "16,10",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,16",
+                "1,0,16,1,0,16",
+                "1,0,16,1,0,16"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "8,12",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,12",
+                "1,0,12,1,0,12",
+                "1,0,12,1,0,12"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(40 + 3) + 4",
+          "truth": [
+            43,
+            47
+          ],
+          "outputs": [
+            {
+              "trace": "43,47",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,47",
+                "1,0,47,1,0,47",
+                "0,2,47,1,0,47"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "16,50",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,50",
+                "1,0,50,1,0,50",
+                "0,2,50,1,0,50"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(36 - 7) + 7",
+          "truth": [
+            29,
+            36
+          ],
+          "outputs": [
+            {
+              "trace": "29,36",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,36",
+                "1,0,36,1,0,36",
+                "1,0,36,1,0,36"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "8,15",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,15",
+                "1,0,15,1,0,15",
+                "1,0,15,0,1,15"
+              ],
+              "verdicts": [
+                1,
+                1,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(35 + 8) - 1",
+          "truth": [
+            43,
+            42
+          ],
+          "outputs": [
+            {
+              "trace": "43,42",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,42",
+                "1,0,42,0,1,42",
+                "1,0,42,0,1,42"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "6,59",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,59",
+                "1,0,59,0,1,59",
+                "1,0,59,0,1,59"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(15 + 6) + 12",
+          "truth": [
+            21,
+            33
+          ],
+          "outputs": [
+            {
+              "trace": "21,33",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,33",
+                "1,0,33,1,0,33",
+                "1,0,33,1,0,33"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "19,31",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,31",
+                "1,0,31,1,0,31",
+                "1,0,31,1,0,31"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(59 - 1) - 3",
+          "truth": [
+            58,
+            55
+          ],
+          "outputs": [
+            {
+              "trace": "58,55",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,55",
+                "1,0,55,0,1,55",
+                "0,3,55,0,1,55"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "56,53",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,53",
+                "1,0,53,0,1,53",
+                "0,3,53,0,1,53"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(54 + 6) + 6",
+          "truth": [
+            60,
+            66
+          ],
+          "outputs": [
+            {
+              "trace": "60,66",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,66",
+                "0,2,8,0,1,8",
+                "0,5,66,0,2,8"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "18,24",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,24",
+                "0,2,8,0,1,8",
+                "0,2,8,0,1,8"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(12 - 10) + 4",
+          "truth": [
+            2,
+            6
+          ],
+          "outputs": [
+            {
+              "trace": "2,6",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,6",
+                "1,0,6,1,0,6",
+                "1,0,6,1,0,6"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "6,10",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,10",
+                "1,0,10,1,0,10",
+                "1,0,10,1,0,10"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(0 + 8) + 9",
+          "truth": [
+            8,
+            17
+          ],
+          "outputs": [
+            {
+              "trace": "8,17",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,17",
+                "1,0,17,1,0,17",
+                "1,0,17,1,0,17"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "9,17",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,17",
+                "1,0,17,1,0,17",
+                "1,0,17,1,0,17"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(11 - 1) + 10",
+          "truth": [
+            10,
+            20
+          ],
+          "outputs": [
+            {
+              "trace": "10,11",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,21",
+                "1,0,21,1,0,21",
+                "1,0,21,1,0,21"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "11,21",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,21",
+                "1,0,21,1,0,21",
+                "1,0,21,1,0,21"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(32 + 10) + 1",
+          "truth": [
+            42,
+            43
+          ],
+          "outputs": [
+            {
+              "trace": "42,43",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,42",
+                "1,0,42,1,0,42",
+                "1,0,42,1,0,42"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "11,21",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,22",
+                "1,0,22,1,0,22",
+                "1,0,22,1,0,22"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(44 + 4) + 9",
+          "truth": [
+            48,
+            57
+          ],
+          "outputs": [
+            {
+              "trace": "48,53",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,53",
+                "1,0,53,1,0,53",
+                "1,0,53,1,0,53"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "13,22",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "0,-1,13",
+                "0,-1,13,0,1,13",
+                "0,3,13,0,1,13"
+              ],
+              "verdicts": [
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(46 + 3) - 10",
+          "truth": [
+            49,
+            39
+          ],
+          "outputs": [
+            {
+              "trace": "49,39",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,39",
+                "1,0,39,0,1,39",
+                "0,3,39,0,1,39"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "36,26",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,26",
+                "1,0,26,0,1,26",
+                "0,3,26,0,1,26"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(53 + 12) - 12",
+          "truth": [
+            65,
+            53
+          ],
+          "outputs": [
+            {
+              "trace": "65,53",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,53",
+                "1,0,53,1,0,53",
+                "1,0,53,1,0,53"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "65,53",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,53",
+                "1,0,53,1,0,53",
+                "1,0,53,1,0,53"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(49 + 7) + 8",
+          "truth": [
+            56,
+            64
+          ],
+          "outputs": [
+            {
+              "trace": "56,64",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,64",
+                "1,0,64,1,0,64",
+                "1,0,64,1,0,64"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "16,25",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,25",
+                "1,0,25,1,0,25",
+                "1,0,25,1,0,25"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(15 + 3) + 3",
+          "truth": [
+            18,
+            21
+          ],
+          "outputs": [
+            {
+              "trace": "18,21",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,21",
+                "1,0,21,1,0,21",
+                "1,0,21,1,0,21"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "8,11",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,11",
+                "1,0,11,1,0,11",
+                "1,0,11,1,0,11"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(13 - 2) + 8",
+          "truth": [
+            11,
+            19
+          ],
+          "outputs": [
+            {
+              "trace": "11,19",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,19",
+                "0,0,19,0,1,19",
+                "1,0,19,0,1,19"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "9,17",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,17",
+                "0,0,17,0,1,17",
+                "1,0,17,0,1,17"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(22 - 10) + 12",
+          "truth": [
+            12,
+            24
+          ],
+          "outputs": [
+            {
+              "trace": "12,14",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,14",
+                "1,0,14,1,0,14",
+                "1,0,14,1,0,14"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "12,24",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,24",
+                "1,0,24,1,0,24",
+                "1,0,24,1,0,24"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(9 + 3) + 5",
+          "truth": [
+            12,
+            17
+          ],
+          "outputs": [
+            {
+              "trace": "12,17",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,12",
+                "1,0,12,1,0,12",
+                "1,0,12,1,0,12"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "8,13",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,13",
+                "1,0,13,1,0,13",
+                "1,0,13,1,0,13"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(1 + 6) - 6",
+          "truth": [
+            7,
+            1
+          ],
+          "outputs": [
+            {
+              "trace": "7, -5",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,-5",
+                "1,0,-5,1,0,-5",
+                "1,0,-5,1,0,-5"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "-5,-1",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,-5",
+                "-1,-1,-5,1,0,-5",
+                "1,0,-5,1,0,-5"
+              ],
+              "verdicts": [
+                1,
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(0 + 5) + 2",
+          "truth": [
+            5,
+            7
+          ],
+          "outputs": [
+            {
+              "trace": "5,7",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,7",
+                "1,0,7,0,1,7",
+                "1,0,7,0,1,7"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "2,7",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,2",
+                "1,0,2,0,1,2",
+                "1,0,2,0,1,2"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(41 + 4) + 9",
+          "truth": [
+            45,
+            54
+          ],
+          "outputs": [
+            {
+              "trace": "45,54",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,54",
+                "1,0,54,1,0,54",
+                "1,0,54,1,0,54"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "13,22",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,22",
+                "1,0,22,1,0,22",
+                "1,0,22,1,0,22"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(12 - 12) - 8",
+          "truth": [
+            0,
+            -8
+          ],
+          "outputs": [
+            {
+              "trace": "0,4",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "0,-2,2",
+                "0,-2,4,0,-1,6",
+                "0,0,6,0,-1,6"
+              ],
+              "verdicts": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "-6,-6",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,-6",
+                "0,-1,0,-6,1,0",
+                "1,0,-6,0,-1,0"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(5 + 9) + 4",
+          "truth": [
+            14,
+            18
+          ],
+          "outputs": [
+            {
+              "trace": "14,18",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,32",
+                "1,0,32,0,34,14",
+                "1,0,32,0,34,14"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "trace": "6,10",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,60",
+                "1,0,60,0,1,60",
+                "1,0,60,0,1,60"
+              ],
+              "verdicts": [
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(30 - 9) - 9",
+          "truth": [
+            21,
+            12
+          ],
+          "outputs": [
+            {
+              "trace": "21,12",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,12",
+                "1,0,12,1,0,12",
+                "1,0,12,1,0,12"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "18,9",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,9",
+                "1,0,9,1,0,9",
+                "1,0,9,1,0,9"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "expression": "(56 + 1) - 1",
+          "truth": [
+            57,
+            56
+          ],
+          "outputs": [
+            {
+              "trace": "57,56",
+              "correct": 1,
+              "malformed": false,
+              "reports": [
+                "1,0,57",
+                "1,0,57,1,0,57",
+                "1,0,57,1,0,57"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            },
+            {
+              "trace": "55,54",
+              "correct": 0,
+              "malformed": false,
+              "reports": [
+                "1,0,54",
+                "1,0,54,1,0,54",
+                "1,0,54,1,0,54"
+              ],
+              "verdicts": [
+                1,
+                1,
+                1
+              ]
+            }
+          ]
+        }
+      ],
       "paired": {
         "two only": 23,
         "both": 2,
         "neither": 6,
         "three only": 1
       },
-      "accepted": [
-        21,
-        21
-      ],
-      "agreement": [
-        12,
-        12
-      ],
-      "transitions": [
+      "replays": [
         {
-          "expression": "(36 - 7) + 7",
-          "output": "8,15",
-          "truth": [
-            29,
-            36
+          "correct": 25,
+          "n": 32,
+          "accepted": [
+            19,
+            19
           ],
-          "bits": [
-            1,
-            0
+          "agreement": [
+            16,
+            16
           ],
-          "reports": [
-            "1,0,15,1,0,15",
-            "1,0,15,0,1,15"
-          ],
-          "correct": 0
+          "fixes": 0,
+          "harms": 0,
+          "transitions": []
         },
         {
-          "expression": "(1 + 6) - 6",
-          "output": "-5,-1",
-          "truth": [
-            7,
-            1
+          "correct": 3,
+          "n": 32,
+          "accepted": [
+            21,
+            21
           ],
-          "bits": [
-            0,
-            1
+          "agreement": [
+            12,
+            12
           ],
-          "reports": [
-            "-1,-1,-5,1,0,-5",
-            "1,0,-5,1,0,-5"
-          ],
-          "correct": 0
+          "fixes": 1,
+          "harms": 1,
+          "transitions": [
+            {
+              "expression": "(36 - 7) + 7",
+              "output": "8,15",
+              "truth": [
+                29,
+                36
+              ],
+              "bits": [
+                1,
+                0
+              ],
+              "reports": [
+                "1,0,15,1,0,15",
+                "1,0,15,0,1,15"
+              ],
+              "correct": 0
+            },
+            {
+              "expression": "(1 + 6) - 6",
+              "output": "-5,-1",
+              "truth": [
+                7,
+                1
+              ],
+              "bits": [
+                0,
+                1
+              ],
+              "reports": [
+                "-1,-1,-5,1,0,-5",
+                "1,0,-5,1,0,-5"
+              ],
+              "correct": 0
+            }
+          ]
         }
       ],
-      "shared_error": {
-        "expression": "(39 + 12) - 5",
-        "right": "51,46",
-        "wrong": "16,11"
-      },
       "transcript_audit": {
         "seed": 17,
         "arms": {
@@ -221743,6 +223011,36 @@
           "wrong": 569
         }
       ],
+      "credit_example": {
+        "update": 20,
+        "expression": "(18 - 11) - 3",
+        "samples": [
+          [
+            "7,4",
+            true,
+            1,
+            0
+          ],
+          [
+            "7,4",
+            true,
+            1,
+            1
+          ],
+          [
+            "5,2",
+            false,
+            0,
+            0
+          ],
+          [
+            "5,2",
+            false,
+            0,
+            1
+          ]
+        ]
+      },
       "j2_pairs": [
         28,
         81,
