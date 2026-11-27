@@ -17,6 +17,43 @@ def released_audit(folder, receipt_time):
     return audit(folder, read_json(folder/"result.json"))
 
 
+@lru_cache(maxsize=8)
+def visible_requests(path, modified):
+    """Index visible J3 twin calls. The timestamp invalidates the dashboard cache on a changed journal."""
+    return {r["id"]:r for r in rows(path) if r["id"].startswith("twins/") and "/visible/" in r["id"]}
+
+
+def compare_conversions(primary, alternate):
+    """Match interventions by problem and review side before comparing text or model responses."""
+    left = visible_requests(primary, primary.stat().st_mtime_ns)
+    right = visible_requests(alternate, alternate.stat().st_mtime_ns)
+    if not left or left.keys() != right.keys():
+        raise ValueError("The two releases contain different visible twin request identities")
+    def matches(field):
+        return sum(item[field] == right[key][field] for key, item in left.items())
+    return dict(calls=len(left), same_messages=matches("messages"), same_prompts=matches("rendered_prompt"),
+                same_input_counts=matches("input_tokens"), same_outputs=matches("text"))
+
+
+def conversion_findings(root, results):
+    """Compare preregistered deployment replicates after seeing their scores. They cannot select the winner."""
+    complete = {r["key"]:r for r in results if r.get("metrics")}
+    findings = []
+    for replica in LOCAL_REPLICATES:
+        key = replica.key.removesuffix("-ollama")
+        if key not in complete or replica.key not in complete:
+            continue
+        pair = [complete[k]["metrics"]["twins"] for k in (key, replica.key)]
+        same = compare_conversions(root/key/"calls.jsonl", root/replica.key/"calls.jsonl")
+        if 2*pair[0]["n"] != same["calls"] or pair[0]["n"] != pair[1]["n"]:
+            raise ValueError("The release comparison is missing evidence pairs")
+        findings.append(f"{replica.title} passed {pair[0]['visible']}/{pair[0]['n']} whole pairs with the Unsloth release and "
+                        f"{pair[1]['visible']}/{pair[1]['n']} with the Ollama release. Of {same['calls']} matched visible reviews, "
+                        f"{same['same_messages']} had identical messages, {same['same_prompts']} had identical rendered prompts, "
+                        f"{same['same_input_counts']} had equal input token counts and {same['same_outputs']} produced identical output text.")
+    return findings
+
+
 def collect_frozen(root):
     results = []
     for key in ("runtime-format-pilot",*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"confirm-control","confirm-winner"):
@@ -30,7 +67,7 @@ def collect_frozen(root):
                     receipt["gpu"] = dict(peak_dedicated_mib=max(r["dedicated_bytes"] for r in samples)/2**20,
                                           engines=samples[-1]["engines"],last_sample=samples[-1]["time"])
             results.append({**receipt,"key":key})
-    return dict(results=results,decision=read_json(root/"decision.json",{}))
+    return dict(results=results,decision=read_json(root/"decision.json",{}),conversions=conversion_findings(root,results))
 
 
 def depth_rows(study):
@@ -63,13 +100,27 @@ def frozen_text(study):
                          (f" On the {m['n']} natural traces, Judge 3 fixed {m['fixed']} verdicts and introduced {m['harmed']} errors." if m["n"] else ""))
         else:
             parts.append(f"{r['model']} · {r['status']}. {r['result']}.")
+    parts.extend(interpretation(study))
+    return "\n\n".join(parts)
+
+
+def interpretation(study):
+    """Keep the matched confirmation distinct from the exploratory comparison of file conversions."""
+    parts = []
+    if study.get("conversions"):
+        parts += ["The comparison of two conversions of the same model was exploratory. Both used the same llama.cpp CUDA executable. The experiment varies each complete model file, so a specific conversion difference cannot be identified as the cause.",*study["conversions"]]
     decision = study["decision"]
     if decision:
+        selected = next((r for r in study["results"] if r["key"]==decision.get("selected")),None)
+        if selected:
+            parts.append(f"The screen selected {selected['model']} ({selected['file']}) for independent confirmation against the original frozen model.")
         parts.append(decision["result"]+".")
         for metric, estimate in decision.get("estimates",{}).items():
             lo,hi = estimate["ci"]
             parts.append(f"The candidate-minus-control difference in {metric.replace('_',' ')} was {estimate['delta']*100:+.2f} percentage points on {estimate['n']} paired problems (95% interval {100*lo:+.2f} to {100*hi:+.2f}).")
-    return "\n\n".join(parts)
+        if decision.get("estimates"):
+            parts.append("Intervals resample confirmation problems in pairs and condition on the deployed model files. The solver responses were fixed throughout. Measuring what the solver learns from these rewards requires the deferred online comparison.")
+    return parts
 
 
 def plot_scores(study, path):

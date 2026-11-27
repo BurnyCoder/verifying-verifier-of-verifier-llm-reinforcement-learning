@@ -100,3 +100,20 @@ def test_release_audit_detects_changed_evidence_even_when_verdict_totals_match(t
     atomic(tmp_path/"cases.jsonl","".join(json.dumps(v)+"\n" for v in data))
     with pytest.raises(ValueError,match="Logged judge output"):
         audit(tmp_path,receipt)
+
+
+def test_conversion_comparison_matches_twin_requests_by_identity(tmp_path):
+    from study.frozen_report import compare_conversions
+    from study.storage import append
+    left, right = tmp_path / "primary.jsonl", tmp_path / "alternate.jsonl"
+    observations = [dict(id=f"twins/example/visible/{i}", rendered_prompt=f"review {i}",
+                         messages=[{"role":"user", "content":str(i)}], input_tokens=8, text="yes") for i in range(2)]
+    for r in observations:
+        append(left, r)
+    append(right, {**observations[1], "text":"no"})
+    append(right, observations[0])
+    summary = compare_conversions(left, right)
+    assert summary == dict(calls=2, same_messages=2, same_prompts=2, same_input_counts=2, same_outputs=1)
+    append(right, {**observations[0], "id":"twins/unmatched/visible/0"})
+    with pytest.raises(ValueError, match="identities"):
+        compare_conversions(left, right)
