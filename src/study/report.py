@@ -138,9 +138,10 @@ def collect():
                 sample = list(rows(target/"replay.jsonl"))
                 archive.append(dict(name=name, correct=sum(r["correct"] for r in sample), n=len(sample)))
     contrasts = dict(primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"))
+    fit = online_report.fit_results(ORIGINAL_RESULTS/"solver-fit")
     return dict(runs=runs, inventory=inventory(ORIGINAL_RESULTS,profile,runs,contrasts),
                 online_solvers=online_report.collect_online(ORIGINAL_RESULTS/"new-judges"),
-                solver_fit=online_report.fit_results(ORIGINAL_RESULTS/"solver-fit"),
+                solver_fit=fit, solver_fit_assessment=online_report.fit_assessment(fit),
                 newer_judges=collect_frozen(ORIGINAL_RESULTS/"new-judges"), matched_depth=accuracy_grid(source,profile),
                 **contrasts, planned=registered,
                 learnability=learning, profile=profile, original_development=archive,
@@ -501,6 +502,8 @@ def paper(data, date):
         line("Solver precision and pretraining-only hardware measurements","Heading2")
         table(*online_report.fit_table(data["solver_fit"]))
         line("Counts reflect greedy predictions on common train-split calibration prompts before a single disposable update with the frozen 4B judge. Peak allocation covers the solver process only.")
+        if data["solver_fit_assessment"]:
+            line(escape(data["solver_fit_assessment"]))
     if data["newer_judges"]["results"]:
         line("Frozen Qwen verdict and evidence scores", "Heading2")
         chart=DOCS/"assets/frozen-judge-scores.png"
@@ -638,6 +641,9 @@ def build():
     if (DOCS/"assets/online-solvers.png").is_file():
         online_summary += f"![Exact solver accuracy and the fraction of groups with mixed rewards]({GITHUB}/raw/refs/heads/main/docs/assets/online-solvers.png)\n\n"
     online_summary += online_report.solver_examples(data["online_solvers"] or {}) + online_report.fit_text(data["solver_fit"])
+    if data["solver_fit"]:
+        atomic(REPORTS/"reviews/solver-precision.md",online_report.fit_review(ORIGINAL_RESULTS/"solver-fit",data["solver_fit"]))
+        online_summary += f"[Precision trials, paired arithmetic scores and the actual optimizer groups]({GITHUB}/blob/main/reports/reviews/solver-precision.md).\n\n"
     online_review = online_report.paired_review(data["online_solvers"] or {})
     if online_review:
         atomic(REPORTS/"reviews/online-solvers.md",online_review)

@@ -260,11 +260,25 @@ def solver_examples(study):
 
 
 def fit_results(root):
-    from .solver_fit import CANDIDATES
+    from .solver_fit import CANDIDATES, starting_scores
     measured = []
+    reference = {}
     for key in CANDIDATES:
         r = read_json(root/key/"result.json")
         if r:
+            answers = list(rows(root/key/"starting-answers.jsonl"))
+            if answers:
+                pool = [Problem.from_expression(row["expression"]) for row in answers]
+                counts = starting_scores(pool, answers)
+                scores = {p.key:row["correct"] for p,row in zip(pool,answers,strict=True)}
+                if len(scores)!=len(pool) or any(r[k]!=v for k,v in counts.items()):
+                    raise ValueError(f"Incorrect hardware calibration counts in {key}")
+                if key=="original-nf4":
+                    reference = scores
+                elif len(scores)==len(reference):
+                    if list(scores)!=list(reference):
+                        raise ValueError("Hardware calibration used different questions or question order")
+                    r["paired_vs_nf4"] = paired_change(scores,reference)
             measured.append(dict(key=key, **r))
     return measured
 
@@ -281,13 +295,33 @@ def fit_table(measured):
     return head,table
 
 
+def fit_assessment(measured):
+    """Distinguish pre-update calibration, a nonzero optimization signal and sustained learning."""
+    notes = []
+    for r in measured:
+        effect = r.get("paired_vs_nf4")
+        if not effect:
+            continue
+        lo,hi = effect["interval"]
+        name = f"{r['model'].split('/')[-1]} at {r['precision'].upper()}"
+        notes.append(f"Against the original NF4 solver, {name} gained {effect['fixed']} and lost {effect['harmed']} "
+                     f"exact answers on the same {effect['n']} starting prompts. The descriptive paired difference was "
+                     f"{100*effect['delta']:+.1f} percentage points (95% resampling interval {100*lo:+.1f} to {100*hi:+.1f}).")
+        if r["key"]=="base-2b" and r.get("updates")==1 and (r.get("gradient_norm") or 0)>0:
+            notes.append(f"The pretraining-only base model received rewards {r['group_rewards']} and an optimizer gradient "
+                         f"norm of {r['gradient_norm']:.4g}. It is the candidate for a future matched comparison starting before RLVR. "
+                         "The longer-term effect on solver accuracy remains open.")
+    return " ".join(notes)
+
+
 def fit_text(measured):
     if not measured:
         return ""
     return ("### Solver precision and pretraining-only hardware checks\n\n"+markdown(*fit_table(measured))+
             "\n\nStarting accuracy uses greedy decoding on the same train-split calibration problems before the disposable update. "
-            "The 4B judge ran on the same GPU. Peak allocation is PyTorch memory for the solver process alone. "
-            f"[Hardware protocol]({GITHUB}/blob/main/reports/solver-precision.md) · [Measured costs and outcomes]({GITHUB}/tree/main/results/solver-fit).\n\n")
+            "The 4B judge ran on the same GPU. Peak allocation is PyTorch memory for the solver process alone. "+
+            fit_assessment(measured)+
+            f" [Hardware protocol]({GITHUB}/blob/main/reports/solver-precision.md) · [Measured costs and outcomes]({GITHUB}/tree/main/results/solver-fit).\n\n")
 
 
 def fit_pages(measured, destination):
@@ -310,6 +344,20 @@ def fit_pages(measured, destination):
         title = f"{r['model'].split('/')[-1]} at {r['precision'].upper()}"
         atomic(destination/key/"experiment.md", f"# {title}\n\n"+fit_text([r])+note+"\n")
         atomic(destination/key/"learnings.md", f"# Hardware findings for {title}\n\n"+note+"\n")
+
+
+def fit_review(root, measured):
+    """Expose the actual training group behind each feasibility claim and the paired pre-update evidence."""
+    data = []
+    for r in measured:
+        for sample in rows(root/r["key"]/"rollouts.jsonl"):
+            data.append([r["key"],sample["expression"],f"`{sample['answer'].strip()}`",sample["label"],
+                         f"`{sample['reports'][-1].strip()}`",sample["reward"]])
+    return ("# Review of solver precision and pretrained initialization\n\n"+fit_text(measured)+
+            markdown(["Trial","Training problem","Solver wrote","Exact","Judge 3 wrote","Reward"],data)+
+            "\n\nThese training examples follow the starting assessment. A nonzero gradient establishes an update signal on that group. "
+            "The starting assessment supplies no estimate of post-training accuracy. Published trial adapters and device readings accompany each result. "
+            f"[Source artifacts]({GITHUB}/tree/main/results/solver-fit).\n")
 
 
 def paired_review(study):

@@ -4,7 +4,7 @@ The [complete run inventory](run-inventory.md) gives individual optimizer blocks
 
 The confirmed Qwen3.5-4B deployment supplies the terminal two-judge or three-judge reward for two fresh copies of the original solver. A separate GPU feasibility comparison uses the original solver at NF4 and BF16, with INT8 as a fallback, and Qwen3.5-2B-Base at NF4. Each hardware trial scores the same initial prompts before a disposable update. [Online protocol](newer-frozen-judges.md#online-solver-comparison) · [Solver hardware protocol](solver-precision.md)
 
-Each solver row starts from the same untrained solver adapter for its seed except for the explicitly continued alternating block. D1, D2 and D3 denote the terminal judge depth. “Flat” denotes the majority of three separately sampled J1 calls. A judge returning malformed output supplies a negative vote. Every model uses the same base checkpoint, output budget, trace schema and optimizer settings in the [preregistration](preregistration.md).
+In the original matrix below, each solver row starts from the same fresh adapter for its seed except for the explicitly continued alternating block. D1, D2 and D3 denote the terminal judge depth. “Flat” denotes the majority of three separately sampled J1 calls. A judge returning malformed output supplies a negative vote. The original matrix specifies a shared base checkpoint, output budget, trace schema and optimizer settings. [Preregistration](preregistration.md)
 
 | Order | Run family | Seeds | Updated role | Reward or evaluation |
 |---|---|---|---|---|
