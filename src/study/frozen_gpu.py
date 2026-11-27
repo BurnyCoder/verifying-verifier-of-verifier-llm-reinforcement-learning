@@ -93,7 +93,7 @@ class LocalCUDA:
         command = [str(exe),"-m",str(self.path),"--alias","judge","--host","127.0.0.1","--port",str(port),
                    "--device","CUDA0","-ngl","all","--fit","off","-ot",".*=CUDA0","--no-host","--op-offload",
                    "--backend-sampling","--no-warmup","-fa","on","-c",str(CONTEXT),"-np","1","-b","128","-ub","64",
-                   "--cache-ram","0","--jinja","--no-mmproj","--verbosity","5","--reasoning-format","none","--reasoning-budget","0"]
+                   "--cache-ram","0","--jinja","--no-mmproj","--verbosity","5","--chat-template-kwargs",'{"enable_thinking":false}']
         if self.template:
             command.extend(["--chat-template-file",str(self.template)])
         self.before = device_memory()
@@ -126,17 +126,23 @@ class LocalCUDA:
             self.__exit__(None,None,None)
             raise
 
-    def generate(self, conversation):
-        payload = dict(model="judge",messages=conversation,temperature=0,seed=17,max_tokens=LIMIT,
-                       cache_prompt=False,timings_per_token=True,chat_template_kwargs={"enable_thinking":False})
-        request = Request(self.url+"/v1/chat/completions",data=json.dumps(payload).encode(),
+    def post(self, endpoint, payload):
+        request = Request(self.url+endpoint,data=json.dumps(payload).encode(),
                           headers={"Content-Type":"application/json"})
-        started = time.monotonic()
         with urlopen(request,timeout=180) as response:
-            result = json.load(response)
-        choice,usage = result["choices"][0],result["usage"]
-        return dict(text=choice["message"]["content"] or "",finish_reason=choice["finish_reason"],
-                    input_tokens=usage["prompt_tokens"],output_tokens=usage["completion_tokens"],
+            return json.load(response)
+
+    def generate(self, conversation):
+        # /apply-template owns the native reasoning prefill. /completion returns generated tokens alone.
+        # https://github.com/ggml-org/llama.cpp/blob/b12807/tools/server/README.md
+        prompt = self.post("/apply-template",dict(messages=conversation,chat_template_kwargs={"enable_thinking":False}))["prompt"]
+        if prompt.rstrip().endswith("<think>"):
+            raise RuntimeError("The rendered template requested active reasoning")
+        started = time.monotonic()
+        result = self.post("/completion",dict(prompt=prompt,temperature=0,seed=17,n_predict=LIMIT,
+                           cache_prompt=False,return_tokens=True,timings_per_token=True))
+        return dict(text=result["content"],generated_token_ids=result["tokens"],rendered_prompt=prompt,
+                    finish_reason=result["stop_type"],input_tokens=result["tokens_evaluated"],output_tokens=result["tokens_predicted"],
                     timings=result.get("timings",{}),elapsed_seconds=time.monotonic()-started)
 
     def __exit__(self, *exc):

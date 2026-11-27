@@ -1,0 +1,70 @@
+[
+  {
+    "time": "2026-11-27T06:14:15.244+00:00",
+    "file": "Ollama-Qwen3.5-9B-Q4_K_M.gguf",
+    "fit": true,
+    "placement": {
+      "layers": 33,
+      "weights_mib": 5357.88,
+      "cache_mib": 114.25,
+      "device": "CUDA0",
+      "before": {
+        "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+        "total_mib": 8151,
+        "free_mib": 5665
+      },
+      "after": {
+        "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+        "total_mib": 8151,
+        "free_mib": 477
+      },
+      "load_seconds": 17.859000000011292,
+      "build": "b12807",
+      "command": [
+        "D:\\AI\\recursive-judge-study\\frozen\\b12807\\llama-server.exe",
+        "-m",
+        "C:\\Users\\Happy\\.ollama\\models\\blobs\\sha256-02d45dc1cf451ba2475ac33b301c2dd8f985abe4c182ce04a1f2f5bf0260278d",
+        "--alias",
+        "judge",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "56333",
+        "--device",
+        "CUDA0",
+        "-ngl",
+        "all",
+        "--fit",
+        "off",
+        "-ot",
+        ".*=CUDA0",
+        "--no-host",
+        "--op-offload",
+        "--backend-sampling",
+        "--no-warmup",
+        "-fa",
+        "on",
+        "-c",
+        "2048",
+        "-np",
+        "1",
+        "-b",
+        "128",
+        "-ub",
+        "64",
+        "--cache-ram",
+        "0",
+        "--jinja",
+        "--no-mmproj",
+        "--verbosity",
+        "5",
+        "--reasoning-format",
+        "none",
+        "--reasoning-budget",
+        "0",
+        "--chat-template-file",
+        "D:\\AI\\recursive-judge-study\\hub\\models--Qwen--Qwen3.5-9B\\snapshots\\c202236235762e1c871ad0ccb60c8ee5ba337b9a\\chat_template.jinja"
+      ]
+    }
+  }
+]
