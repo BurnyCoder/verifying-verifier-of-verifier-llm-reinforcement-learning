@@ -23,7 +23,7 @@ All learned models use grouped reinforcement learning with one active LoRA adapt
 | top-prefix1 | solver | d3 | 17 | arithmetic | 21.9% | 6.2% | — |
 | top-prefix2 | solver | d3 | 17 | arithmetic | 100.0% | 96.9% | — |
 | top-prefix3 | solver | d3 | 17 | arithmetic | 100.0% | 87.5% | — |
-| alt-exact-j1 | j1 | exact | 17 | exact-prefix3 | — | — | — |
+| alt-exact-j1 | j1 | exact | 17 | exact-prefix3 | 100.0% | 62.5% | — |
 | learn-oracle-17 | solver | oracle | 17 | arithmetic | — | — | — |
 | learn-shuffle-17 | solver | oracle-shuffle | 17 | arithmetic | — | — | — |
 
