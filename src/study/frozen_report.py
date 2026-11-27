@@ -13,7 +13,7 @@ def collect_frozen(root):
     for key in ("runtime-format-pilot",*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"confirm-control","confirm-winner"):
         receipt = read_json(root/key/"result.json",{})
         if receipt:
-            results.append(dict(key=key,**receipt))
+            results.append({**receipt,"key":key})
     return dict(results=results,decision=read_json(root/"decision.json",{}))
 
 
