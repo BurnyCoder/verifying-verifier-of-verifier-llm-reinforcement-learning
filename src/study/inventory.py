@@ -164,6 +164,7 @@ def inventory(root, profile, observed, contrasts=None):
                 "Complete" if done==len(eligible) else "In progress" if done else "Deferred" if deferred else "Planned", "—",
                 f"{done}/{len(eligible)} eligible checkpoints evaluated" if done else "Pending")
     for key, description, conditional in (
+        ("runtime-format-pilot","Qwen3.5-9B server-output formatting diagnostic",False),
         *((m.key,m.title+" frozen, Ollama Q4_K_M deployment replicate",False) for m in LOCAL_REPLICATES),
         *((m.key, m.title+" frozen, same-runtime screen", False) for m in MODELS),
         ("confirm-control", "Frozen Qwen2.5 control, fresh confirmation", True),

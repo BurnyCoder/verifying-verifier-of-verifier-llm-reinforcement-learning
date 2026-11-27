@@ -239388,6 +239388,15 @@
     },
     {
       "group": "Newer frozen Qwen judges",
+      "id": "new-judges/runtime-format-pilot",
+      "treatment": "Qwen3.5-9B server-output formatting diagnostic",
+      "status": "Archived, invalid scoring",
+      "result": "Empty reasoning wrapper on 65/65 delivered messages. No accuracy estimate.",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/runtime-format-pilot"
+    },
+    {
+      "group": "Newer frozen Qwen judges",
       "id": "new-judges/q35-9b-ollama",
       "treatment": "Qwen3.5-9B frozen, Ollama Q4_K_M deployment replicate",
       "status": "Planned",
@@ -239478,7 +239487,18 @@
     }
   ],
   "newer_judges": {
-    "results": [],
+    "results": [
+      {
+        "time": "2026-11-27T06:15:51.226+00:00",
+        "key": "runtime-format-pilot",
+        "phase": "runtime diagnostic",
+        "model": "Qwen3.5-9B",
+        "status": "Archived, invalid scoring",
+        "result": "Empty reasoning wrapper on 65/65 delivered messages. No accuracy estimate.",
+        "calls": 65,
+        "cases": 20
+      }
+    ],
     "decision": {}
   },
   "matched_depth": [

@@ -4,7 +4,7 @@ import pytest
 
 from study.domain import Problem
 from study.frozen_cases import CaseRunner, metrics, paired_confirmation
-from study.frozen_gpu import verify_placement
+from study.frozen_gpu import LocalCUDA, verify_placement
 
 
 class FixtureBackend:
@@ -25,6 +25,22 @@ def test_gpu_placement_rejects_partially_offloaded_or_cpu_weights():
                 good+"\nCPU_Mapped model buffer size = 244.00 MiB"):
         with pytest.raises(ValueError):
             verify_placement(bad)
+
+
+def test_template_prefill_never_becomes_a_judge_answer(monkeypatch, tmp_path):
+    server = LocalCUDA(tmp_path/"weights",tmp_path/"log")
+    rendered = "user question\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+    def post(endpoint,payload):
+        if endpoint=="/apply-template":
+            assert payload["chat_template_kwargs"]["enable_thinking"] is False
+            return {"prompt":rendered}
+        assert endpoint=="/completion" and payload["prompt"]==rendered and payload["return_tokens"]
+        return {"content":"0,1,7","tokens":[4,5,6],"tokens_evaluated":130,"tokens_predicted":3,
+                "stop_type":"eos","timings":{"predicted_ms":10}}
+    monkeypatch.setattr(server,"post",post)
+    record = server.generate([{"role":"user","content":"user question"}])
+    assert record["text"]=="0,1,7" and record["generated_token_ids"]==[4,5,6]
+    assert record["rendered_prompt"]==rendered
 
 
 def test_replay_preserves_twin_labels_and_resumes_identical_calls(tmp_path):

@@ -1,0 +1,14 @@
+{
+  "model": "Qwen3.5-9B",
+  "repository": "ollama/library/qwen3.5",
+  "revision": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+  "file": "Ollama-Qwen3.5-9B-Q4_K_M.gguf",
+  "sha256": "02d45dc1cf451ba2475ac33b301c2dd8f985abe4c182ce04a1f2f5bf0260278d",
+  "base_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "build": "b12807",
+  "context": 2048,
+  "output_limit": 48,
+  "phase": "deployment replicate",
+  "decoder": "greedy; thinking disabled",
+  "placement": "CUDA0"
+}

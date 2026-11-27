@@ -10,10 +10,10 @@ HEAD = ["Model and cohort","J1 verdict","J2 verdict","J3 verdict","J3 visible pa
 
 def collect_frozen(root):
     results = []
-    for key in (*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"confirm-control","confirm-winner"):
+    for key in ("runtime-format-pilot",*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"confirm-control","confirm-winner"):
         receipt = read_json(root/key/"result.json",{})
         if receipt:
-            results.append(dict(key=key,**receipt))
+            results.append({**receipt,"key":key})
     return dict(results=results,decision=read_json(root/"decision.json",{}))
 
 

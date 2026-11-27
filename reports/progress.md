@@ -12,6 +12,8 @@ calibrated/top-depth2 · Paused · 20/256 logged, checkpoint 16.
 
 No completed fixed-trace score has been released.
 
+Qwen3.5-9B · Archived, invalid scoring. Empty reasoning wrapper on 65/65 delivered messages. No accuracy estimate..
+
 The matched-depth extension has trained 3 of 4 additional shallow solvers. [Extension](matched-depth-protocol.md).
 
 The timing pilot selected 256 updates per block at 38.3 seconds per pilot update. A block at that rate would take 2.72 hours.

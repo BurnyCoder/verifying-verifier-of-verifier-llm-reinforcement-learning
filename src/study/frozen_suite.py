@@ -69,11 +69,11 @@ def run_one(key, model, phase, confirmed_file=None):
             return finish("GPU fit unavailable","No full-GPU configuration passed placement checks",fit=fit_attempts)
         protocol = dict(model=config.title,repository=config.repository,revision=config.revision,file=config.filename,
                         sha256=config.sha256,base_revision=config.base_revision,build=BUILD,context=CONTEXT,
-                        output_limit=LIMIT,phase=phase,decoder="greedy; thinking disabled",placement="CUDA0")
+                        output_limit=LIMIT,phase=phase,decoder="greedy, thinking disabled, raw generated tokens",placement="CUDA0")
         if registration and registration != protocol:
             raise ValueError("Frozen judge execution configuration changed on resume")
         write_json(folder/"configuration.json",protocol)
-        runner = CaseRunner(folder,backend,config.sha256+"|"+BUILD+"|v1|"+phase,journal.event)
+        runner = CaseRunner(folder,backend,config.sha256+"|"+BUILD+"|raw-v2|"+phase,journal.event)
         demo = Problem.from_expression("(4+3)*2")
         for i,(level,history) in enumerate(((1,[]),(2,["0,1,7"]),(3,["0,1,7","1,0,7,0,1,7"]),
                                              (3,["0,1,7","1,0,6,0,1,7"]))):
