@@ -1,5 +1,9 @@
 # Study plan
 
+The [run inventory](run-inventory.md) records each individual treatment and its endpoint. The [newer frozen Qwen experiment](newer-frozen-judges.md) tests fixed responses before allocating solver-training time to a selected judge. The original matched-depth comparison continues through its own sealed evaluation.
+
+On 27 November the owner deferred the unfinished top-down two-judge solver, subsequent optimization blocks and sealed evaluations to a later day. Its saved optimizer checkpoint is retained. The immediate GPU allocation is for frozen Qwen inference. Any solver training conditional on a successful new judge is also deferred. No restart date has been assigned.
+
 Publish the literature reviews, preregistration and run matrix before inference. Publish implementation, tests, protocol paper and website before the first model call. Run the study in the [registered order](planned-runs.md). Use one organization of raw results keyed by run, phase and checkpoint. Keep the final test sealed until model recipes and checkpoints for the comparison are fixed.
 
 Monitor runs lasting 10–30 minutes every five minutes, runs lasting over 30–60 minutes every 15 minutes, and runs over an hour every 30 minutes. Save resumable state and stream the full model I/O. Inspect only development metrics during training. After each training and evaluation milestone, regenerate figures and reports, publish changes and record the checkpoint in one Hugging Face collection.

@@ -238791,6 +238791,674 @@
       "completed_development": false
     }
   ],
+  "inventory": [
+    {
+      "group": "Original signed arithmetic",
+      "id": "original/base",
+      "treatment": "Untrained solver",
+      "status": "Archived",
+      "result": "0/32 (0.0%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/base"
+    },
+    {
+      "group": "Original signed arithmetic",
+      "id": "original/d3-17",
+      "treatment": "Fresh solver, frozen J3, seed 17",
+      "status": "Archived",
+      "result": "0/32 (0.0%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/d3-17"
+    },
+    {
+      "group": "Original signed arithmetic",
+      "id": "original/timing",
+      "treatment": "Disposable solver, frozen J3, wall-clock pilot",
+      "status": "Complete",
+      "result": "4 updates in 153.2 s",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/timing/trained.json"
+    },
+    {
+      "group": "Original signed arithmetic",
+      "id": "original/registered-only",
+      "treatment": "Other original signed treatments and sealed evaluation",
+      "status": "Superseded in this campaign",
+      "result": "See calibrated arms below",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/one-registered",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "0/16 (0.0%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/one-demonstrated",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "15/16 (93.8%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/two-add-registered",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "0/16 (0.0%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/two-add-demonstrated",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "9/16 (56.2%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/two-mixed-registered",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "0/16 (0.0%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/two-mixed-demonstrated",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "12/16 (75.0%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/registered-registered",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "0/16 (0.0%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "screen/registered-demonstrated",
+      "treatment": "Frozen solver, greedy trace",
+      "status": "Complete",
+      "result": "2/16 (12.5%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/screen.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "learnability/confirm",
+      "treatment": "Fresh difficulty confirmation, greedy trace",
+      "status": "Complete",
+      "result": "31/48 (64.6%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/confirm.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "learnability/audit",
+      "treatment": "Frozen balanced verdicts at J1/J2/J3 and visible J3 twins",
+      "status": "Complete",
+      "result": "46.9% / 40.6% / 40.6%, twins 0/16",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/audit.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "validation/base",
+      "treatment": "Frozen solver, independent validation",
+      "status": "Complete",
+      "result": "153/256 (59.8%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/evaluations/base.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "validation/learn-oracle-17",
+      "treatment": "Solver, exact reward, independent validation",
+      "status": "Complete",
+      "result": "246/256 (96.1%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/evaluations/learn-oracle-17.json"
+    },
+    {
+      "group": "Difficulty and learning controls",
+      "id": "validation/learn-shuffle-17",
+      "treatment": "Solver, shuffled exact reward, independent validation",
+      "status": "Complete",
+      "result": "68/256 (26.6%)",
+      "held_out": "—",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/results/learnability/evaluations/learn-shuffle-17.json"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/base",
+      "treatment": "Frozen starting solver",
+      "status": "Development complete",
+      "result": "20/32 (62.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/base"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d3-17",
+      "treatment": "Fresh solver, D3, seed 17",
+      "status": "Development complete",
+      "result": "3/32 (9.4%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/d3-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d2-17",
+      "treatment": "Fresh solver, D2, seed 17",
+      "status": "Development complete",
+      "result": "25/32 (78.1%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/d2-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d1-17",
+      "treatment": "Fresh solver, D1, seed 17",
+      "status": "Development complete",
+      "result": "21/32 (65.6%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/d1-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/flat-17",
+      "treatment": "Fresh solver, three independent votes, seed 17",
+      "status": "Development complete",
+      "result": "24/32 (75.0%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/flat-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/oracle-17",
+      "treatment": "Fresh solver, exact trace, seed 17",
+      "status": "Development complete",
+      "result": "32/32 (100.0%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/oracle-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/hybrid-17",
+      "treatment": "Fresh solver, J3 and checker, seed 17",
+      "status": "Development complete",
+      "result": "31/32 (96.9%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/hybrid-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/shuffle-17",
+      "treatment": "Fresh solver, within-group shuffled J3, seed 17",
+      "status": "Development complete",
+      "result": "5/32 (15.6%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/shuffle-17"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/exact-j1",
+      "treatment": "J1 learns from exact full report",
+      "status": "Development complete",
+      "result": "20/32 (62.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-j1"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/exact-j2",
+      "treatment": "J2 learns from exact full report",
+      "status": "Development complete",
+      "result": "15/32 (46.9%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-j2"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/exact-j3",
+      "treatment": "J3 learns from exact full report",
+      "status": "Development complete",
+      "result": "10/32 (31.2%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-j3"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/top-j2",
+      "treatment": "J2 learns from exact-j3",
+      "status": "Development complete",
+      "result": "14/32 (43.8%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/top-j2"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/top-j1",
+      "treatment": "J1 learns from top-j2",
+      "status": "Development complete",
+      "result": "16/32 (50.0%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/top-j1"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/exact-prefix1",
+      "treatment": "Fresh solver, D3, 1 exact-trained judge, seed 17",
+      "status": "Development complete",
+      "result": "24/32 (75.0%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-prefix1"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/exact-prefix2",
+      "treatment": "Fresh solver, D3, 2 exact-trained judges, seed 17",
+      "status": "Development complete",
+      "result": "4/32 (12.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-prefix2"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/exact-prefix3",
+      "treatment": "Fresh solver, D3, 3 exact-trained judges, seed 17",
+      "status": "Development complete",
+      "result": "25/32 (78.1%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-prefix3"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/top-prefix1",
+      "treatment": "Fresh solver, D3, 1 top-down judge, seed 17",
+      "status": "Development complete",
+      "result": "2/32 (6.2%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/top-prefix1"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/top-prefix2",
+      "treatment": "Fresh solver, D3, 2 top-down judges, seed 17",
+      "status": "Development complete",
+      "result": "31/32 (96.9%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/top-prefix2"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/top-prefix3",
+      "treatment": "Fresh solver, D3, 3 top-down judges, seed 17",
+      "status": "Development complete",
+      "result": "28/32 (87.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/top-prefix3"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-exact-j1",
+      "treatment": "J1 learns from exact full report, continuing exact-j1",
+      "status": "Development complete",
+      "result": "20/32 (62.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/alt-exact-j1"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-exact-j2",
+      "treatment": "J2 learns from exact full report, continuing exact-j2",
+      "status": "Development complete",
+      "result": "15/32 (46.9%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/alt-exact-j2"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-exact-j3",
+      "treatment": "J3 learns from exact full report, continuing exact-j3",
+      "status": "Development complete",
+      "result": "10/32 (31.2%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/alt-exact-j3"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-exact-solver",
+      "treatment": "Continue solver, D3, 3 exact-trained judges, seed 17",
+      "status": "Development complete",
+      "result": "2/32 (6.2%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/alt-exact-solver"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-top-j3",
+      "treatment": "J3 learns from exact full report, continuing exact-j3",
+      "status": "Development complete",
+      "result": "10/32 (31.2%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/alt-top-j3"
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-top-j2",
+      "treatment": "J2 learns from alt-top-j3, continuing top-j2",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-top-j1",
+      "treatment": "J1 learns from alt-top-j2, continuing top-j1",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/alt-top-solver",
+      "treatment": "Continue solver, D3, 3 top-down judges, seed 17",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d3-29",
+      "treatment": "Fresh solver, D3, seed 29",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d2-29",
+      "treatment": "Fresh solver, D2, seed 29",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/flat-29",
+      "treatment": "Fresh solver, three independent votes, seed 29",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d3-43",
+      "treatment": "Fresh solver, D3, seed 43",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/d2-43",
+      "treatment": "Fresh solver, D2, seed 43",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Main solver and judge study",
+      "id": "calibrated/flat-43",
+      "treatment": "Fresh solver, three independent votes, seed 43",
+      "status": "Deferred",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Matched trained judge depths",
+      "id": "calibrated/exact-depth1",
+      "treatment": "Fresh solver, D1, 1 exact-trained judge, seed 17",
+      "status": "Development complete",
+      "result": "20/32 (62.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-depth1"
+    },
+    {
+      "group": "Matched trained judge depths",
+      "id": "calibrated/exact-depth2",
+      "treatment": "Fresh solver, D2, 2 exact-trained judges, seed 17",
+      "status": "Development complete",
+      "result": "20/32 (62.5%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/exact-depth2"
+    },
+    {
+      "group": "Matched trained judge depths",
+      "id": "calibrated/top-depth1",
+      "treatment": "Fresh solver, D1, 1 top-down judge, seed 17",
+      "status": "Development complete",
+      "result": "25/32 (78.1%)",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/top-depth1"
+    },
+    {
+      "group": "Matched trained judge depths",
+      "id": "calibrated/top-depth2",
+      "treatment": "Fresh solver, D2, 2 top-down judges, seed 17",
+      "status": "Paused · 20/256 logged, checkpoint 16",
+      "result": "Pending",
+      "held_out": "Deferred",
+      "evidence": null
+    },
+    {
+      "group": "Matched trained judge depths",
+      "id": "replay/exact",
+      "treatment": "Frozen fitted stack, J1/J2/J3 on identical base traces",
+      "status": "Development complete",
+      "result": "20/32 · 20/32 · 20/32",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/matched-depth"
+    },
+    {
+      "group": "Matched trained judge depths",
+      "id": "replay/top",
+      "treatment": "Frozen fitted stack, J1/J2/J3 on identical base traces",
+      "status": "Development complete",
+      "result": "20/32 · 18/32 · 18/32",
+      "held_out": "Deferred",
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/calibrated/matched-depth"
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "analysis/primary",
+      "treatment": "D3 minus D2, paired across seeds 17, 29 and 43",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "analysis/flat",
+      "treatment": "D3 minus three independent votes, same seeds",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/test",
+      "treatment": "Primary arithmetic, 2,048 questions per solver",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/layout",
+      "treatment": "Reserved tree layouts, 128 questions per solver",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/long",
+      "treatment": "Longer expressions, 128 questions per solver",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/original-difficulty",
+      "treatment": "Signed arithmetic, 2,048 questions per solver",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/mechanism",
+      "treatment": "Familiar evidence and layout, 128 evidence pairs, visible and masked",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/unseen-evidence",
+      "treatment": "Unseen error pattern, 128 evidence pairs, visible and masked",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/layout-evidence",
+      "treatment": "Reserved layout, 128 evidence pairs, visible and masked",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Final evaluation and transfer",
+      "id": "cohort/transfer-evidence",
+      "treatment": "Unseen error and reserved layout, 128 evidence pairs, visible and masked",
+      "status": "Deferred",
+      "result": "—",
+      "held_out": "Pending",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q25-1p5b",
+      "treatment": "Qwen2.5-1.5B-Instruct frozen, same-runtime screen",
+      "status": "Planned",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q35-4b",
+      "treatment": "Qwen3.5-4B frozen, same-runtime screen",
+      "status": "Planned",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q35-9b",
+      "treatment": "Qwen3.5-9B frozen, same-runtime screen",
+      "status": "Planned",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q38-27b",
+      "treatment": "Qwen3.8-27B frozen, same-runtime screen",
+      "status": "Planned",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/confirm-control",
+      "treatment": "Frozen Qwen2.5 control, fresh confirmation",
+      "status": "Conditional",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/confirm-winner",
+      "treatment": "Selected newer frozen judge, fresh confirmation",
+      "status": "Conditional",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/winner-d2",
+      "treatment": "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17",
+      "status": "Conditional, later day",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/winner-d3",
+      "treatment": "Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17",
+      "status": "Conditional, later day",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    }
+  ],
   "matched_depth": [
     {
       "phase": "development",
