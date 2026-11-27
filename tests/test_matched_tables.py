@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from study.matched_tables import accuracy_grid, grid_markdown
+from study.matched_tables import accuracy_grid, grid_markdown, shallow_feedback_note
 from study.storage import write_json
 
 
@@ -29,3 +29,16 @@ def test_fitted_adapter_count_does_not_substitute_for_fewer_judge_calls(tmp_path
     save("exact-j1",[dict(r,trace="a different solution") for r in examples])
     with pytest.raises(ValueError,match="Unmatched solver responses"):
         accuracy_grid(tmp_path,{"family":"two-add"})
+
+
+def test_identical_reward_check_distinguishes_same_total_from_same_assignments(tmp_path):
+    a = [dict(key="p", step=0, sample=i, answer=str(i), reward=i%2) for i in range(4)]
+    b = [{**r, "reward": 1-r["reward"]} for r in a]
+    for arm, training in (("exact-depth1",a),("exact-depth2",b)):
+        target = tmp_path/arm
+        write_json(target/"development.json", {"phase":"development"})
+        (target/"rollouts.jsonl").write_text("".join(json.dumps(r)+"\n" for r in training),encoding="utf-8")
+        (target/"replay.jsonl").write_text(json.dumps(dict(key="q",expression="(1 + 1) + 1",trace="2,3"))+"\n",encoding="utf-8")
+    note = shallow_feedback_note(tmp_path)
+    assert "4/4 training completions" in note and "matched on 0/4" in note
+    assert "2 and 2 positive rewards" in note and "1/1 development questions" in note

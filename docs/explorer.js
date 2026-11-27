@@ -74,6 +74,9 @@ function showMatched(grids) {
       const body=table.createTBody();
       for (const fields of records) row(body,fields);
       wrapper.append(table); target.append(wrapper);
+      if (label==="solver accuracy" && grid.solver_note) {
+        const note=document.createElement("p"); note.textContent=grid.solver_note; target.append(note);
+      }
     }
     if (grid.judge_note) {
       const note=document.createElement("p"); note.textContent=grid.judge_note; target.append(note);
