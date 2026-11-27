@@ -65,6 +65,7 @@ def test_actual_training_comparison_requires_identical_solver_text_and_lower_rep
             for _ in range(8)]
     right = [{**r, "reports": [*r["reports"], "1,0,4,1,0,4"]} for r in left]
     right[1]["reward"] = 0
+    right[1]["reports"][2] = "1,0,4,0,1,0"
     right[5]["reports"][1] = "1,0,7,1,0,4"
     assert compare_training_groups(left, right) == {"matched": [1], "different_credits": [1]}
     right[0]["answer"] = "7, 4"
