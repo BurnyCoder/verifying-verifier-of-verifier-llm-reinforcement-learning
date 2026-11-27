@@ -194973,6 +194973,161 @@
   },
   "sealed": false,
   "completed": false,
+  "depth_review": [
+    {
+      "seed": 17,
+      "n": 1024,
+      "groups": 256,
+      "dev_n": 32,
+      "two": {
+        "training": {
+          "first wrong, second consistent": 167,
+          "first wrong, second inconsistent": 42,
+          "correct": 648,
+          "second wrong": 116,
+          "format": 51
+        },
+        "rewarded": {
+          "first wrong, second consistent": 117,
+          "first wrong, second inconsistent": 26,
+          "correct": 490,
+          "second wrong": 88,
+          "format": 30
+        },
+        "dev": {
+          "correct": 25,
+          "second wrong": 7
+        },
+        "first_quarter": [
+          105,
+          186
+        ],
+        "last_quarter": [
+          186,
+          189
+        ]
+      },
+      "three": {
+        "training": {
+          "first wrong, second consistent": 508,
+          "first wrong, second inconsistent": 261,
+          "correct": 144,
+          "second wrong": 18,
+          "format": 93
+        },
+        "rewarded": {
+          "first wrong, second consistent": 357,
+          "first wrong, second inconsistent": 160,
+          "correct": 88,
+          "second wrong": 3,
+          "format": 49
+        },
+        "dev": {
+          "format": 1,
+          "first wrong, second consistent": 20,
+          "correct": 3,
+          "first wrong, second inconsistent": 8
+        },
+        "first_quarter": [
+          80,
+          173
+        ],
+        "last_quarter": [
+          15,
+          171
+        ]
+      },
+      "paired": {
+        "two only": 23,
+        "both": 2,
+        "neither": 6,
+        "three only": 1
+      },
+      "accepted": [
+        21,
+        21
+      ],
+      "agreement": [
+        12,
+        12
+      ],
+      "transitions": [
+        {
+          "expression": "(36 - 7) + 7",
+          "output": "8,15",
+          "truth": [
+            29,
+            36
+          ],
+          "bits": [
+            1,
+            0
+          ],
+          "reports": [
+            "1,0,15,1,0,15",
+            "1,0,15,0,1,15"
+          ],
+          "correct": 0
+        },
+        {
+          "expression": "(1 + 6) - 6",
+          "output": "-5,-1",
+          "truth": [
+            7,
+            1
+          ],
+          "bits": [
+            0,
+            1
+          ],
+          "reports": [
+            "-1,-1,-5,1,0,-5",
+            "1,0,-5,1,0,-5"
+          ],
+          "correct": 0
+        }
+      ],
+      "shared_error": {
+        "expression": "(39 + 12) - 5",
+        "right": "51,46",
+        "wrong": "16,11"
+      },
+      "transcript_audit": {
+        "seed": 17,
+        "arms": {
+          "d2-17": {
+            "adapter_sha256": "f3d3a8a1c3daff34a0dd4ed80d3bd7aeb7237da74c13910130cc80a5b0441ead",
+            "journals_sha256": {
+              "2026-11-26T15-49-28.492+00-00.jsonl": "155189ca74d2f801bae123ee444cee1e7c18a00a9d0fb4cbe16184ec3698c565"
+            },
+            "training_answers": 1024,
+            "matched_calls": 3072
+          },
+          "d3-17": {
+            "adapter_sha256": "5edb1e200ef85840a81a9304de7056aacaf0bc32d9314009c6cd8fe708d96115",
+            "journals_sha256": {
+              "2026-11-26T15-00-21.870+00-00.jsonl": "166cc3f9775ff1b225755bdd31002ab7d534d98a7a5cd566a8345f773cc868e6"
+            },
+            "training_answers": 1024,
+            "matched_calls": 4096
+          }
+        }
+      },
+      "fixes": 58,
+      "harms": 44,
+      "changed_groups": 81,
+      "j2_pairs": [
+        28,
+        81,
+        25
+      ],
+      "j3_pairs": [
+        22,
+        84,
+        28
+      ]
+    }
+  ],
   "learning_review": {
     "training": 128,
     "validation": 256,

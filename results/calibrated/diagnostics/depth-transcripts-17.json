@@ -1,0 +1,21 @@
+{
+  "seed": 17,
+  "arms": {
+    "d2-17": {
+      "adapter_sha256": "f3d3a8a1c3daff34a0dd4ed80d3bd7aeb7237da74c13910130cc80a5b0441ead",
+      "journals_sha256": {
+        "2026-11-26T15-49-28.492+00-00.jsonl": "155189ca74d2f801bae123ee444cee1e7c18a00a9d0fb4cbe16184ec3698c565"
+      },
+      "training_answers": 1024,
+      "matched_calls": 3072
+    },
+    "d3-17": {
+      "adapter_sha256": "5edb1e200ef85840a81a9304de7056aacaf0bc32d9314009c6cd8fe708d96115",
+      "journals_sha256": {
+        "2026-11-26T15-00-21.870+00-00.jsonl": "166cc3f9775ff1b225755bdd31002ab7d534d98a7a5cd566a8345f773cc868e6"
+      },
+      "training_answers": 1024,
+      "matched_calls": 4096
+    }
+  }
+}
