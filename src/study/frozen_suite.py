@@ -8,6 +8,7 @@ from .curriculum import curriculum_problems
 from .domain import Problem
 from .frozen_cases import CaseRunner, metrics, paired_confirmation
 from .frozen_gpu import BUILD, CONTEXT, LIMIT, GPUFitError, LocalCUDA, weight_file
+from .frozen_latency import ReloadSlowJudge, slow_segment
 from .frozen_models import LOCAL_REPLICATES, MODELS, SMALLER_FILES
 from .storage import ORIGINAL_RESULTS, Journal, log_directory, read_json, rows, stamp, write_json
 
@@ -45,6 +46,17 @@ def run_one(key, model, phase, confirmed_file=None):
         write_json(marker,result)
         journal.event("result",**result)
         return result
+    monitor_latency = key in ('q38-27b','q38-27b-iq1s') or (key=='confirm-winner' and model.key=='q38-27b')
+    if monitor_latency and len([r for r in fit_attempts if r['fit']])>=2:
+        history = list(rows(folder/'calls.jsonl'))
+        evidence = slow_segment(history,fit_attempts)
+        if evidence and evidence['reloaded']:
+            pilot = [r for r in history if r['id'].startswith('timing/')]
+            timed = mean(r['elapsed_seconds'] for r in pilot)
+            cost = {k:sum(r[k] for r in history if not r['id'].startswith('timing/')) for k in ('input_tokens','output_tokens','elapsed_seconds')}
+            description = (f"The {len(pilot)} pilot calls averaged {timed:.2f} seconds. Stopped after {evidence['calls']} scored requests. Consecutive requests exceeded the 30-second ceiling "
+                           "and the slowdown persisted after reloading the same file. No cohort accuracy estimate")
+            return finish('Incomplete, sustained latency',description,file=evidence['file'],latency=evidence,timing_seconds=timed,cost=cost)
     with ExitStack() as stack:
         for config in choices:
             path = weight_file(config)
@@ -89,6 +101,8 @@ def run_one(key, model, phase, confirmed_file=None):
             if len(natural)!=32 or len({r["key"] for r in natural})!=32 or {p.key for p in pool}&{r["key"] for r in natural}:
                 raise ValueError("Expected 32 unique archived traces disjoint from the balanced screen")
         def progress():
+            if monitor_latency and slow_segment(runner.calls.values(),fit_attempts):
+                raise ReloadSlowJudge(config.filename)
             write_json(folder/"progress.json",dict(time=stamp(),status="Evaluating",model=config.title,phase=phase,
                        file=config.filename,calls=len(runner.calls),target=4+3*len(natural)+10*len(pool),
                        cases=len(runner.completed),timing_seconds=timing))
@@ -120,7 +134,12 @@ def campaign(publish=False):
     """Release every measured configuration even if its model only completed a fit/timing pilot."""
     from .cli import study_lock,worker
     def stage(key,model,phase,confirmed_file=None):
-        outcome = run_one(key,model,phase,confirmed_file)
+        while True:
+            try:
+                outcome = run_one(key,model,phase,confirmed_file)
+                break
+            except ReloadSlowJudge:
+                continue
         if publish:
             worker("publish","--milestone","new-judges-"+key)
         else:
@@ -132,26 +151,35 @@ def campaign(publish=False):
         for m in LOCAL_REPLICATES:
             stage(m.key,m,"deployment replicate")
         results = {m.key:stage(m.key,m,"screen") for m in MODELS}
-        eligible = [m for m in MODELS[1:] if results[m.key]["status"]=="Complete"]
+        by_key = {m.key:m for m in MODELS}
+        original = results['q38-27b']
+        smaller = SMALLER_FILES['q38-27b'][-1][0]
+        if original['status']=='Incomplete, sustained latency' and original['file']!=smaller:
+            by_key['q38-27b-iq1s'] = by_key['q38-27b']
+            results['q38-27b-iq1s'] = stage('q38-27b-iq1s',by_key['q38-27b'],'amended screen',smaller)
+        eligible = [key for key in by_key if key!=MODELS[0].key and results[key]["status"]=="Complete"]
         if not eligible or results[MODELS[0].key]["status"]!="Complete":
             decision = dict(status="No matched confirmation",result="No eligible newer model and same-runtime control pair")
         else:
-            def rank(m):
-                result = results[m.key]
+            def rank(key):
+                result = results[key]
                 return (result["metrics"]["twins"]["visible"],result["metrics"]["balanced"]["depths"][2]["accuracy"],
                         -result["cost"]["elapsed_seconds"])
             winner = max(eligible,key=rank)
-            confirmation = [stage(key,m,"confirmation",results[m.key]["file"]) for key,m in
-                            (("confirm-control",MODELS[0]),("confirm-winner",winner))]
+            confirmation = [stage(key,by_key[source],"confirmation",results[source]["file"]) for key,source in
+                            (("confirm-control",MODELS[0].key),("confirm-winner",winner))]
             if not all(r["status"]=="Complete" for r in confirmation):
-                decision = dict(status="Confirmation incomplete",selected=winner.key,result="No paired confirmation estimate")
+                decision = dict(status="Confirmation incomplete",selected=winner,result="No paired confirmation estimate")
             else:
                 def cases(key):
                     return {r["id"]:r for r in rows(ROOT/key/"cases.jsonl")}
                 estimates = paired_confirmation(cases("confirm-winner"),cases("confirm-control"))
                 gate = all(e["delta"]>0 for e in estimates.values())
-                decision = dict(status="Confirmed comparison",selected=winner.key,estimates=estimates,online_gate=gate,
+                decision = dict(status="Confirmed comparison",selected=winner,estimates=estimates,online_gate=gate,
                                 result="Online comparison eligible on a later day" if gate else "Online improvement gate did not pass")
+            original_eligible = [key for key in eligible if key!='q38-27b-iq1s']
+            if 'q38-27b-iq1s' in results and original_eligible:
+                decision['original_completed_selection'] = max(original_eligible,key=rank)
         write_json(ROOT/"decision.json",dict(time=stamp(),**decision))
         if publish:
             worker("publish","--milestone","new-judges-decision")
