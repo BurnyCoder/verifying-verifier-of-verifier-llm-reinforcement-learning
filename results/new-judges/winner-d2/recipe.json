@@ -1,0 +1,22 @@
+{
+  "run": {
+    "name": "new-judges/winner-d2",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d2",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "initial_adapter_sha256": "ab3878076992e76c7a0564c053405ae0463c0809a9e61620cf5c35e96f1954d8",
+  "started": "2026-11-27T09:50:34.214+00:00"
+}

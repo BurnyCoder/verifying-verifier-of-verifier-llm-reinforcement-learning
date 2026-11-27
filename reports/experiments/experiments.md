@@ -5,14 +5,14 @@
 | Solver reward | Updates | Groups with mixed rewards | Exact development solutions |
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 |
-| Frozen Qwen3.5-4B Judge 2 | 0 | — | Scheduled |
+| Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | Trained |
 | Frozen Qwen3.5-4B Judge 3 | 0 | — | Scheduled |
 
 The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
 
 [Run inventory, including upcoming experiments](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/run-inventory.md) · [Newer frozen Qwen protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md) · [Paused solver checkpoint, update 16](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/5274be501a83e4c881664370cfe75f912c69413f/resumable/calibrated/top-depth2/checkpoint-16)
 
-All learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.
+The original and calibrated training comparisons use grouped reinforcement learning with one active LoRA adapter on Qwen2.5-1.5B-Instruct. The solver predicts values in signed-integer expression trees. Judges predict evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right. The hardware trials state the backbone and storage precision for each disposable update.
 
 | Run | Role | Reward | Seed | Problem source | Dev. parsed | Dev. exact | Held-out exact |
 | --- | --- | --- | --- | --- | --- | --- | --- |
