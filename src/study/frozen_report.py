@@ -110,7 +110,7 @@ def confirmation_headline(study):
     changes = (f"For {winner['model']}, Judge 3 agreed with Judge 2 on every solution verdict." if fixed+harmed==0 else
                f"For {winner['model']}, Judge 3 fixed {fixed} Judge 2 errors and overturned {harmed} correct verdicts.")
     intervals=[study['decision']['estimates'][k]['ci'] for k in ('twins','balanced_verdict')]
-    ranges = [f"{100*lo:+.1f} to {100*hi:+.1f}" for lo,hi in intervals]
+    ranges = [f"{100*lo:+.2f} to {100*hi:+.2f}" for lo,hi in intervals]
     return (f"On {study['review']['fresh_ids']} fresh problems, frozen {winner['model']} correctly audited both reviews on "
             f"{w['twins']['visible']}/{w['twins']['n']} evidence pairs, compared with {c['twins']['visible']}/{c['twins']['n']} for {control['model']}. "
             f"Their third judges correctly graded {w['balanced']['depths'][2]['correct']}/{w['balanced']['n']} and "
