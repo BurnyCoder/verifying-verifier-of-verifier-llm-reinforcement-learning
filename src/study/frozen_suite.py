@@ -54,7 +54,7 @@ def run_one(key, model, phase, confirmed_file=None):
                 from huggingface_hub import hf_hub_download
                 template = hf_hub_download("Qwen/"+model.title,"chat_template.jinja",revision=config.base_revision)
             try:
-                backend = stack.enter_context(LocalCUDA(path,logfile,template))
+                backend = stack.enter_context(LocalCUDA(path,logfile,template,folder/"gpu-telemetry.jsonl"))
             except GPUFitError as e:
                 fit_attempts.append(dict(time=stamp(),file=config.filename,fit=False,reason=str(e)))
                 write_json(folder/"fit.json",fit_attempts)
@@ -124,6 +124,8 @@ def campaign(publish=False):
         if publish:
             worker("publish","--milestone","new-judges-"+key)
         else:
+            from .frozen_device import close_device_records
+            close_device_records()
             worker("report")
         return outcome
     with study_lock("frozen-judge-suite"):

@@ -24,6 +24,7 @@ def collect_frozen(root):
         if receipt:
             if receipt.get("metrics"):
                 receipt["audit"] = released_audit(root/key,receipt["time"])
+                receipt["devices"] = read_json(root/key/"gpu-graphs.json",{}).get("loads",[])
                 samples = list(rows(root/key/"gpu-telemetry.jsonl"))
                 if samples:
                     receipt["gpu"] = dict(peak_dedicated_mib=max(r["dedicated_bytes"] for r in samples)/2**20,
@@ -67,7 +68,7 @@ def frozen_text(study):
         parts.append(decision["result"]+".")
         for metric, estimate in decision.get("estimates",{}).items():
             lo,hi = estimate["ci"]
-            parts.append(f"{metric.replace('_',' ')} improved by a signed {estimate['delta']*100:+.2f} percentage points on {estimate['n']} paired problems (95% interval {100*lo:+.2f} to {100*hi:+.2f}).")
+            parts.append(f"The candidate-minus-control difference in {metric.replace('_',' ')} was {estimate['delta']*100:+.2f} percentage points on {estimate['n']} paired problems (95% interval {100*lo:+.2f} to {100*hi:+.2f}).")
     return "\n\n".join(parts)
 
 
@@ -122,6 +123,11 @@ def experiment_pages(study, dest):
                          markdown(["Judge 2 review","Judge 3 wrote","Checker expected"],
                                   list(zip(record["reviews"],record["outputs"],record["expected"],strict=True)))]
             method += f"\n\nThe release checked {r['audit']['calls']} scored calls against the original prompts, raw generated text and independent arithmetic values. The masked twins returned identical token sequences on {r['audit']['matched_masked_outputs']}/{r['metrics']['twins']['n']} pairs."
+            positions=r["audit"]["error_positions"]
+            method += f" The balanced invalid traces contained {positions['nonfinal']} first errors before the final step and {positions['final']} at the final step."
+            if r.get("devices"):
+                total=sum(x["graph_assignments"]["CUDA0"] for x in r["devices"])
+                method += f" The server recorded {total:,} compute graph assignments across the measured loads. Every assignment used CUDA0."
             gpu = r.get("gpu")
             if gpu:
                 method += ("\n\nWindows sampled the dedicated allocation of the llama.cpp process at up to "

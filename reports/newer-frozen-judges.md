@@ -28,4 +28,6 @@ Every model has the same output format and input evidence. Native templates can 
 
 ## Runtime correction before comparing scores
 
+The balanced replay changes one numbered value. On the two-step family, its fixed error index alternates between the first and final step. The per-model audit reports both counts. This implementation detail narrows the interpretation of the protocol's phrase “one incorrect intermediate step.”
+
 The initial 9B deployment pilot revealed that the chat endpoint returned an empty reasoning wrapper from the prompt template as part of the assistant message. The strict grader treated the wrapper as output, and successor prompts included the wrapper. The archive retains all delivered messages. This pilot supplies no accuracy estimate. For every scored run, explicitly render the native non-thinking template and request its raw completion. Store the rendered prompt, actual generated token IDs and generated text separately. Forward and strictly score only the generated text. Rerun every affected chain from its first judge. The checker, problem assignments, generation budget and model-selection rule stay fixed. [Archived pilot](../results/new-judges/runtime-format-pilot/result.json) · [llama.cpp completion and template endpoints](https://github.com/ggml-org/llama.cpp/blob/b12807/tools/server/README.md)
