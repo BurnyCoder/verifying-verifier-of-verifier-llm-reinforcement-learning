@@ -1,0 +1,12 @@
+{
+  "solver_state_mib": 2599.46826171875,
+  "solver_allocated_mib": 2620.6435546875,
+  "solver_peak_mib": 3586.7900390625,
+  "gpu": {
+    "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+    "total_mib": 8151,
+    "free_mib": 338
+  },
+  "solver_dedicated_mib": 3853.671875,
+  "judge_dedicated_mib": 2871.55078125
+}

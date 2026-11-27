@@ -1,0 +1,22 @@
+{
+  "run": {
+    "name": "solver-fit/base-2b",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 1,
+  "group": 4,
+  "initial_adapter_sha256": "a94f641fbdfe8db0a22a7fc380003c1e2163365bf353e0633cd5af10dc8524d5",
+  "started": "2026-11-27T11:14:07.149+00:00"
+}

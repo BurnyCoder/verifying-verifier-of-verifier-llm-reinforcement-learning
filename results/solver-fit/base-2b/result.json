@@ -1,0 +1,98 @@
+{
+  "model": "Qwen/Qwen3.5-2B-Base",
+  "revision": "b1485b2fa6dfa1287294f269f5fb618e03d52d7c",
+  "precision": "nf4",
+  "start": "2026-11-27T11:12:49.538+00:00",
+  "device_before": {
+    "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+    "total_mib": 8151,
+    "free_mib": 6910
+  },
+  "before_forward": {
+    "solver_state_mib": 2602.28076171875,
+    "solver_allocated_mib": 2623.4560546875,
+    "solver_peak_mib": 3586.7900390625,
+    "gpu": {
+      "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "total_mib": 8151,
+      "free_mib": 531
+    },
+    "solver_dedicated_mib": 3701.671875,
+    "judge_dedicated_mib": 2861.55078125
+  },
+  "after_step": {
+    "solver_state_mib": 2599.46826171875,
+    "solver_allocated_mib": 2620.6435546875,
+    "solver_peak_mib": 3586.7900390625,
+    "gpu": {
+      "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "total_mib": 8151,
+      "free_mib": 338
+    },
+    "solver_dedicated_mib": 3853.671875,
+    "judge_dedicated_mib": 2871.55078125
+  },
+  "status": "One update completed",
+  "updates": 1,
+  "group_rewards": [
+    1,
+    0,
+    1,
+    1
+  ],
+  "gradient_norm": 6.0625,
+  "solver_usage": {
+    "fit_starting_solver": {
+      "calls": 16,
+      "input_tokens": 2697,
+      "output_tokens": 109,
+      "gpu_seconds": 6.850498291015625,
+      "wall_seconds": 6.842999999993481
+    },
+    "solver": {
+      "calls": 4,
+      "input_tokens": 672,
+      "output_tokens": 28,
+      "gpu_seconds": 1.238713623046875,
+      "wall_seconds": 1.25
+    }
+  },
+  "judge_cost": {
+    "calls": 12,
+    "input_tokens": 5104,
+    "output_tokens": 140,
+    "elapsed_seconds": 5.889000000010128,
+    "prompt_ms": 3846.062,
+    "generation_ms": 1931.7350000000001,
+    "gpu_engines": [
+      {
+        "engine": "Copy",
+        "seconds": 0.15773990000000002,
+        "interval_seconds": 76.64612170000001,
+        "usable": 15,
+        "discarded": 0
+      },
+      {
+        "engine": "3D",
+        "seconds": 3.9609550999999996,
+        "interval_seconds": 76.64612170000001,
+        "usable": 15,
+        "discarded": 0
+      }
+    ],
+    "graphs": [
+      {
+        "log": "2026-11-27T11-12-52.264+00-00-server.log",
+        "sha256": "f4a3013e74b44063f31f50be84d585f37d79d314453683cfcab09cade2e04525",
+        "graph_assignments": {
+          "CUDA0": 123
+        }
+      }
+    ]
+  },
+  "n": 16,
+  "correct": 12,
+  "parsed": 16,
+  "time": "2026-11-27T11:14:25.228+00:00",
+  "elapsed_seconds": 95.61000000000058
+}

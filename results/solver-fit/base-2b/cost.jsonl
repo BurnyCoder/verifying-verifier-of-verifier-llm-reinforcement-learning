@@ -1,0 +1,1 @@
+{"step": 1, "usage": {"fit_starting_solver": {"calls": 16, "input_tokens": 2697, "output_tokens": 109, "gpu_seconds": 6.850498291015625, "wall_seconds": 6.842999999993481}, "solver": {"calls": 4, "input_tokens": 672, "output_tokens": 28, "gpu_seconds": 1.238713623046875, "wall_seconds": 1.25}}, "elapsed_seconds": 12.360000000000582}

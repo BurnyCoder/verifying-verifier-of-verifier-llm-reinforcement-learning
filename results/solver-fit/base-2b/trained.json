@@ -1,0 +1,41 @@
+{
+  "time": "2026-11-27T11:14:21.641+00:00",
+  "run": {
+    "name": "solver-fit/base-2b",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 1,
+  "elapsed_seconds": 13.625,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "initial_adapter_sha256": "a94f641fbdfe8db0a22a7fc380003c1e2163365bf353e0633cd5af10dc8524d5",
+  "usage": {
+    "fit_starting_solver": {
+      "calls": 16,
+      "input_tokens": 2697,
+      "output_tokens": 109,
+      "gpu_seconds": 6.850498291015625,
+      "wall_seconds": 6.842999999993481
+    },
+    "solver": {
+      "calls": 4,
+      "input_tokens": 672,
+      "output_tokens": 28,
+      "gpu_seconds": 1.238713623046875,
+      "wall_seconds": 1.25
+    }
+  },
+  "unfinished_generation_batches": 0
+}
