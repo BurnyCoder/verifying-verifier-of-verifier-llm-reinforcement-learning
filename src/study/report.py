@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .depth_review import collect_depth_review, readme_depth, review_text as depth_review_text
+from .paired_examples import differing_examples, paired_text
 from .design import GITHUB, MATCHED_NAMES, PAGES, PILOTS, Run, matched_runs, matrix
 from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
@@ -356,6 +357,17 @@ def paper(data, date):
                 f"{r['two']['dev']['correct']}/{r['dev_n']}",f"{r['three']['dev']['correct']}/{r['dev_n']}"]
                for r in data["depth_review"]])
         line(f"Per-problem verdict changes, reward rates by arithmetic error and within-group preferences are in the <link href='{GITHUB}/blob/main/reports/reviews/depth-diagnosis.md'>depth analysis</link>. It was specified after seeing the first development contrast.")
+        first = data["depth_review"][0]
+        examples = differing_examples(first["paired_outputs"])
+        if examples:
+            pair = examples[0]
+            truth = ", ".join(map(str, pair["truth"]))
+            line(f"On {pair['expression']}, the exact steps were {truth}. The table gives the literal solution and "
+                 "three post-training reports for each solver. Judge 2 and Judge 3 put the solver verdict in field four.")
+            table(["Training reward","Solver wrote","Judge 1","Judge 2","Judge 3"],
+                  [[f"Judge {d}", out["trace"], *out["reports"]] for d, out in enumerate(pair["outputs"], 2)])
+        line(f"<link href='{GITHUB}/blob/main/reports/reviews/paired-outputs-seed-{first['seed']}.md'>Every paired "
+             f"development answer and judge report for seed {first['seed']}</link> is available in evaluation order.")
     learning=data["learnability"]
     if learning["screen"]:
         line("Attainable benchmark amendment","Heading2")
@@ -485,6 +497,8 @@ def build():
     depth_file = REPORTS/"reviews/depth-diagnosis.md"
     if data["depth_review"]:
         atomic(depth_file,depth_review_text(data["depth_review"]))
+        for review in data["depth_review"]:
+            atomic(REPORTS/"reviews"/f"paired-outputs-seed-{review['seed']}.md", paired_text(review))
     else:
         depth_file.unlink(missing_ok=True)
     data["learning_review"] = check_release(ORIGINAL_RESULTS)
@@ -510,6 +524,8 @@ def build():
     summary = status+"\n\n"+score
     if data["depth_review"]:
         summary += f"\n\n[How the third judge changed actual training rewards and worked examples]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md)."
+        seed = data["depth_review"][0]["seed"]
+        summary += f" [Side-by-side solver outputs and judge reports]({GITHUB}/blob/main/reports/reviews/paired-outputs-seed-{seed}.md)."
     if final_review:
         summary += f"\n\n[Independent rescoring, split checks and paired outcomes against one, two and three independent judges]({GITHUB}/blob/main/reports/reviews/final.md)."
     learning = data["learnability"]
