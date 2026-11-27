@@ -143,7 +143,10 @@ def interpretation(study):
     if decision:
         if decision.get('original_completed_selection'):
             old = next(r for r in study['results'] if r['key']==decision['original_completed_selection'])
-            parts.append(f"Among the completed original screens, {old['model']} ranked first. The amended ranking also considers the separately restarted 27B file when it completes.")
+            fallback = next(r for r in study['results'] if r['key']=='q38-27b-iq1s')
+            note = ("The amended ranking included the completed lower-precision 27B screen." if fallback['status']=='Complete'
+                    else "The lower-precision 27B screen supplied no complete cohort score.")
+            parts.append(f"Among the completed original screens, {old['model']} ranked first. {note}")
         selected = next((r for r in study["results"] if r["key"]==decision.get("selected")),None)
         if selected:
             parts.append(f"The screen selected {selected['model']} ({selected['file']}) for independent confirmation against the original frozen model.")
