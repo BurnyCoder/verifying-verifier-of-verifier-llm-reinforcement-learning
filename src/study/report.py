@@ -7,6 +7,7 @@ from statistics import NormalDist, mean
 from zoneinfo import ZoneInfo
 
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
+from .depth_review import collect_depth_review, readme_depth, review_text as depth_review_text
 from .design import GITHUB, PAGES, PILOTS, Run, matrix
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
@@ -334,6 +335,14 @@ def paper(data, date):
               [[r["name"],r["role"],str(r["updates"] or "—"),str(r["dev_n"]),percent(r["dev"]),str(r["test_n"]),percent(r["test"])] for r in data["runs"]])
     else:
         line("No model observations have been recorded at the protocol milestone.")
+    if data["depth_review"]:
+        line("How did the third verdict change the training signal?", "Heading2")
+        line("This exploratory diagnostic compares Judge 2 and Judge 3 on the identical answers already sampled by the three-judge solver. Each changed group has a different vector of within-question GRPO advantages after substituting Judge 2’s verdict. Re-training changes the answers subsequently sampled by the solver.")
+        table(["Seed","Training answers","J3 fixes","J3 harms","Changed groups","Dev. exact D2","Dev. exact D3"],
+              [[r["seed"],r["n"],r["fixes"],r["harms"],f"{r['changed_groups']}/{r['groups']}",
+                f"{r['two']['dev']['correct']}/{r['dev_n']}",f"{r['three']['dev']['correct']}/{r['dev_n']}"]
+               for r in data["depth_review"]])
+        line(f"Per-problem verdict changes, reward rates by arithmetic error and within-group preferences are in the <link href='{GITHUB}/blob/main/reports/reviews/depth-diagnosis.md'>depth analysis</link>. It was specified after seeing the first development contrast.")
     learning=data["learnability"]
     if learning["screen"]:
         line("Attainable benchmark amendment","Heading2")
@@ -452,6 +461,13 @@ def paper(data, date):
 
 def build():
     data = collect()
+    scoped = ORIGINAL_RESULTS / ("calibrated" if data["profile"] else "")
+    data["depth_review"] = collect_depth_review(scoped, data["profile"])
+    depth_file = REPORTS/"reviews/depth-diagnosis.md"
+    if data["depth_review"]:
+        atomic(depth_file,depth_review_text(data["depth_review"]))
+    else:
+        depth_file.unlink(missing_ok=True)
     data["learning_review"] = check_release(ORIGINAL_RESULTS)
     review_file = REPORTS/"reviews/learning-control.md"
     if data["learning_review"]:
@@ -473,6 +489,8 @@ def build():
     if "delta" in primary:
         status += f" Difference {100*primary['delta']:.2f} percentage points, conditional 95% interval [{100*primary['ci'][0]:.2f}, {100*primary['ci'][1]:.2f}]."
     summary = status+"\n\n"+score
+    if data["depth_review"]:
+        summary += f"\n\n[How the third judge changed actual training rewards and worked examples]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md)."
     learning = data["learnability"]
     if learning["screen"]:
         chosen = learning["screen"]["selected"]
@@ -526,7 +544,10 @@ def build():
     for label, done in milestones:
         marker="- [x] " if done else "- [ ] "
         post=post.replace("- [ ] "+label,marker+label).replace("- [x] "+label,marker+label)
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    diagnostic = readme_depth(data)
+    if diagnostic:
+        diagnostic += "## Study results\n\n"
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     methods=[]
