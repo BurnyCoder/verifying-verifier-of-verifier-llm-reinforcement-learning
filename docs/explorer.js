@@ -139,7 +139,7 @@ function showNewJudges() {
       const cohort=result.metrics?.[name], twins=result.metrics?.twins;
       if (!cohort?.n) continue;
       row(body,[result.model+" · "+result.phase+" · "+name,...cohort.depths.map(d => d.correct+"/"+cohort.n),
-        ...["visible","masked"].map(k => name==="balanced" ? twins[k]+"/"+twins.n : "—")]);
+        ...["visible","masked"].map(k => name==="balanced" ? twins[k]+"/"+twins.n : "—"),cohort.fixed+" / "+cohort.harmed]);
     }
     if (result.audit?.examples) {
       const details=document.createElement("details"), summary=document.createElement("summary");

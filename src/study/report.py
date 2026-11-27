@@ -488,7 +488,7 @@ def paper(data, date):
             story.append(image)
         for values in frozen_rows(data["newer_judges"]):
             name,*scores = values
-            line(escape(f"{name}. J1, J2 and J3 verdict accuracy: {', '.join(scores[:3])}. Visible and masked whole-pair accuracy: {', '.join(scores[3:])}."))
+            line(escape(f"{name}. J1, J2 and J3 verdict scores were {', '.join(scores[:3])}. Visible and masked whole-pair scores were {', '.join(scores[3:5])}. Judge 3 fixes / new errors relative to Judge 2 were {scores[5]}."))
         for r in data["newer_judges"]["results"]:
             if not r.get("metrics"):
                 line(escape(f"{r['model']}: {r['result']}."))

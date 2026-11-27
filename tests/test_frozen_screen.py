@@ -117,3 +117,13 @@ def test_conversion_comparison_matches_twin_requests_by_identity(tmp_path):
     append(right, {**observations[0], "id":"twins/unmatched/visible/0"})
     with pytest.raises(ValueError, match="identities"):
         compare_conversions(left, right)
+
+
+def test_frozen_table_shows_offsetting_errors_when_depth_scores_tie():
+    from study.frozen_report import HEAD, depth_rows
+    measures = {"balanced": {"n":4, "depths":[{"correct":2}]*3, "fixed":1, "harmed":1},
+                "natural":{"n":0}, "twins":{"n":2, "visible":1, "masked":0}}
+    row, = depth_rows({"results":[{"model":"fixture", "phase":"screen", "metrics":measures}]})
+    assert len(row) == len(HEAD)
+    assert row[2:4] == ["2/4", "2/4"]
+    assert row[-1] == "1 / 1"
