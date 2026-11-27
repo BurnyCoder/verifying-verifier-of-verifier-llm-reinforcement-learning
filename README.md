@@ -7,7 +7,7 @@ For example, a solver can give the right final answer to (4 + 3) × 2 while reco
 <!-- RESULTS:START -->
 ## Why did the two-judge and three-judge solvers diverge?
 
-**With seed 17, training the solver with two frozen judges gave 25/32 correct solutions (78.1%). Training it with three gave 3/32 (9.4%).** The gap was 22 complete solutions (-68.75 percentage points, three minus two). Both solvers started from the same model and saw the same problems in the same order. An integer program graded every intermediate step. On the paired problems, only the two-judge solver was correct on 23, only the three-judge solver on 1, both on 2, and neither on 6. These are development results on the calibrated arithmetic benchmark.
+**With seed 17, training the solver with two frozen judges gave 25/32 correct solutions (78.1%). Training it with three gave 3/32 (9.4%).** The gap was 22 complete solutions (-68.75 percentage points, three minus two). Only the solver adapter learned. All judging used the frozen, original Qwen instruction model. Both solvers started from the same model and saw the same problems in the same order. An integer program graded every intermediate step. On the paired problems, only the two-judge solver was correct on 23, only the three-judge solver on 1, both on 2, and neither on 6. These are development results on the calibrated arithmetic benchmark.
 
 The same evaluation gave 20/32 for the starting solver, 21/32 for one judge, 24/32 for three independent votes, 32/32 for the exact checker, 31/32 for the third judge gated by the exact checker, 5/32 for shuffled three-judge rewards.
 
@@ -33,7 +33,14 @@ On `(39 + 12) - 5`, the two-judge-trained solver wrote `51,46`. The three-judge-
 
 On the same 1,024 training answers sampled by the three-judge solver, Judge 3 fixed 58 of Judge 2’s verdicts and spoiled 44. Substituting Judge 2’s reward would have changed the relative credits in **81/256 optimizer updates**. Each GRPO update compares four answers to one question. When gradings change early on, the solvers can learn different answers and receive different training data at subsequent updates. [GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)
 
-Judge 3 rewarded **569/880 incorrect answers (64.7%)** and **88/144 correct answers (61.1%)**.
+Reading each frozen verdict on exactly the same sampled answers measures the change in reward for correct and incorrect arithmetic. A positive rate difference means correct answers receive reward more often.
+
+| Frozen reward source | Correct answers rewarded | Wrong answers rewarded | Correct minus wrong rate (pp) |
+| --- | --- | --- | --- |
+| Judge 2 | 104/144 (72.2%) | 599/880 (68.1%) | +4.2 |
+| Judge 3 | 88/144 (61.1%) | 569/880 (64.7%) | -3.5 |
+
+During its own training run, the two-judge solver generated 648/1,024 exact answers and received 751 positive rewards. The three-judge solver generated 144/1,024 exact answers and received 657 positive rewards. Each run sampled from its own evolving solver.
 
 | Within the same training question | Correct answer ranks higher | Tied | Wrong answer ranks higher |
 | --- | --- | --- | --- |

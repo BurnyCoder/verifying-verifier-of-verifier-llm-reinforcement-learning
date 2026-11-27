@@ -50,11 +50,15 @@ def group_evidence(deep):
     """Replay both reward rules on identical samples, preserving the four-way GRPO groups."""
     fixes = harms = changed = 0
     preferences = [Counter(), Counter()]
+    paid = [dict(correct=0,wrong=0) for _ in range(2)]
     for group in batched(deep, 4):
         if len(group) != 4:
             raise ValueError("A comparison requires four samples per group")
         labels = [r["label"] for r in group]
         second, third = [[effective_bit(r["reports"][index]) for r in group] for index in (1, 2)]
+        for counts, votes in zip(paid,(second,third),strict=True):
+            for label,bit in zip(labels,votes,strict=True):
+                counts["correct" if label else "wrong"] += bit
         fixes += sum(a != y and b == y for a, b, y in zip(second, third, labels, strict=True))
         harms += sum(a == y and b != y for a, b, y in zip(second, third, labels, strict=True))
         # Centered binary returns induce the same normalized advantages if both vectors are constant.
@@ -65,7 +69,7 @@ def group_evidence(deep):
             good, bad = (i, j) if labels[i] else (j, i)
             for counts, votes in zip(preferences, (second, third), strict=True):
                 counts[votes[good] - votes[bad]] += 1
-    return dict(fixes=fixes, harms=harms, changed_groups=changed,
+    return dict(fixes=fixes, harms=harms, changed_groups=changed, same_answers_paid=paid,
                 j2_pairs=[preferences[0][i] for i in (1, 0, -1)], j3_pairs=[preferences[1][i] for i in (1, 0, -1)])
 
 
@@ -138,6 +142,19 @@ def audited_seed(directory, seed):
                 transcript_audit=read_json(directory/"diagnostics"/f"depth-transcripts-{seed}.json"), **group_evidence(deep))
 
 
+def reward_rates(r):
+    """Compare final-bit reward rates on the identical examples at each depth."""
+    valid = r["three"]["training"]["correct"]
+    wrong = r["n"]-valid
+    records = []
+    for level,paid in enumerate(r["same_answers_paid"],2):
+        counts = [(paid["correct"],valid),(paid["wrong"],wrong)]
+        cells = [f"{n}/{total} ({100*n/total:.1f}%)" if total else "0/0" for n,total in counts]
+        gap = f"{100*(paid['correct']/valid - paid['wrong']/wrong):+.1f}" if valid and wrong else "—"
+        records.append([f"Judge {level}",*cells,gap])
+    return markdown(["Frozen reward source","Correct answers rewarded","Wrong answers rewarded","Correct minus wrong rate (pp)"],records)
+
+
 def readme_depth(data):
     """Keep the original seed's worked examples visible as later replications arrive."""
     reviews = data["depth_review"]
@@ -155,6 +172,7 @@ def readme_depth(data):
         f"**With seed {seed}, training the solver with two frozen judges gave {two_correct}/{n} correct "
         f"solutions ({100*two_correct/n:.1f}%). Training it with three gave {correct}/{n} ({100*correct/n:.1f}%).** "
         f"The gap was {abs(correct-two_correct)} complete solutions ({100*(correct-two_correct)/n:+.2f} percentage points, three minus two). "
+        f"Only the solver adapter learned. All judging used the frozen, original Qwen instruction model. "
         f"Both solvers started from the same model and saw the same problems in the same order. An integer program "
         f"graded every intermediate step. On the paired problems, only the two-judge solver was correct on "
         f"{paired['two only']}, only the three-judge solver on {paired['three only']}, both on {paired['both']}, "
@@ -189,10 +207,6 @@ def readme_depth(data):
         e = r["shared_error"]
         sections.append(f"On `{e['expression']}`, the two-judge-trained solver wrote `{e['right']}`. The three-judge-trained "
                         f"solver wrote `{e['wrong']}`, and all three judges approved it in the replay.")
-    valid = deep["training"]["correct"]
-    wrong = r["n"]-valid
-    valid_paid = deep["rewarded"]["correct"]
-    wrong_paid = sum(deep["rewarded"].values())-valid_paid
     sections += ["### What changed during training?",
         f"On the same {r['n']:,} training answers sampled by the three-judge solver, Judge 3 fixed {r['fixes']} "
         f"of Judge 2’s verdicts and spoiled {r['harms']}. Substituting Judge 2’s reward would have changed the "
@@ -200,9 +214,13 @@ def readme_depth(data):
         "Each GRPO update compares four answers to one question. When gradings change early on, the solvers can "
         "learn different answers and receive different training data at subsequent updates. "
         "[GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)",
-        f"Judge 3 rewarded **{wrong_paid}/{wrong} incorrect answers ({100*wrong_paid/wrong:.1f}%)** and "
-        f"**{valid_paid}/{valid} correct answers ({100*valid_paid/valid:.1f}%)**." if valid and wrong else
-        f"Judge 3 rewarded {wrong_paid}/{wrong} incorrect and {valid_paid}/{valid} correct answers.",
+        "Reading each frozen verdict on exactly the same sampled answers measures the change in reward for correct "
+        "and incorrect arithmetic. A positive rate difference means correct answers receive reward more often.",
+        reward_rates(r),
+        f"During its own training run, the two-judge solver generated {r['two']['training']['correct']}/{r['n']:,} "
+        f"exact answers and received {sum(r['two']['rewarded'].values())} positive rewards. The three-judge solver "
+        f"generated {deep['training']['correct']}/{r['n']:,} exact answers and received {sum(deep['rewarded'].values())} positive rewards. "
+        "Each run sampled from its own evolving solver.",
         markdown(["Within the same training question", "Correct answer ranks higher", "Tied", "Wrong answer ranks higher"],
                  [["Judge 2 on those answers",*r["j2_pairs"]],["Judge 3 on those answers",*r["j3_pairs"]]]),
         f"In its first quarter of training, the three-judge solver produced {deep['first_quarter'][0]} correct "
@@ -306,7 +324,9 @@ def review_text(reviews):
                       ("correct","first wrong, second consistent","first wrong, second inconsistent","second wrong","format")]),
             f"On the same {r['n']} training answers, Judge 3 fixed {r['fixes']} effective Judge 2 verdicts and "
             f"spoiled {r['harms']}. Its decision changed the within-group advantages in {r['changed_groups']}/{r['groups']} "
-            "optimizer updates. Each row below compares correct and incorrect completions of the same question. "
+            "optimizer updates. Reward rates compare all answers of each class on this fixed trajectory.",
+            reward_rates(r),
+            "Within-question pairs compare correct and incorrect completions of the same problem. "
             "Pairs within and across rows share observations.",
             markdown(["Reward applied to these answers", "Correct ranks higher", "Tied", "Incorrect ranks higher"],
                      [["Judge 2",*r["j2_pairs"]],["Judge 3",*r["j3_pairs"]]]),

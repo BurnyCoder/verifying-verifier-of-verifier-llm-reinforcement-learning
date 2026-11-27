@@ -195116,6 +195116,16 @@
       "fixes": 58,
       "harms": 44,
       "changed_groups": 81,
+      "same_answers_paid": [
+        {
+          "correct": 104,
+          "wrong": 599
+        },
+        {
+          "correct": 88,
+          "wrong": 569
+        }
+      ],
       "j2_pairs": [
         28,
         81,
