@@ -97,6 +97,8 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 
 | Run | Treatment or measurement | Status | Development or pilot result | Held-out result |
 | --- | --- | --- | --- | --- |
+| new-judges/q35-9b-ollama | Qwen3.5-9B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
+| new-judges/q35-4b-ollama | Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
 | new-judges/q25-1p5b | Qwen2.5-1.5B-Instruct frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-4b | Qwen3.5-4B frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-9b | Qwen3.5-9B frozen, same-runtime screen | Planned | Pending | — |

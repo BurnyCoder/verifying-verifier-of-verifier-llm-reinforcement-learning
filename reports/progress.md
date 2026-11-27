@@ -4,6 +4,14 @@
 
 [Run inventory, including upcoming experiments](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/run-inventory.md) · [Newer frozen Qwen protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md)
 
+Owner prioritized GPU-only frozen newer Qwen judging and deferred optimization and sealed evaluation to a later day. Any conditional solver training with a newer judge is also deferred.
+
+calibrated/top-depth2 · Paused · 20/256 logged, checkpoint 16.
+
+## Newer frozen judges on fixed solver answers
+
+No completed fixed-trace score has been released.
+
 The matched-depth extension has trained 3 of 4 additional shallow solvers. [Extension](matched-depth-protocol.md).
 
 The timing pilot selected 256 updates per block at 38.3 seconds per pilot update. A block at that rate would take 2.72 hours.

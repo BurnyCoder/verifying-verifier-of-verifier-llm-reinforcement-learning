@@ -14,6 +14,8 @@ Test models serially. Request all transformer layers, embeddings, output head, K
 
 ## Cases, endpoints and decision
 
+Before any frozen-judge inference, inspection found two additional locally installed Q4_K_M text artifacts. Run the 9B and 4B Ollama-packaged weights first, through the same CUDA llama.cpp runtime and the native upstream template. These deployment replicates get separate IDs, the full screening cohort and their own raw results. The registered screen and winner selection still use the four specified Hugging Face configurations. A tag or model family name does not identify a conversion, so reproducibility uses the exact registry blob digest. [Ollama 9B artifact](https://ollama.com/library/qwen3.5:9b) · [Ollama 4B artifact](https://ollama.com/library/qwen3.5:4b) · [Immutable model digests](../src/study/frozen_models.py)
+
 The current allocation covers frozen-judge inference, including independent confirmation. The owner deferred all solver optimization to a later day. The online arms remain prospective conditional experiments.
 
 1. **Natural replay.** For each feasible model, give the complete chain the same 32 archived starting-solver traces. J2 reads that model's actual J1 report and J3 reads its actual J1 and J2 reports. Record each depth's verdict and whole-report accuracy, false accepts, false rejects and malformed reports. Count J2-to-J3 fixes and harms on the same responses. Any gain here leaves the saved solver answers fixed.

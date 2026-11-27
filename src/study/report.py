@@ -15,6 +15,7 @@ from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
 from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
+from .frozen_report import collect_frozen, depth_rows as frozen_rows, frozen_text
 from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
@@ -136,7 +137,8 @@ def collect():
                 sample = list(rows(target/"replay.jsonl"))
                 archive.append(dict(name=name, correct=sum(r["correct"] for r in sample), n=len(sample)))
     contrasts = dict(primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"))
-    return dict(runs=runs, inventory=inventory(ORIGINAL_RESULTS,profile,runs,contrasts), matched_depth=accuracy_grid(source,profile),
+    return dict(runs=runs, inventory=inventory(ORIGINAL_RESULTS,profile,runs,contrasts),
+                newer_judges=collect_frozen(ORIGINAL_RESULTS/"new-judges"), matched_depth=accuracy_grid(source,profile),
                 **contrasts, planned=registered,
                 learnability=learning, profile=profile, original_development=archive,
                 budget=read_json(source/"budget.json"), sealed=(source/"seal.json").is_file(),
@@ -475,6 +477,20 @@ def paper(data, date):
     story.append(PageBreak())
     line("Run inventory","Heading1")
     line(GUIDE)
+    if data["newer_judges"]["results"]:
+        line("Frozen Qwen verdict and evidence scores", "Heading2")
+        for values in frozen_rows(data["newer_judges"]):
+            name,*scores = values
+            line(escape(f"{name}. J1, J2 and J3 verdict accuracy: {', '.join(scores[:3])}. Visible and masked whole-pair accuracy: {', '.join(scores[3:])}."))
+        for r in data["newer_judges"]["results"]:
+            if not r.get("metrics"):
+                line(escape(f"{r['model']}: {r['result']}."))
+        decision=data["newer_judges"]["decision"]
+        if decision:
+            line(escape(decision["result"]+"."))
+            for name,e in decision.get("estimates",{}).items():
+                lo,hi=e["ci"]
+                line(escape(f"{name}, paired difference {e['delta']*100:+.2f} pp (95% interval {lo*100:+.2f} to {hi*100:+.2f})."))
     line(f"Model sizes, pinned weights, inclusion rules and the separate follow-up protocol are available in the <link href='{GITHUB}/blob/main/reports/newer-frozen-judges.md'>newer frozen judge protocol</link>. The calibrated final assessment includes paired depth and flat-vote contrasts, signed-difficulty, layout and length transfer, natural verdict changes and visible/masked evidence interventions.")
     from reportlab.lib.styles import ParagraphStyle
     small = ParagraphStyle("InventoryCell", parent=styles["BodyText"], fontSize=7.6, leading=9.6, spaceBefore=0, spaceAfter=0)
@@ -588,11 +604,13 @@ def build():
                            +late_rewards(first)+
                            f" [All four quarters, denominators and original records]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md).")
     ledger = inventory_markdown(data["inventory"])
+    frozen_summary = frozen_text(data["newer_judges"])
+    atomic(REPORTS/"experiments/new-judges/experiment.md", frozen_summary+"\n\n[Protocol and case selection](../../newer-frozen-judges.md).\n")
     ledger_links = (f"[Run inventory, including upcoming experiments]({GITHUB}/blob/main/reports/run-inventory.md) · "
                     f"[Newer frozen Qwen protocol]({GITHUB}/blob/main/reports/newer-frozen-judges.md)")
     atomic(REPORTS/"run-inventory.md","# Run inventory\n\n"+ledger+"\n\n"+ledger_links+"\n")
     atomic(REPORTS/"summary.md","# Study summary\n\n"+ledger_links+"\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
-           summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n\n## Run inventory\n\n"+ledger+"\n")
+           summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n\n"+frozen_summary+"\n\n## Run inventory\n\n"+ledger+"\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)
@@ -621,7 +639,7 @@ def build():
     if diagnostic:
         diagnostic += "## Study results\n\n"
     inline_inventory = ("<details>\n<summary>All runs, their results, and what is still scheduled</summary>\n\n"+ledger+"\n\n</details>\n\n")
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+ledger_links+"\n\n"+inline_inventory+grid_text+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+ledger_links+"\n\n"+inline_inventory+grid_text+frozen_summary+"\n\n"+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     methods=[]
@@ -671,6 +689,13 @@ def build():
     complete=sum(r["completed_final"] for r in core)
     trained=sum(r["updates"] is not None for r in core)
     activity = [ledger_links]
+    operations=read_json(ORIGINAL_RESULTS/"run-snapshot.json",{})
+    if operations.get("campaign")=="deferred":
+        activity.append(operations["reason"]+" Any conditional solver training with a newer judge is also deferred.")
+        for entry in data["inventory"]:
+            if entry["status"].startswith("Paused"):
+                activity.append(entry["id"]+" · "+entry["status"]+".")
+        activity.append(frozen_summary)
     if profile:
         extra=[r for r in data["runs"] if r["supplemental"]]
         activity.append(f"The matched-depth extension has trained {sum(r['updates'] is not None for r in extra)} "
@@ -681,7 +706,7 @@ def build():
         for r in data["runs"]:
             root = ORIGINAL_RESULTS if r["diagnostic"] else source
             recipe = read_json(root/r["name"]/"recipe.json", {})
-            if r["name"]!="base" and r["updates"] is None and recipe:
+            if r["name"]!="base" and r["updates"] is None and recipe and operations.get("campaign")!="deferred":
                 activity.append(f"{r['name']} has scored {r['groups']} complete rollout groups against its target of {recipe['updates']}. The live dashboard reads incoming observations between releases.")
     atomic(REPORTS/"progress.md",f"# Progress · {date}\n\n{trained} of {data['planned']} registered training blocks have completed. {complete} have completed final evaluation. {status}\n\n"+"\n\n".join(activity)+"\n\nThe first single-seed solver has a 14-hour target. The matrix has a one-week training target. Monitoring cadence and milestone order are in the [plan](plan.md). The [experiment index](experiments/experiments.md) contains available development observations.\n")
     paper(data,date)

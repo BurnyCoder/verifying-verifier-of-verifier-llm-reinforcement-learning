@@ -125,6 +125,25 @@ function showInventory() {
     }
   }
 }
+function showNewJudges() {
+  const body = byId("frozen-scores");
+  body.replaceChildren();
+  const newer = study.newer_judges ?? {};
+  const messages = [];
+  for (const result of newer.results ?? []) {
+    messages.push(result.model+" · "+result.phase+" · "+result.result);
+    for (const name of ["balanced","natural"]) {
+      const cohort=result.metrics?.[name], twins=result.metrics?.twins;
+      if (!cohort?.n) continue;
+      row(body,[result.model+" · "+result.phase+" · "+name,...cohort.depths.map(d => d.correct+"/"+cohort.n),
+        ...["visible","masked"].map(k => name==="balanced" ? twins[k]+"/"+twins.n : "—")]);
+    }
+  }
+  for (const r of study.inventory ?? []) if (r.id.startsWith("new-judges/") &&
+      (r.status.startsWith("Evaluating") || r.status.startsWith("Checking GPU"))) messages.push(r.id+" · "+r.status);
+  if (newer.decision?.result) messages.push(newer.decision.result);
+  byId("frozen-status").textContent=messages.join(". ") || "Waiting for the first completed GPU-only evaluation.";
+}
 byId("inventory-phase").addEventListener("change", showInventory);
 function showRun() {
   const r = study?.runs.find(item => item.name === byId("run").value);
@@ -171,6 +190,7 @@ async function update() {
     if (study.profile?.family) byId("progress").textContent += " Amended benchmark · "+study.profile.family+" arithmetic with "+study.profile.style+" prompts.";
     showMatched(study.matched_depth ?? []);
     showInventory();
+    showNewJudges();
     const trajectory=byId("depth-trajectory");
     const ready=study.profile?.family==="two-add" && ["d2-17","d3-17"].every(id=>study.runs.some(r=>r.name===id && r.completed_development));
     if (ready && !trajectory.hasAttribute("src")) {

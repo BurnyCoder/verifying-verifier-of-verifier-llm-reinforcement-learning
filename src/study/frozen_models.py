@@ -40,3 +40,13 @@ SMALLER_FILES = {
         ("Qwen3.8-27B-UD-IQ1_M.gguf", "1b5165a7149ea51e683c8eaf23372188ad9fc9d1a795386f7a1b558acf847dc6", 6729166848),
         ("Qwen3.8-27B-UD-IQ1_S.gguf", "3895b6eaa91e705c06ad1938d16c22e86f073c6a67df86260a1da79be3d1f887", 6192222208)),
 }
+
+# Deployment replicates from an independent packager, outside the registered model-selection pool.
+LOCAL_REPLICATES = (
+    FrozenModel("q35-9b-ollama","Qwen3.5-9B",MODELS[2].base_revision,"ollama/library/qwen3.5",
+                "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+                "Ollama-Qwen3.5-9B-Q4_K_M.gguf","02d45dc1cf451ba2475ac33b301c2dd8f985abe4c182ce04a1f2f5bf0260278d",5629109120),
+    FrozenModel("q35-4b-ollama","Qwen3.5-4B",MODELS[1].base_revision,"ollama/library/qwen3.5",
+                "d8b0f5e9760cd1682034f292d7ef72ec46f432149be0df7574bf2d6e92e38c04",
+                "Ollama-Qwen3.5-4B-Q4_K_M.gguf","a9d0a3e1d8c91732a3812becd31f8d4a8ff57414903f226306069f0437e2ac50",2648593216),
+)

@@ -95,6 +95,10 @@ In the last quarter Judge 3 rewarded **2/15 correct attempts** and **169/241 wro
 
 Solver scores require every intermediate value. Judge scores require all fields of the evidence record. Intervals condition on the trained checkpoints. [Preregistration](preregistration.md).
 
+## Newer frozen judges on fixed solver answers
+
+No completed fixed-trace score has been released.
+
 ## Run inventory
 
 The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver score counts complete arithmetic traces. A trained judge score counts complete evidence records. Stack replays report verdict agreement at each depth on the same saved answers. Pending means the phase has no completed measurement. A dash marks an inapplicable endpoint. Timing and calibration are outside the primary comparison.
@@ -194,6 +198,8 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 
 | Run | Treatment or measurement | Status | Development or pilot result | Held-out result |
 | --- | --- | --- | --- | --- |
+| new-judges/q35-9b-ollama | Qwen3.5-9B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
+| new-judges/q35-4b-ollama | Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
 | new-judges/q25-1p5b | Qwen2.5-1.5B-Instruct frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-4b | Qwen3.5-4B frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-9b | Qwen3.5-9B frozen, same-runtime screen | Planned | Pending | — |
