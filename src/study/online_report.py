@@ -114,6 +114,24 @@ def verified_training(folder, depth, keys, identity, updates):
     return effective
 
 
+def replay_verdicts(records):
+    """Reconstruct both graders' field-four decisions while holding the literal solver answers fixed."""
+    summary = dict(n=0, solver=0, j2_correct=0, j3_correct=0, fixed=0, harmed=0)
+    for row in records:
+        correct = row["valid"]
+        second, third = [effective_bit(report) for report in row["reports"][1:]]
+        for bit, grade in zip((second, third), row["grades"][1:], strict=True):
+            if (bit, bit==correct) != (grade["verdict"], grade["agreement"]):
+                raise ValueError("Frozen judge's literal solution verdict differs from the replay grade")
+        summary["n"] += 1
+        summary["solver"] += correct
+        summary["j2_correct"] += second==correct
+        summary["j3_correct"] += third==correct
+        summary["fixed"] += second!=correct and third==correct
+        summary["harmed"] += second==correct and third!=correct
+    return summary
+
+
 def verify_pair(root):
     """Verify both interventions, held-fixed inputs, raw terminal rewards, and paired endpoint."""
     plan = read_json(root/"new-judges/online-plan.json", {})
@@ -124,7 +142,7 @@ def verify_pair(root):
     baseline = exact_scores(root/"calibrated/base/replay.jsonl", keys)
     identity = read_json(root/NAMES[0]/"recipe.json")["initial_adapter_sha256"]
     signatures = check_exposures(root, [Run(name) for name in NAMES])
-    trajectories, scores, examples, weights = [], [], [], []
+    trajectories, scores, examples, weights, replays = [], [], [], [], []
     for depth, name in enumerate(NAMES, 2):
         folder = root/name
         trajectories.append(verified_training(folder, depth, keys, identity, plan["updates"]))
@@ -140,6 +158,7 @@ def verify_pair(root):
         for row, output in zip(replay,rows(folder/"solutions.jsonl"),strict=True):
             if row["trace"]!=output["trace"] or row["valid"]!=score[row["key"]]:
                 raise ValueError("Development review supplied a different trace")
+        replays.append(replay_verdicts(replay))
         scores.append(score)
         examples.append({r["key"]:r for r in replay})
     a,b = scores
@@ -155,7 +174,7 @@ def verify_pair(root):
     first = [[r["answer"] for r in arm[:4]] for arm in trajectories]
     comparison = dict(vs_base=[paired_change(s,baseline) for s in scores], d3_minus_d2=difference,
                       initial_adapter_sha256=identity, first_four_answers_matched=first[0]==first[1],
-                      final_adapter_sha256=weights, matched_groups=same,
+                      final_adapter_sha256=weights, matched_groups=same, development_replays=replays,
                       prompt_order_sha256=signatures, examples=cases)
     write_json(root/"new-judges/online-comparison.json", comparison)
     return comparison
@@ -193,9 +212,18 @@ def online_text(study):
     if not study:
         return ""
     head, table = score_table(study)
-    return ("## Solvers trained with frozen Qwen3.5-4B judges\n\n"+markdown(head, table)+"\n\n"+conclusion(study)+
+    text = ("## Solvers trained with frozen Qwen3.5-4B judges\n\n"+markdown(head, table)+"\n\n"+conclusion(study)+
             f" [Protocol and decoder]({GITHUB}/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · "
             f"[Rollouts, rewards and exact scores]({GITHUB}/tree/main/results/new-judges).\n\n")
+    replays = study.get("comparison", {}).get("development_replays", [])
+    if replays:
+        columns = ["Whose written answers?", "Exact solver answers", "Correct J2 verdicts", "Correct J3 verdicts", "J3 fixes", "J3 new errors"]
+        data = [[f"Solver trained with Judge {i}", *(f"{r[k]}/{r['n']}" for k in ("solver","j2_correct","j3_correct")),
+                 r["fixed"],r["harmed"]] for i,r in enumerate(replays, 2)]
+        text += ("### Grading each checkpoint's fixed answers\n\n"+markdown(columns,data)+
+                 "\n\nA correct verdict accepts correct arithmetic or rejects an arithmetic or format error. "
+                 "Changing a verdict in this replay leaves the solver’s written answer fixed.\n\n")
+    return text
 
 
 def experiment_pages(study, destination):
@@ -255,6 +283,28 @@ def fit_text(measured):
             "\n\nStarting accuracy uses greedy decoding on the same train-split calibration problems before the disposable update. "
             "The 4B judge ran on the same GPU. Peak allocation is PyTorch memory for the solver process alone. "
             f"[Hardware protocol]({GITHUB}/blob/main/reports/solver-precision.md) · [Measured costs and outcomes]({GITHUB}/tree/main/results/solver-fit).\n\n")
+
+
+def fit_pages(measured, destination):
+    """Make each hardware observation traceable to its checkpoint, calibration outputs and optimizer log."""
+    for r in measured:
+        key = r["key"]
+        record = f"{GITHUB}/tree/main/results/solver-fit/{key}"
+        if "group_rewards" in r:
+            bits = ", ".join(map(str, r["group_rewards"]))
+            gradient = r.get("gradient_norm")
+            value = format(gradient, ".4g") if gradient is not None else "unavailable"
+            signal = "equal rewards" if len(set(r["group_rewards"]))==1 else "mixed rewards"
+            note = (f"The four rewards were [{bits}]. The optimizer received {signal} and recorded a gradient norm "
+                    f"of {value}. One optimizer step measures hardware feasibility. Establishing a learning "
+                    f"effect requires repeated updates and a separate evaluation. [Raw measurements]({record}).")
+            model_path = f"https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/main/runs/solver-fit/{key}"
+            note += f" [One-step adapter]({model_path})."
+        else:
+            note = f"The GPU trial ended with this placement or allocation error. `{r['reason']}` [Device record]({record})."
+        title = f"{r['model'].split('/')[-1]} at {r['precision'].upper()}"
+        atomic(destination/key/"experiment.md", f"# {title}\n\n"+fit_text([r])+note+"\n")
+        atomic(destination/key/"learnings.md", f"# Hardware findings for {title}\n\n"+note+"\n")
 
 
 def paired_review(study):

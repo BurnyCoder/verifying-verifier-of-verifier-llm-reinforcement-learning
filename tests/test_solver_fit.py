@@ -3,6 +3,7 @@
 import pytest
 
 from study import cli, solver_fit
+from study.domain import Problem
 from study.online_report import fit_results, fit_table, signal
 from study.storage import write_json
 
@@ -37,3 +38,14 @@ def test_all_approve_versus_all_reject_has_zero_centered_advantage():
     data = [rollout(0,0,1) for _ in range(4)] + [rollout(1,0,bit) for bit in (0,0,0,1)]
     s = signal(data)
     assert (s["groups"],s["j3_harmed"],s["changed_advantage_groups"],s["mixed"])==(2,5,1,1)
+
+
+def test_precision_trial_rescores_literal_outputs_and_preserves_partial_denominators():
+    problem = Problem.from_expression("((4 + 3) * 2)")
+    other = Problem.from_expression("((5 + 2) * 3)")
+    row = dict(key=problem.key, expression=problem.expression, answer="8,14", correct=0, parsed=True)
+    assert solver_fit.starting_scores([problem, other], [row]) == dict(n=1, correct=0, parsed=1)
+    with pytest.raises(ValueError, match="calibration"):
+        solver_fit.starting_scores([problem, other], [{**row, "correct": 1}])
+    with pytest.raises(ValueError, match="calibration"):
+        solver_fit.starting_scores([other, problem], [row])

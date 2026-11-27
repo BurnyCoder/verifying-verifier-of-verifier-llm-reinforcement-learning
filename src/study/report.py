@@ -651,6 +651,7 @@ def build():
     frozen_summary += frozen_chart
     experiment_pages(data["newer_judges"], REPORTS/"experiments/new-judges")
     online_report.experiment_pages(data["online_solvers"], REPORTS/"experiments/new-judges")
+    online_report.fit_pages(data["solver_fit"], REPORTS/"experiments/solver-fit")
     atomic(REPORTS/"experiments/new-judges/experiment.md", frozen_summary+"\n\n[Protocol and case selection](../../newer-frozen-judges.md).\n")
     findings = interpretation(data["newer_judges"])
     if findings:
@@ -736,8 +737,9 @@ def build():
         notes.append(f"- [{sub}{r['name']}]({sub}{r['name']}/learnings.md). {obs}")
     references="\n".join(f"- [{r['name']}]({'' if r['diagnostic'] else prefix}{r['name']}/experiment.md)" for r in data["runs"])
     references+="".join(f"\n- [Original {r['name']}]({r['name']}/experiment.md)" for r in data["original_development"])
+    references+="".join(f"\n- [Hardware trial with {r['model']} at {r['precision'].upper()}](solver-fit/{r['key']}/experiment.md)" for r in data["solver_fit"])
     methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
-    atomic(experiments/"experiments.md","# Experiment index\n\n"+online_summary+ledger_links+"\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
+    atomic(experiments/"experiments.md","# Experiment index\n\n"+online_summary+ledger_links+"\n\nThe original and calibrated training comparisons use grouped reinforcement learning with one active LoRA adapter on Qwen2.5-1.5B-Instruct. The solver predicts values in signed-integer expression trees. Judges predict evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right. The hardware trials state the backbone and storage precision for each disposable update.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     link_to_findings = "[Frozen judge comparisons and independent confirmation](new-judges/learnings.md).\n\n" if findings else ""
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+online_summary+link_to_findings+("\n".join(notes) or "No experimental observations yet.")+"\n")
     core=[r for r in data["runs"] if r["name"]!="base" and not r["diagnostic"] and not r["supplemental"]]

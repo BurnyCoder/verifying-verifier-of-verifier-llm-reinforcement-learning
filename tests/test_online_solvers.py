@@ -70,3 +70,11 @@ def test_online_dev_exact_scorer_rejects_broken_pairs(tmp_path):
     append(path, {**record, "correct":1})
     with pytest.raises(ValueError, match="exact"):
         exact_scores(path, [problem.key])
+def test_same_written_answers_keep_solver_score_separate_from_fixes_and_overturns():
+    from study.online_report import replay_verdicts
+    records = []
+    for correct, second, third in [(1,0,1),(0,0,1),(1,1,1)]:
+        bits = [second, third]
+        records.append(dict(valid=correct, reports=["1,0,1",*(f"1,0,1,{b},0,1" for b in bits)],
+                        grades=[{},*(dict(verdict=b,agreement=int(b==correct)) for b in bits)]))
+    assert replay_verdicts(records)==dict(n=3, solver=2, j2_correct=2, j3_correct=2, fixed=1, harmed=1)
