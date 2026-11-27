@@ -1,5 +1,7 @@
 # Study plan
 
+The current frozen-judge comparison includes a later-requested direct-judge baseline for the same original solver. Its training and evaluation use the parent experiment's fixed settings. [One-judge addendum](newer-frozen-judges.md#one-judge-baseline-addendum) · [Run inventory](run-inventory.md)
+
 The [run inventory](run-inventory.md) records each treatment and its endpoint. The [newer frozen Qwen experiment](newer-frozen-judges.md) tests fixed responses before allocating solver-training time to a selected judge. The original matched-depth comparison has its own deferred sealed evaluation.
 
 On 27 November the owner deferred the unfinished top-down two-judge solver, subsequent original optimization blocks and sealed evaluations. Its saved checkpoint is retained. After independent confirmation, the owner authorized two fresh solvers rewarded by frozen Qwen3.5-4B judges, followed by short GPU trials of the original solver at higher precision and a pretrained Qwen3.5 base checkpoint. [Online comparison](newer-frozen-judges.md#online-solver-comparison) · [Hardware trials](solver-precision.md)

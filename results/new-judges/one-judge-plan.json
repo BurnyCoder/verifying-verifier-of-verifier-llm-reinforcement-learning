@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-27",
+  "parent": "online-plan.json",
+  "depth": 1,
+  "comparators": [2, 3],
+  "status": "Requested after both comparator development scores were known, before single-judge inference",
+  "outcome": "Every step exact in one greedy response per shared development problem",
+  "contrasts": ["one minus starting solver", "two minus one", "three minus one"],
+  "analysis": "Matched problem gains and losses and descriptive paired 95% percentile bootstrap intervals conditional on the trained checkpoints"
+}

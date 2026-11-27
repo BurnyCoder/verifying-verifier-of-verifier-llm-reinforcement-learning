@@ -2,6 +2,8 @@
 
 Libor “Burny” Burian. Register before any model calls. The initial Git commit fixes this protocol. Record amendments with dates, visibility of outcomes, affected contrasts, and new version identifiers.
 
+On 27 November 2026 the single frozen Qwen3.5-4B judge baseline was added after the two- and three-judge development outcomes were known, before training the single-judge solver. Its paired development contrasts and timing are in the [dated addendum](newer-frozen-judges.md#one-judge-baseline-addendum).
+
 ## Outcomes and decision rule
 
 The primary estimand is the mean paired difference in exact complete-trace pass@1 between a solver trained with three frozen judges and one trained with two. Evaluate each final checkpoint once by greedy decoding on the same 2,048 unique in-distribution problem IDs. Average the paired differences across seeds 17, 29 and 43 with equal weight. Resample whole problem IDs with replacement 10,000 times, preserving arms, seeds and all variants within a problem. Report a percentile 95% interval conditional on these checkpoints, per-seed estimates and spread. A lower endpoint above +0.03 supports the practical target. An upper endpoint below +0.03 rules out a gain of that size. All other outcomes are inconclusive for that target. Missing pairs or seeds preclude the registered pooled decision. The week is a compute target, not a significance stopping rule.
