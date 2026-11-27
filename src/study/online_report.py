@@ -12,7 +12,7 @@ from .learnability_analysis import paired_change
 from .learning_review import execute_steps
 from .online_evidence import audit_intervention, paired_examples, solver_bit
 from .online_solvers import NAMES, ORIGINAL_PAIR, SINGLE
-from .online_trajectory import trajectory_evidence, trajectory_note, trajectory_text
+from .online_trajectory import cross_run_differences, trajectory_evidence, trajectory_note, trajectory_text
 from .prompts import messages
 from .records import terminal
 from .storage import atomic, read_json, rows, write_json
@@ -225,15 +225,19 @@ def verify_three_depths(root, pair):
         for previous in range(1,depth):
             interventions.append(dict(depth=depth,lower=previous,upper=depth,
                                       **audit_intervention(rows(target/"rollouts.jsonl"),previous,depth)))
+        unanimous = sum(len({g["verdict"] for g in r["grades"]})==1 for r in replay)
         arms.append(dict(depth=depth,**audit,j1_correct=sum(b==r["valid"] for b,r in zip(direct,replay,strict=True)),
+                         unanimous_solution_verdicts=unanimous,
                          train_calls=cost["calls"],judge_input_tokens=cost["input_tokens"],judge_output_tokens=cost["output_tokens"],
                          train_seconds=read_json(target/"trained.json")["elapsed_seconds"],
                          final_adapter_sha256=read_json(target/"development.json")["weights"]))
     differences = dict(one_minus_base=paired_change(scores[1],scores[0]),
                        two_minus_one=paired_change(scores[2],scores[1]), three_minus_one=paired_change(scores[3],scores[1]),
                        three_minus_two=pair["d3_minus_d2"])
+    trajectories = {name:cross_run_differences(rows(folder/"rollouts.jsonl"),rows(root/name/"rollouts.jsonl"))
+                    for name in ORIGINAL_PAIR}
     result = dict(arms=arms, contrasts=differences, initial_adapter_sha256=identity, prompt_order_sha256=digests,
-                  interventions=interventions, examples=paired_examples(cohorts))
+                  interventions=interventions, examples=paired_examples(cohorts), trajectories_from_one=trajectories)
     write_json(root/"new-judges/three-depth-comparison.json", result)
     return result
 
@@ -279,6 +283,12 @@ def intervention_table(complete):
                   f"{i['changed_credit_groups']}/{i['groups']} groups"] for i in complete["interventions"]]
 
 
+def replay_agreement(complete):
+    arms = complete["arms"]
+    return (f"All three graders returned the same solution verdict on {sum(a['unanimous_solution_verdicts'] for a in arms)}"
+            f"/{sum(a['n'] for a in arms)} saved development answers across the three checkpoints.")
+
+
 def conclusion(study):
     c = study.get("comparison", {})
     if not c:
@@ -286,14 +296,24 @@ def conclusion(study):
     effect = c["d3_minus_d2"]
     lo,hi = effect["interval"]
     signal = next(a["signal"] for a in study["arms"] if a["depth"] == 3)
-    addition = ""
-    if study.get("three_depths"):
-        two = study["three_depths"]["contrasts"]["two_minus_one"]
-        three = study["three_depths"]["contrasts"]["three_minus_one"]
-        addition = (f"Relative to the one-judge solver, two judges changed development accuracy by {100*two['delta']:+.2f} "
-                    f"percentage points and three judges by {100*three['delta']:+.2f}. "
-                    "The one-judge baseline was registered after both deeper scores were known. ")
-    return (addition+f"The three-judge solver changed exact development accuracy by {100*effect['delta']:+.2f} percentage points "
+    complete = study.get("three_depths",{})
+    if complete:
+        two,three = [complete["contrasts"][k] for k in ("two_minus_one","three_minus_one")]
+        direct = next(i for i in complete["interventions"] if i["depth"]==2)
+        summary = (f"Relative to the one-judge solver, the two-judge solver gained {two['fixed']} solutions and lost {two['harmed']}. "
+                   f"The three-judge solver gained {three['fixed']} and lost {three['harmed']}. Three minus two was "
+                   f"{100*effect['delta']:+.2f} percentage points. The one-judge baseline was registered after the deeper scores were known. "
+                   f"On the two-judge run’s own training answers, Judge 2 changed relative credit in {direct['changed_credit_groups']}/{direct['groups']} groups compared with Judge 1. "
+                   f"On the three-judge run’s own answers, Judge 3 fixed {signal['j3_fixed']} verdicts and introduced {signal['j3_harmed']} errors, "
+                   f"changing relative credit in {signal['changed_advantage_groups']}/{signal['groups']} groups. ")
+        timing = complete.get("trajectories_from_one",{}).get(ORIGINAL_PAIR[0],{})
+        first, credit = timing.get("first_answer_difference"),timing.get("first_credit_difference")
+        if first is not None and credit is not None and first < credit:
+            summary += (f"The one- and two-judge runs first sampled different answers at update {first}. "
+                        f"Their actual relative credit first differed at update {credit}. "
+                        "The logs leave the cause of the initial divergence unresolved. ")
+        return summary+"The paired intervals describe these seed-17 checkpoints on the development cohort."
+    return (f"The three-judge solver changed exact development accuracy by {100*effect['delta']:+.2f} percentage points "
             f"relative to the two-judge solver (paired 95% interval {100*lo:+.1f} to {100*hi:+.1f}). "
             f"It gained {effect['fixed']} solutions and lost {effect['harmed']} on the {effect['n']} shared problems. "
             f"During three-judge training, Judge 3 fixed {signal['j3_fixed']} solution verdicts and introduced "
@@ -326,7 +346,10 @@ def online_text(study):
                  r["fixed"],r["harmed"]] for i,r in enumerate(replays, 2)]
         text += ("### Grading each checkpoint's fixed answers\n\n"+markdown(columns,data)+
                  "\n\nA correct verdict accepts correct arithmetic or rejects an arithmetic or format error. "
-                 "Changing a verdict in this replay leaves the solver’s written answer fixed.\n\n")
+                 "Changing a verdict in this replay leaves the solver’s written answer fixed.")
+        if complete:
+            text += " "+replay_agreement(complete)
+        text += "\n\n"
     return text
 
 

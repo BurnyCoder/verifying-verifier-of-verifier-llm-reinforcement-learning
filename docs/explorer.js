@@ -146,6 +146,14 @@ function showOnline() {
   byId("online-result").textContent=effect ? "The accuracy difference on the same development questions (three judges minus two) was "+(effect.delta*100).toFixed(2)+" percentage points (paired 95% interval "+effect.interval.map(x=>(100*x).toFixed(1)).join(" to ")+")." :
     "Fresh seed-17 solver adapters receive the final judge’s verdict. The independent integer checker scores every arithmetic step.";
   const contrasts=online.three_depths?.contrasts, changes=byId("contrast-rows");
+  if (contrasts) {
+    const arms=online.three_depths.arms, total=arms.reduce((n,a)=>n+a.n,0);
+    const agree=arms.reduce((n,a)=>n+(a.unanimous_solution_verdicts ?? 0),0);
+    byId("online-result").textContent="The matched solvers trained with one, two and three frozen judges solved "+
+      arms.map(a=>a.solver+"/"+a.n).join(", ")+" development problems, respectively. "+
+      (arms.every(a=>a.unanimous_solution_verdicts!=null) ? "All three graders agreed on "+agree+"/"+total+" saved answers. " : "")+
+      "The one-judge baseline was added after the deeper scores were known. The paired intervals describe these seed-17 checkpoints.";
+  }
   byId("online-contrasts").hidden=!contrasts;
   changes.replaceChildren();
   for (const [key,label] of [["one_minus_base","One minus starting solver"],["two_minus_one","Two minus one"],["three_minus_one","Three minus one"],["three_minus_two","Three minus two"]]) {

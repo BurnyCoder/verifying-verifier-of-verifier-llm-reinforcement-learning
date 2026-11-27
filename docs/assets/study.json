@@ -245167,6 +245167,7 @@
           "fixed": 0,
           "harmed": 0,
           "j1_correct": 20,
+          "unanimous_solution_verdicts": 32,
           "train_calls": 1024,
           "judge_input_tokens": 293965,
           "judge_output_tokens": 6983,
@@ -245182,6 +245183,7 @@
           "fixed": 0,
           "harmed": 0,
           "j1_correct": 28,
+          "unanimous_solution_verdicts": 32,
           "train_calls": 2048,
           "judge_input_tokens": 752632,
           "judge_output_tokens": 20969,
@@ -245197,6 +245199,7 @@
           "fixed": 0,
           "harmed": 0,
           "j1_correct": 26,
+          "unanimous_solution_verdicts": 32,
           "train_calls": 3072,
           "judge_input_tokens": 1306285,
           "judge_output_tokens": 34985,
@@ -245460,7 +245463,83 @@
             ]
           ]
         }
-      ]
+      ],
+      "trajectories_from_one": {
+        "new-judges/winner-d2": {
+          "first_answer_difference": 8,
+          "first_credit_difference": 22,
+          "first_difference": {
+            "expression": "(10 + 10) - 10",
+            "answers": [
+              [
+                "20,10",
+                "20,10",
+                "20,10",
+                "20,10"
+              ],
+              [
+                "20,10",
+                "20,10",
+                "20,10",
+                "10,0"
+              ]
+            ],
+            "rewards": [
+              [
+                1,
+                1,
+                1,
+                1
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ]
+          },
+          "same_answers": 141,
+          "different_credits": 18
+        },
+        "new-judges/winner-d3": {
+          "first_answer_difference": 3,
+          "first_credit_difference": 3,
+          "first_difference": {
+            "expression": "(50 + 10) - 12",
+            "answers": [
+              [
+                "48,36",
+                "60, 48",
+                "60,48",
+                "48,36"
+              ],
+              [
+                "48,36",
+                "60, 48",
+                "60,48",
+                "60,48"
+              ]
+            ],
+            "rewards": [
+              [
+                0,
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                1,
+                1,
+                1
+              ]
+            ]
+          },
+          "same_answers": 125,
+          "different_credits": 23
+        }
+      }
     }
   },
   "solver_fit": [

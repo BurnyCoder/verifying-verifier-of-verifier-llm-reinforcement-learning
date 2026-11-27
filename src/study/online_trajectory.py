@@ -1,6 +1,6 @@
 """Reconstruct where the two solver trajectories first diverged and what the extra judge changed."""
 
-from itertools import batched
+from itertools import batched, tee
 
 from .depth_review import different_group_credit, effective_bit
 from .design import GITHUB
@@ -9,11 +9,10 @@ from .learning_review import execute_steps
 from .tables import markdown
 
 
-def trajectory_evidence(shallow, deep):
-    """Compare actual reward vectors across runs and both graders on each fixed three-judge group."""
+def cross_run_differences(shallow, deep):
+    """Find the first differing sampled texts and actual relative credits on matched prompt groups."""
     first_answer = first_credit = None
     same_answers = different_credits = 0
-    examples = {}
     first_difference = {}
     for update,(a,b) in enumerate(zip(batched(shallow,4),batched(deep,4),strict=True),1):
         answers = [[r["answer"] for r in group] for group in (a,b)]
@@ -26,6 +25,17 @@ def trajectory_evidence(shallow, deep):
             different_credits += 1
             if first_credit is None:
                 first_credit = update
+    return dict(first_answer_difference=first_answer, first_credit_difference=first_credit, first_difference=first_difference,
+                same_answers=same_answers,different_credits=different_credits)
+
+
+def trajectory_evidence(shallow, deep):
+    """Compare actual trajectories and the alternative verdicts on the three-judge run's answers."""
+    for_comparison, for_audit = tee(deep)
+    observed = cross_run_differences(shallow, for_comparison)
+    examples = {}
+    for update,b in enumerate(batched(for_audit,4),1):
+        right = [r["reward"] for r in b]
         # This counterfactual holds the entire deep-run solver group and the earlier reports fixed.
         lower = [effective_bit(r["reports"][1]) for r in b]
         if lower!=right:
@@ -35,8 +45,7 @@ def trajectory_evidence(shallow, deep):
                 examples[category] = dict(update=update, expression=p.expression, expected=list(execute_steps(p)),
                     group=[dict(answer=r["answer"],label=r["label"],reports=r["reports"]) for r in b],
                     two=lower,three=right)
-    return dict(first_answer_difference=first_answer, first_credit_difference=first_credit, first_difference=first_difference,
-                same_answers=same_answers,different_credits=different_credits,examples=examples)
+    return dict(**observed,examples=examples)
 
 
 def trajectory_note(evidence):

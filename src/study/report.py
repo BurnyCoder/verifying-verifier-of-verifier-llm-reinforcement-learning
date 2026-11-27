@@ -502,6 +502,8 @@ def paper(data, date):
         online_figure=DOCS/"assets/online-solvers.png"
         if online_figure.is_file():
             story.append(Image(str(online_figure),width=164*mm,height=62.32*mm))
+        if complete:
+            line(escape(online_report.replay_agreement(complete)))
         examples = (complete or data["online_solvers"].get("comparison",{})).get("examples",[])
         for example in examples:
             ref=", ".join(map(str,example["expected"]))
