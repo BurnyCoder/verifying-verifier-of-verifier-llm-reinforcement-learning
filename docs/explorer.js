@@ -143,7 +143,7 @@ function showOnline() {
       probe ? Math.round(probe.development_accuracy*probe.development_n)+"/"+probe.development_n+" at step "+probe.step : "—",
       arm.n ? arm.correct+"/"+arm.n : "Pending"]);
   }
-  byId("online-result").textContent=effect ? "Three judges minus two on the same development questions: "+(effect.delta*100).toFixed(1)+" percentage points (paired 95% interval "+effect.interval.map(x=>(100*x).toFixed(1)).join(" to ")+")." :
+  byId("online-result").textContent=effect ? "The accuracy difference on the same development questions (three judges minus two) was "+(effect.delta*100).toFixed(2)+" percentage points (paired 95% interval "+effect.interval.map(x=>(100*x).toFixed(1)).join(" to ")+")." :
     "Fresh seed-17 solver adapters receive the final judge’s verdict. The independent integer checker scores every arithmetic step.";
   const selected=online.arms.find(a=>a.depth===Number(byId("online-depth").value));
   drawTrend(selected.signal.curves,byId("online-trend"));
@@ -210,7 +210,7 @@ function showNewJudges() {
       (r.status.startsWith("Evaluating") || r.status.startsWith("Checking GPU"))) messages.push(r.id+" · "+r.status);
   for (const fit of newer.fit_failures ?? []) messages.push(fit.file+" failed the fit check before inference. "+fit.reason);
   for (const finding of newer.conversions ?? []) messages.push(finding.replace(/\.$/,""));
-  if (newer.decision?.result) messages.push(newer.decision.result);
+  if (newer.decision?.result && !study.online_solvers?.plan) messages.push(newer.decision.result);
   for (const [name, estimate] of Object.entries(newer.decision?.estimates ?? {})) {
     const points = x => (100*x).toFixed(2);
     const outcome = name === "twins" ? "Whole evidence pairs" : "Balanced Judge 3 verdicts";
