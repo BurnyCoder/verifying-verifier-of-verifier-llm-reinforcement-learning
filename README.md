@@ -84,7 +84,7 @@ The examples show the first well-formatted case available for each observed verd
 
 ### What changed during training?
 
-On the same 1,024 training answers sampled by the three-judge solver, Judge 3 fixed 58 of Judge 2’s verdicts and spoiled 44. Both judges made the same reward decision on 922 samples and different decisions on 102. Substituting Judge 2’s reward would have changed the relative credits in **81/256 optimizer updates**. Each GRPO update compares four answers to one question. When gradings change early on, the solvers can learn different answers and receive different training data at subsequent updates. [GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)
+On the same 1,024 training answers sampled by the three-judge solver, Judge 3 fixed 58 of Judge 2’s verdicts and spoiled 44. Both judges made the same reward decision on 922 samples and different decisions on 102 (10.0%). A previously correct grade became wrong on 4.3% of all samples. Substituting Judge 2’s reward would have changed the relative credits in **81/256 optimizer updates**. Each GRPO update compares four answers to one question. When gradings change early on, the solvers can learn different answers and receive different training data at subsequent updates. [GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)
 
 Reading each frozen verdict on exactly the same sampled answers measures the change in reward for correct and incorrect arithmetic. A positive rate difference means correct answers receive reward more often.
 
@@ -92,6 +92,11 @@ Reading each frozen verdict on exactly the same sampled answers measures the cha
 | --- | --- | --- | --- |
 | Judge 2 | 104/144 (72.2%) | 599/880 (68.1%) | +4.2 |
 | Judge 3 | 88/144 (61.1%) | 569/880 (64.7%) | -3.5 |
+
+| Exact grade of the training answer | Judge 2 rejected → Judge 3 accepted | Judge 2 accepted → Judge 3 rejected |
+| --- | --- | --- |
+| Correct | 1 | 17 |
+| Wrong | 27 | 57 |
 
 During its own training run, the two-judge solver generated 648/1,024 exact answers and received 751 positive rewards. The three-judge solver generated 144/1,024 exact answers and received 657 positive rewards. Each run sampled from its own evolving solver.
 
@@ -108,12 +113,12 @@ At optimizer update 20, the three-judge run sampled four answers to `(18 - 11) -
 
 | Solver wrote | Exact checker | Judge 2 reward used for training | Judge 3 reward used for training |
 | --- | --- | --- | --- |
-| 7,4 | correct | 1 | 0 |
-| 7,4 | correct | 1 | 1 |
-| 5,2 | wrong | 0 | 0 |
-| 5,2 | wrong | 0 | 1 |
+| 7,4 | correct | **1** · Endorses Judge 1 and supports the value 4. Accepts the solver and gives 4 as its final value.<br><code>1,0,4,1,0,4</code> | **0** · Flags field 2 of Judge 2 and proposes 4. Rejects the solver and says step 1 should be 0.<br><code>0,2,4,0,1,0</code> |
+| 7,4 | correct | **1** · Endorses Judge 1 and supports the value 4. Accepts the solver and gives 4 as its final value.<br><code>1,0,4,1,0,4</code> | **1** · Endorses Judge 2 and supports the value 4. Accepts the solver and gives 4 as its final value.<br><code>1,0,4,1,0,4</code> |
+| 5,2 | wrong | **0** · Endorses Judge 1 and supports the value 3. Rejects the solver and says step 1 should be 5.<br><code>1,0,3,0,1,5</code> | **0** · Endorses Judge 2 and supports the value 3. Rejects the solver and says step 1 should be 5.<br><code>1,0,3,0,1,5</code> |
+| 5,2 | wrong | **0** · Endorses Judge 1 and supports the value 3. Rejects the solver and says step 1 should be 2.<br><code>1,0,3,0,1,2</code> | **1** · Flags field 2 of Judge 2 and proposes 3. Accepts the solver and gives 3 as its final value.<br><code>0,2,3,1,0,3</code> |
 
-Judge 2 rewarded **2/2 correct attempts** and **0/2 wrong attempts**. Judge 3 rewarded **1/2 correct attempts** and **1/2 wrong attempts**. Each individual attempt received either one point or zero.
+Judge 2 rewarded **2/2 correct attempts** and **0/2 wrong attempts**. Judge 3 rewarded **1/2 correct attempts** and **1/2 wrong attempts**. Each individual attempt received either one point or zero. Across the run, **1/256 groups** met the selection rule for this example. In **219/256 groups**, Judge 3 introduced zero new grading errors.
 
 [Two-judge training records](results/calibrated/d2-17/rollouts.jsonl) · [Three-judge training records](results/calibrated/d3-17/rollouts.jsonl)
 

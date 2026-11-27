@@ -53,9 +53,16 @@ def test_training_example_keeps_duplicate_samples_and_actual_terminal_rewards():
     group = [dict(step=19, expression=problem, answer=answer, label=y,
                   reports=["1,0,4", f"1,0,4,{y},0,4", f"1,0,4,{b},0,4"])
              for answer, y, b in [("7,4",1,0), ("7,4",1,1), ("5,2",0,0), ("5,2",0,1)]]
-    example = group_evidence(group)["credit_example"]
+    # A second group with unchanged grades distinguishes an illustrative group from the population.
+    unchanged = [{**r, "step": 20, "reports": [*r["reports"][:2], r["reports"][1]]} for r in group]
+    evidence = group_evidence(group + unchanged)
+    example = evidence["credit_example"]
     assert (example["expression"], example["update"]) == (problem, 20)
     assert example["samples"] == [["7,4",True,1,0], ["7,4",True,1,1], ["5,2",False,0,0], ["5,2",False,0,1]]
+    assert evidence["example_pattern_groups"] == evidence["groups_without_new_errors"] == 1
+    assert evidence["verdict_flips"] == [
+        {"reject_to_accept": 1, "accept_to_reject": 0}, {"reject_to_accept": 0, "accept_to_reject": 1}]
+    assert example["reports"][0] == group[0]["reports"][1:]
 
 
 def test_actual_training_comparison_requires_identical_solver_text_and_lower_reports():
