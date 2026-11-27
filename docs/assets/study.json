@@ -243906,7 +243906,17 @@
       "correct": 9,
       "parsed": 16,
       "time": "2026-11-27T11:12:06.160+00:00",
-      "elapsed_seconds": 33.0
+      "elapsed_seconds": 33.0,
+      "paired_vs_nf4": {
+        "n": 16,
+        "delta": -0.0625,
+        "interval": [
+          -0.1875,
+          0.0
+        ],
+        "fixed": 0,
+        "harmed": 1
+      }
     },
     {
       "key": "base-2b",
@@ -244005,9 +244015,20 @@
       "correct": 12,
       "parsed": 16,
       "time": "2026-11-27T11:14:25.228+00:00",
-      "elapsed_seconds": 95.61000000000058
+      "elapsed_seconds": 95.61000000000058,
+      "paired_vs_nf4": {
+        "n": 16,
+        "delta": 0.125,
+        "interval": [
+          -0.1875,
+          0.4375
+        ],
+        "fixed": 4,
+        "harmed": 2
+      }
     }
   ],
+  "solver_fit_assessment": "Against the original NF4 solver, Qwen2.5-1.5B-Instruct at BF16 gained 0 and lost 1 exact answers on the same 16 starting prompts. The descriptive paired difference was -6.2 percentage points (95% resampling interval -18.8 to +0.0). Against the original NF4 solver, Qwen3.5-2B-Base at NF4 gained 4 and lost 2 exact answers on the same 16 starting prompts. The descriptive paired difference was +12.5 percentage points (95% resampling interval -18.8 to +43.8). The pretraining-only base model received rewards [1, 0, 1, 1] and an optimizer gradient norm of 6.062. It is the candidate for a future matched comparison starting before RLVR. The longer-term effect on solver accuracy remains open.",
   "newer_judges": {
     "results": [
       {
