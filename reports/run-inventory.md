@@ -114,7 +114,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 
 | Run | Treatment or measurement | Status | Development or pilot result | Held-out result |
 | --- | --- | --- | --- | --- |
-| solver-fit/original-nf4 | Qwen/Qwen2.5-1.5B-Instruct, NF4, disposable GRPO update | Scheduled | Pending | — |
+| [solver-fit/original-nf4](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/solver-fit/original-nf4) | Qwen/Qwen2.5-1.5B-Instruct, NF4, disposable GRPO update | One update completed | 10/16 exact before the update | — |
 | solver-fit/original-bf16 | Qwen/Qwen2.5-1.5B-Instruct, BF16, disposable GRPO update | Scheduled | Pending | — |
 | solver-fit/original-int8 | Qwen/Qwen2.5-1.5B-Instruct, INT8, disposable GRPO update | Conditional on BF16 fit failure | Pending | — |
 | solver-fit/base-2b | Qwen/Qwen3.5-2B-Base, NF4, disposable GRPO update | Scheduled | Pending | — |

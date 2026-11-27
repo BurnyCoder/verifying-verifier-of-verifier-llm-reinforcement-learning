@@ -1,0 +1,41 @@
+{
+  "time": "2026-11-27T11:10:44.613+00:00",
+  "run": {
+    "name": "solver-fit/original-nf4",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 1,
+  "elapsed_seconds": 11.203999999997905,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "initial_adapter_sha256": "ab3878076992e76c7a0564c053405ae0463c0809a9e61620cf5c35e96f1954d8",
+  "usage": {
+    "fit_starting_solver": {
+      "calls": 16,
+      "input_tokens": 2633,
+      "output_tokens": 94,
+      "gpu_seconds": 3.0968425292968753,
+      "wall_seconds": 3.0940000000118744
+    },
+    "solver": {
+      "calls": 4,
+      "input_tokens": 656,
+      "output_tokens": 24,
+      "gpu_seconds": 0.9510370483398437,
+      "wall_seconds": 0.9530000000086147
+    }
+  },
+  "unfinished_generation_batches": 0
+}

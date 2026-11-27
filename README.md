@@ -36,6 +36,14 @@ A correct verdict accepts correct arithmetic or rejects an arithmetic or format 
 
 Each solver writes its answer before grading. In the six-number reviews, the first number audits the preceding judge and the fourth accepts or rejects the solver. The examples take the first problem in each observed pair of outcomes in evaluation order.
 
+### Solver precision and pretraining-only hardware checks
+
+| Solver | Precision | GPU test | Parsed | Exact | Peak solver allocation |
+| --- | --- | --- | --- | --- | --- |
+| Qwen2.5-1.5B-Instruct | NF4 | One update completed | 16/16 | 10/16 | 1,990 MiB |
+
+Starting accuracy uses greedy decoding on the same train-split calibration problems before the disposable update. The 4B judge ran on the same GPU. Peak allocation is PyTorch memory for the solver process alone. [Hardware protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/solver-precision.md) · [Measured costs and outcomes](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/solver-fit).
+
 [Paired effects and independent reward checks](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/online-solvers.md).
 
 **Independent frozen-judge confirmation.** On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The selected judge qualified for the online solver comparison.
@@ -159,7 +167,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 
 | Run | Treatment or measurement | Status | Development or pilot result | Held-out result |
 | --- | --- | --- | --- | --- |
-| solver-fit/original-nf4 | Qwen/Qwen2.5-1.5B-Instruct, NF4, disposable GRPO update | Scheduled | Pending | — |
+| [solver-fit/original-nf4](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/solver-fit/original-nf4) | Qwen/Qwen2.5-1.5B-Instruct, NF4, disposable GRPO update | One update completed | 10/16 exact before the update | — |
 | solver-fit/original-bf16 | Qwen/Qwen2.5-1.5B-Instruct, BF16, disposable GRPO update | Scheduled | Pending | — |
 | solver-fit/original-int8 | Qwen/Qwen2.5-1.5B-Instruct, INT8, disposable GRPO update | Conditional on BF16 fit failure | Pending | — |
 | solver-fit/base-2b | Qwen/Qwen3.5-2B-Base, NF4, disposable GRPO update | Scheduled | Pending | — |

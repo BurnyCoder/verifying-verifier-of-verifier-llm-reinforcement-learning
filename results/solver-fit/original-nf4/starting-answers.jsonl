@@ -1,0 +1,16 @@
+{"key": "b1dfe37d56c3bbb81b89b3a24341d897f6f47b9507b1b0c1d298a2fd69f4f2d8", "expression": "(57 - 10) + 5", "answer": "47,52", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:29.007+00:00"}
+{"key": "eeb2628bfeeb922d028f16bcdf3bd94b715f82fe89bf9c2013b59460b90c9d3e", "expression": "(6 + 3) + 5", "answer": "9,14", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:29.008+00:00"}
+{"key": "58f489333df5d489417ad2ed202389d4c41c996656add85367d8df11b5104bf7", "expression": "(31 - 3) - 10", "answer": "21,11", "correct": 0, "parsed": true, "time": "2026-11-27T11:10:29.022+00:00"}
+{"key": "dfa929632f6adfd7345abaac2b25474343f30eb6b20c632865912c7344b01788", "expression": "(27 - 5) + 12", "answer": "22,34", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:29.035+00:00"}
+{"key": "f10a0ec0ce0112f9117d3319f44cbe8d06e239c78d62f59f340fc51b8a1cabe6", "expression": "(50 + 8) - 4", "answer": "56,52", "correct": 0, "parsed": true, "time": "2026-11-27T11:10:29.672+00:00"}
+{"key": "b1177dedef34d984c96e14d43e146841a1dfc09bb143032f0fdf9083c404dfb2", "expression": "(32 + 11) + 5", "answer": "43,48", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:29.686+00:00"}
+{"key": "2e298cbc39ce090b4e80bd8c0ffbbe43581a145834a57b2724c51af16bcea916", "expression": "(4 + 11) - 12", "answer": "-8,-7", "correct": 0, "parsed": true, "time": "2026-11-27T11:10:29.700+00:00"}
+{"key": "edc5a65bb15ad4997956ab3af32ba679d0841c7ca16749e3773755b31f67c9de", "expression": "(52 + 4) - 9", "answer": "52,43", "correct": 0, "parsed": true, "time": "2026-11-27T11:10:29.710+00:00"}
+{"key": "21f7e290d7bc1f5fbe2660e5e80ad672944e117775e3c727d4f50e37a5c6a595", "expression": "(21 + 1) + 10", "answer": "21,31", "correct": 0, "parsed": true, "time": "2026-11-27T11:10:30.334+00:00"}
+{"key": "b1fb1c496b05bec74d650c5219fa7bebd83861cc7140de6ef3c2d9afde6411fc", "expression": "(23 - 12) + 7", "answer": "11,18", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:30.347+00:00"}
+{"key": "2369652f3134c0a76d63d3fd20d9c015c98aa06e38a0a9facb8924b56153d469", "expression": "(6 - 1) - 8", "answer": "-3,-11", "correct": 0, "parsed": true, "time": "2026-11-27T11:10:30.360+00:00"}
+{"key": "acf9b940459cb112912c9aae3cebfebd6d67adaaad421cc12661f675d64e1f84", "expression": "(32 - 8) + 12", "answer": "24,36", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:30.367+00:00"}
+{"key": "52a25bb42862c3db1dbab816a6b440890c8c62425016db87dce09d5c421e1fdc", "expression": "(42 - 7) - 1", "answer": "35,34", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:31.034+00:00"}
+{"key": "fc64ba08a219f98d4626586093ab3b974c2880b2eb94477af94b44bd8a8c88fe", "expression": "(39 - 11) - 5", "answer": "28,23", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:31.046+00:00"}
+{"key": "d6c20792ff725030b44fc630b7bd406a3b99f87bc4e8e2ccc8787819bc4ea8d4", "expression": "(56 - 12) - 10", "answer": "44,34", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:31.060+00:00"}
+{"key": "e1611131f879869501f58ae5078a445e0b750f3017a804021eeb67b4ce6f2345", "expression": "(29 + 1) - 2", "answer": "30,28", "correct": 1, "parsed": true, "time": "2026-11-27T11:10:31.071+00:00"}
