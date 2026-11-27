@@ -107,6 +107,25 @@ function showMatched(grids) {
     }
   }
 }
+function showInventory() {
+  const entries = study?.inventory ?? [];
+  const filter = byId("inventory-phase");
+  for (const phase of new Set(entries.map(r => r.group))) {
+    if (![...filter.options].some(option => option.value === phase)) filter.add(new Option(phase, phase));
+  }
+  const body = byId("inventory");
+  body.replaceChildren();
+  for (const record of entries.filter(r => !filter.value || r.group === filter.value)) {
+    row(body, [record.id, record.treatment, record.status, record.result, record.held_out]);
+    if (record.evidence) {
+      const link = document.createElement("a");
+      link.href = record.evidence;
+      link.textContent = record.id;
+      body.lastElementChild.firstElementChild.replaceChildren(link);
+    }
+  }
+}
+byId("inventory-phase").addEventListener("change", showInventory);
 function showRun() {
   const r = study?.runs.find(item => item.name === byId("run").value);
   for(const name of ["examples","evidence","curve","replay"]) byId(name).replaceChildren();
@@ -151,6 +170,7 @@ async function update() {
     byId("progress").textContent=study.runs.filter(r=>r.updates != null && !r.diagnostic && !r.supplemental).length+" of "+study.planned+" registered training blocks completed. "+(study.sealed?"Checkpoint manifest sealed.":"Final test sealed during development.");
     if (study.profile?.family) byId("progress").textContent += " Amended benchmark · "+study.profile.family+" arithmetic with "+study.profile.style+" prompts.";
     showMatched(study.matched_depth ?? []);
+    showInventory();
     const trajectory=byId("depth-trajectory");
     const ready=study.profile?.family==="two-add" && ["d2-17","d3-17"].every(id=>study.runs.some(r=>r.name===id && r.completed_development));
     if (ready && !trajectory.hasAttribute("src")) {

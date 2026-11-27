@@ -1,5 +1,7 @@
 # Registered run matrix
 
+The [complete run inventory](run-inventory.md) gives individual optimizer blocks, evaluation-only experiments, archived pilots and scheduled work with their latest measured outcomes. The [frozen Qwen extension](newer-frozen-judges.md) screens three newer deployable configurations against a same-runtime control and specifies a separate confirmation and conditional online comparison.
+
 Each solver row starts from the same untrained solver adapter for its seed except for the explicitly continued alternating block. D1, D2 and D3 denote the terminal judge depth. “Flat” denotes the majority of three separately sampled J1 calls. A judge returning malformed output supplies a negative vote. Every model uses the same base checkpoint, output budget, trace schema and optimizer settings in the [preregistration](preregistration.md).
 
 | Order | Run family | Seeds | Updated role | Reward or evaluation |

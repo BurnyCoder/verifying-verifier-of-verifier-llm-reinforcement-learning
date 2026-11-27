@@ -10,3 +10,7 @@ An untrained policy, a shallow judge, flat voting, an exact checker, a hybrid ch
 ### Difficulty and reward quality
 
 Dynamic sampling and intermediate-difficulty curricula motivate a lower-cost applicability check before a large recursive-judge comparison. Our question also requires a separate balanced audit of the frozen reviewers. A grader can give varied rewards even when every solver output is incorrect. Consequently, reward variance alone cannot establish that the benchmark is solvable or that its reward is informative. [DAPO, dynamic sampling](https://arxiv.org/html/2503.14476v1#S3.SS2) · [CurES](https://arxiv.org/html/2510.01037v1) · [Study amendment](learnability-preregistration.md)
+
+## Hardware-constrained frozen reviewers
+
+Qwen3.5 and Qwen3.8 offer open weights for a within-family deployment comparison. llama.cpp supports GGUF quantization and mixed CPU/GPU inference. Parameter count and upstream benchmark scores alone cannot determine local decoding speed or evidence-twin accuracy. The frozen-judge extension measures both on the same RTX 5070 laptop. [Qwen release catalog](https://github.com/QwenLM/Qwen3.8) · [llama.cpp](https://github.com/ggml-org/llama.cpp) · [Registered comparisons](newer-frozen-judges.md)

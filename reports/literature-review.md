@@ -22,3 +22,7 @@ We follow the distinction between hypotheses and empirical findings, the use of 
 ### Calibrating arithmetic difficulty
 
 Yu et al. describe how uniform group rewards erase the centered GRPO signal and filter these groups in DAPO. Zeng et al. relate prompt-level solvability to gradient behavior in CurES and test curriculum sampling on Qwen2.5-Math models. They studied other task populations and training systems. Our diagnostic measures actual mixed-group frequency on the installed instruction checkpoint and uses an independent exact-reward training control to establish learnability. [DAPO](https://arxiv.org/html/2503.14476v1) · [CurES](https://arxiv.org/html/2510.01037v1) · [Diagnostic protocol](learnability-preregistration.md)
+
+## Frozen deployable judge configurations
+
+Qwen publishes smaller instruction-following checkpoints and a newer 27B model with a controllable thinking mode. Their published benchmarks do not measure correctness of recursive arithmetic audits. Here the native chat templates receive the task's original few-shot reports, and the same independent checker scores every output. The original model receives its own GGUF rerun because a quantizer or serving change can also alter individual predictions. [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) · [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B) · [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) · [Evaluation design](newer-frozen-judges.md)

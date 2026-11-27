@@ -14,6 +14,7 @@ from .design import GITHUB, MATCHED_NAMES, PAGES, PILOTS, Run, matched_runs, mat
 from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
+from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
 from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
@@ -134,8 +135,9 @@ def collect():
             if (target/"development.json").exists():
                 sample = list(rows(target/"replay.jsonl"))
                 archive.append(dict(name=name, correct=sum(r["correct"] for r in sample), n=len(sample)))
-    return dict(runs=runs, matched_depth=accuracy_grid(source,profile),
-                primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"), planned=registered,
+    contrasts = dict(primary=paired_primary(outcomes), flat=paired_comparison(outcomes,"flat"))
+    return dict(runs=runs, inventory=inventory(ORIGINAL_RESULTS,profile,runs,contrasts), matched_depth=accuracy_grid(source,profile),
+                **contrasts, planned=registered,
                 learnability=learning, profile=profile, original_development=archive,
                 budget=read_json(source/"budget.json"), sealed=(source/"seal.json").is_file(),
                 completed=(source/"completed.json").is_file())
@@ -470,6 +472,20 @@ def paper(data, date):
             story.append(Image(str(asset),width=width,height=width*h/w))
     line("Discussion, limitations and conclusion","Heading2")
     line("Only a paired comparison on sealed arithmetic problems can establish the registered solver effect. A higher training reward can coexist with lower exact accuracy [6]. The same underlying model supplies all three reviewers, so their errors may be correlated. Compact evidence records make audits decidable but leave unrestricted prose and other model families outside the tested population. Interval estimates condition on the trained checkpoints. Seed-specific estimates describe variation across the registered runs.")
+    story.append(PageBreak())
+    line("Run inventory","Heading1")
+    line(GUIDE)
+    line(f"Model sizes, pinned weights, inclusion rules and the separate follow-up protocol are available in the <link href='{GITHUB}/blob/main/reports/newer-frozen-judges.md'>newer frozen judge protocol</link>. The calibrated final assessment includes paired depth and flat-vote contrasts, signed-difficulty, layout and length transfer, natural verdict changes and visible/masked evidence interventions.")
+    from reportlab.lib.styles import ParagraphStyle
+    small = ParagraphStyle("InventoryCell", parent=styles["BodyText"], fontSize=7.6, leading=9.6, spaceBefore=0, spaceAfter=0)
+    for group, records in grouped(data["inventory"]):
+        line(group, "Heading2")
+        body = [[Paragraph(escape(str(v)),small) for v in values] for values in (
+            HEADERS, *([r["id"],r["treatment"],r["status"],r["result"],r["held_out"]] for r in records))]
+        ledger_table = Table(body, colWidths=[35*mm,49*mm,29*mm,32*mm,22*mm], repeatRows=1, hAlign="LEFT")
+        ledger_table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#dceeea")),
+            ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white,colors.HexColor("#f5f7f6")]),("VALIGN",(0,0),(-1,-1),"TOP")]))
+        story.append(ledger_table)
     line("Appendix and references","Heading2")
     line(f"The published protocol, run matrix, role prompts, raw per-problem outputs and analysis code are available in the <link href='{GITHUB}'>study repository</link>. The registered practical threshold is three percentage points, evaluated on 2,048 paired IDs with 10,000 paired bootstrap resamples after all three seeds complete.")
     for title,url in [("[1] Wen et al. Recursive Self-Critiquing","https://arxiv.org/abs/2502.04675"),
@@ -571,8 +587,12 @@ def build():
         trajectory_note = (f"\n\n### Reward and arithmetic during training, seed {first['seed']}\n\n"
                            +late_rewards(first)+
                            f" [All four quarters, denominators and original records]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md).")
-    atomic(REPORTS/"summary.md","# Study summary\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
-           summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n")
+    ledger = inventory_markdown(data["inventory"])
+    ledger_links = (f"[Run inventory, including upcoming experiments]({GITHUB}/blob/main/reports/run-inventory.md) · "
+                    f"[Newer frozen Qwen protocol]({GITHUB}/blob/main/reports/newer-frozen-judges.md)")
+    atomic(REPORTS/"run-inventory.md","# Run inventory\n\n"+ledger+"\n\n"+ledger_links+"\n")
+    atomic(REPORTS/"summary.md","# Study summary\n\n"+ledger_links+"\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
+           summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n\n## Run inventory\n\n"+ledger+"\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
     _, post = tail.split("<!-- RESULTS:END -->",1)
@@ -600,7 +620,8 @@ def build():
     diagnostic = readme_depth(data)
     if diagnostic:
         diagnostic += "## Study results\n\n"
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+grid_text+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    inline_inventory = ("<details>\n<summary>All runs, their results, and what is still scheduled</summary>\n\n"+ledger+"\n\n</details>\n\n")
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+ledger_links+"\n\n"+inline_inventory+grid_text+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     methods=[]
@@ -644,12 +665,12 @@ def build():
     references="\n".join(f"- [{r['name']}]({'' if r['diagnostic'] else prefix}{r['name']}/experiment.md)" for r in data["runs"])
     references+="".join(f"\n- [Original {r['name']}]({r['name']}/experiment.md)" for r in data["original_development"])
     methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
-    atomic(experiments/"experiments.md","# Experiment index\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
+    atomic(experiments/"experiments.md","# Experiment index\n\n"+ledger_links+"\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
     core=[r for r in data["runs"] if r["name"]!="base" and not r["diagnostic"] and not r["supplemental"]]
     complete=sum(r["completed_final"] for r in core)
     trained=sum(r["updates"] is not None for r in core)
-    activity = []
+    activity = [ledger_links]
     if profile:
         extra=[r for r in data["runs"] if r["supplemental"]]
         activity.append(f"The matched-depth extension has trained {sum(r['updates'] is not None for r in extra)} "
