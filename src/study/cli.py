@@ -10,7 +10,8 @@ import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from .design import PILOTS, Run, matrix
+from .benchmark import active_profile
+from .design import MATCHED_NAMES, PILOTS, ROUTES, Run, matched_runs, matrix
 from .storage import ORIGINAL_RESULTS, RESULTS, ROOT, STATE, TRACK, read_json, stamp, write_json
 
 
@@ -20,7 +21,10 @@ def run_spec(name):
     if name in PILOTS:
         from .learnability import pilot_spec
         return pilot_spec(name)
-    return next(row for row in matrix() if row.name == name)
+    if name in MATCHED_NAMES and TRACK!="calibrated":
+        raise ValueError("The matched-depth solver runs require STUDY_TRACK=calibrated")
+    profile=active_profile()
+    return next(row for row in [*matrix(profile),*matched_runs(profile)] if row.name==name)
 
 
 def worker(*args):
@@ -77,6 +81,16 @@ def campaign(public, registered_only=False):
             worker("report")
             write_json(STATE/"local-milestones"/(milestone+".json"), {"time":stamp()})
 
+    def fitted_replays(phase):
+        for route in ROUTES:
+            milestone=f"stack-{route}-{phase}"
+            if not (RESULTS/"matched-depth"/f"{route}-{phase}.json").exists():
+                worker("stack-replay","--route",route,*(("--final",) if phase=="final" else ()))
+            if public and not (STATE/"publication"/(milestone+".json")).exists():
+                worker("publish","--milestone",milestone)
+            elif not public:
+                worker("report")
+
     with study_lock("campaign"):
         if public:
             if not (STATE/"publication/protocol.json").exists():
@@ -99,13 +113,23 @@ def campaign(public, registered_only=False):
         for run in matrix():
             stage("train",run.name,"trained")
             stage("evaluate",run.name,"development")
-        if not (RESULTS/"seal.json").exists():
+            if TRACK=="calibrated" and run.name=="alt-top-j3":
+                # The supplemental arms reuse trained judges and the unchanged original solver schedule.
+                fitted_replays("development")
+                for extra in matched_runs(active_profile()):
+                    stage("train",extra.name,"trained")
+                    stage("evaluate",extra.name,"development")
+        if not (RESULTS/"seal.json").exists() or (TRACK=="calibrated" and not (RESULTS/"matched-depth/seal.json").exists()):
             worker("seal")
         if public:
             worker("publish","--milestone","sealed-checkpoints")
         for name in ("base", *(r.name for r in matrix())):
             stage("evaluate",name,"final")
-        write_json(RESULTS/"completed.json",{"time":stamp(),"arms":len(matrix())})
+        if TRACK=="calibrated":
+            fitted_replays("final")
+            for extra in matched_runs(active_profile()):
+                stage("evaluate",extra.name,"final")
+        write_json(RESULTS/"completed.json",{"time":stamp(),"arms":len(matrix()),"matched_depth_arms":len(matched_runs(active_profile()))})
         if public:
             worker("publish","--milestone","complete")
         else:
@@ -165,7 +189,7 @@ def main():
     schedule.add_argument("--publish",action="store_true")
     schedule.add_argument("--registered-only", action="store_true",
                           help="Reproduce the original signed-arithmetic matrix independently")
-    names=[r.name for r in matrix({})]
+    names=[*(r.name for r in matrix({})),*MATCHED_NAMES]
     actions.add_parser("train").add_argument("--run",required=True,choices=["timing",*PILOTS,*names])
     calibration=actions.add_parser("learnability",description="Calibrate arithmetic and test actual solver improvement")
     calibration.add_argument("phase",choices=["screen","confirm","audit","evaluate","compare","campaign"])
@@ -174,6 +198,9 @@ def main():
     evaluate=actions.add_parser("evaluate")
     evaluate.add_argument("--run",required=True,choices=["base",*names])
     evaluate.add_argument("--final",action="store_true")
+    stacks=actions.add_parser("stack-replay",description="Measure each fitted judge depth on fixed base-solver answers")
+    stacks.add_argument("--route",choices=ROUTES,required=True)
+    stacks.add_argument("--final",action="store_true")
     actions.add_parser("seal")
     actions.add_parser("report")
     actions.add_parser("dashboard").add_argument("--port",default=8765,type=int)
@@ -214,6 +241,10 @@ def main():
         from .evaluate import evaluate
         with study_lock("evaluate-"+args.run+("-final" if args.final else "-dev")):
             evaluate(args.run,args.final)
+    elif args.action=="stack-replay":
+        from .evaluate import stack_replay
+        with study_lock(f"stack-{args.route}-{'final' if args.final else 'development'}"):
+            stack_replay(args.route,args.final)
     elif args.action == "seal":
         from .evaluate import seal
         seal()

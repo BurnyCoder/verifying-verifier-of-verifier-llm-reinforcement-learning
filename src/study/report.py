@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 from .analysis import evidence_fields, paired_comparison, paired_primary, replay_metrics
 from .depth_review import collect_depth_review, readme_depth, review_text as depth_review_text
-from .design import GITHUB, PAGES, PILOTS, Run, matrix
+from .design import GITHUB, MATCHED_NAMES, PAGES, PILOTS, Run, matched_runs, matrix
 from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
@@ -41,6 +41,7 @@ def collect():
     source = calibrated if profile else ORIGINAL_RESULTS
     manifest = {r.name: r for r in matrix(profile)}
     registered=len(manifest)
+    manifest.update((r.name,r) for r in matched_runs(profile))
     learning=collect_learnability(ORIGINAL_RESULTS)
     chosen=(learning["screen"] or {}).get("selected")
     if chosen:
@@ -93,7 +94,7 @@ def collect():
             matched = e["correct"] if depth == 0 else e["full_report_correct"][depth-1]
             common_example = dict(key=e["key"], expression=e["expression"], actual=actual,
                                   expected=render(reference), correct=matched)
-        runs.append(dict(name=name, role=role, reward=spec.reward if spec else "untrained",
+        runs.append(dict(name=name, role=role, reward=spec.reward if spec else "untrained", supplemental=name in MATCHED_NAMES,
                          diagnostic=name in PILOTS, family=spec.family if spec else profile.get("family"),
                          seed=spec.seed if spec else 17, updates=trained.get("updates"), observations=len(training),
                          initial=spec.initial if spec else None, judges=spec.judges if spec else (None,)*3,
@@ -614,9 +615,14 @@ def build():
     methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
     atomic(experiments/"experiments.md","# Experiment index\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
     atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
-    complete=sum(r["completed_final"] for r in data["runs"] if r["name"]!="base")
-    trained=sum(r["updates"] is not None for r in data["runs"] if not r["diagnostic"])
+    core=[r for r in data["runs"] if r["name"]!="base" and not r["diagnostic"] and not r["supplemental"]]
+    complete=sum(r["completed_final"] for r in core)
+    trained=sum(r["updates"] is not None for r in core)
     activity = []
+    if profile:
+        extra=[r for r in data["runs"] if r["supplemental"]]
+        activity.append(f"The matched-depth extension has trained {sum(r['updates'] is not None for r in extra)} "
+                        f"of {len(MATCHED_NAMES)} additional shallow solvers. [Extension](matched-depth-protocol.md).")
     if data["budget"]:
         b = data["budget"]
         activity.append(f"The timing pilot selected {b['updates']} updates per block at {b['seconds_per_update']:.1f} seconds per pilot update. A block at that rate would take {b['updates']*b['seconds_per_update']/3600:.2f} hours.")
