@@ -341,6 +341,7 @@ def paper(data, date):
              "reviews its predecessor. Fitted judges stay frozen during solver optimization.")
         table(["Solver training","One judge","Two judges","Three judges"],grid["solver"])
         table(["Judge training","One judge","Two judges","Three judges"],grid["judge"])
+        line(grid["judge_note"])
     line("Development accuracy for a solver requires every arithmetic step to be correct. For a judge it requires its whole record to match the executable audit. Held-out solver accuracy uses one response per problem. A dash denotes a pending measurement.")
     if data["runs"]:
         table(["Run","Role","Updates","Dev. n","Dev. exact","Test n","Test exact"],

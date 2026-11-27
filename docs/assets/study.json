@@ -212282,7 +212282,8 @@
       ],
       "solver_n": 32,
       "judge_n": 32,
-      "frozen_solver": "20/32 (62.5%)"
+      "frozen_solver": "20/32 (62.5%)",
+      "judge_note": "Always accepting scores 20/32 (62.5%) on these same responses. The stack trained on exact labels approved all 32 answers at every depth, including all 12 incorrect solutions. The stack trained top-down approved 32, 30, 30 answers at depths one, two and three, respectively. It accepted all 12 incorrect solutions at every depth."
     }
   ],
   "primary": {

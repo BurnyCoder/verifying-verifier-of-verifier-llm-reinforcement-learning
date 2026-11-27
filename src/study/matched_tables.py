@@ -44,6 +44,8 @@ def accuracy_grid(root,profile):
         if (len(base),len(shared)) != ((32,32) if is_dev else (2048,128)):
             raise ValueError(f"Incomplete base cohort for the {phase} tables")
         solver_table,judge_table = [],[]
+        valid = sum(r["correct"] for r in shared)
+        notes = [f"Always accepting scores {cell(valid,len(shared))} on these same responses."]
         route_labels = {"frozen":"Only solver trained · original judges","exact":"Exact-trained judges, then solver",
                         "top":"Top-down-trained judges, then solver"}
         for route,label in route_labels.items():
@@ -78,9 +80,24 @@ def accuracy_grid(root,profile):
                 first = read_cohort(root/ROUTES[route][0]/judge_file,shared,judge=True)
                 if any(a["reports"][0]!=b["reports"][0] for a,b in zip(first,records,strict=True)):
                     raise ValueError(f"Identical trained Judge 1 reports differ across {route} conditions")
+                approved = [sum(r["verdicts"][i] for r in records) for i in range(3)]
+                inaccurate = [sum(r["verdicts"][i] and not r["correct"] for r in records) for i in range(3)]
+                stack_label = "stack trained on exact labels" if route=="exact" else "stack trained top-down"
+                if all(n==len(records) for n in approved):
+                    notes.append(f"The {stack_label} approved all {len(records)} answers at every depth, "
+                                 f"including all {len(records)-valid} incorrect solutions.")
+                else:
+                    total_text = ", ".join(map(str,approved))
+                    wrong_text = ", ".join(map(str,inaccurate))
+                    faults = len(records)-valid
+                    errors = (f"It accepted all {faults} incorrect solutions at every depth."
+                              if faults and all(n==faults for n in inaccurate) else
+                              f"False approvals numbered {wrong_text}, with {faults} incorrect solutions per depth.")
+                    notes.append(f"The {stack_label} approved {total_text} answers at depths one, two and three, "
+                                 f"respectively. {errors}")
             judge_table.append([label+" · all participating judges trained",*fitted])
         grids.append(dict(phase=phase,solver=solver_table,judge=judge_table,solver_n=len(base),judge_n=len(shared),
-                          frozen_solver=cell(sum(r["correct"] for r in base),len(base))))
+                          frozen_solver=cell(sum(r["correct"] for r in base),len(base)),judge_note=" ".join(notes)))
     return grids
 
 
@@ -98,7 +115,7 @@ def grid_markdown(grids):
             markdown(HEADERS,grid["solver"]),f"### {split} judge verdict accuracy",
             f"Every judge grades the same {grid['judge_n']} saved responses from the starting solver. A verdict is correct "
             f"when it agrees with the arithmetic checker. In all judge-only conditions the solver itself stays at {grid['frozen_solver']} "
-            f"on the {grid['solver_n']:,} solver-evaluation questions.",markdown(HEADERS,grid["judge"])]
+            f"on the {grid['solver_n']:,} solver-evaluation questions.",markdown(HEADERS,grid["judge"]),grid["judge_note"]]
     sections.append("“Only final judge trained” fits the judge used for that column’s terminal decision and uses original "
                     "judges for preceding calls. “All participating judges trained” uses fitted adapters at every depth. "
                     "Top-down training uses the shared exact-trained Judge 3. Pending cells have no completed matched measurement. "

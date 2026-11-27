@@ -21,6 +21,7 @@ def test_fitted_adapter_count_does_not_substitute_for_fewer_judge_calls(tmp_path
     assert grid["solver"][1][1:]==["Pending","Pending","16/32 (50.0%)"]
     assert grid["judge"][0][1:]==["16/32 (50.0%)","16/32 (50.0%)","32/32 (100.0%)"]
     assert "Three judges · J3 checks J2" in grid_markdown([grid])
+    assert "Always accepting scores 16/32 (50.0%)" in grid_markdown([grid])
     save("exact-j1",[dict(r,trace="a different solution") for r in examples])
     with pytest.raises(ValueError,match="Unmatched solver responses"):
         accuracy_grid(tmp_path,{"family":"two-add"})
