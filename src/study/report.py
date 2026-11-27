@@ -15,7 +15,7 @@ from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
 from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
-from .frozen_report import collect_frozen, depth_rows as frozen_rows, experiment_pages, frozen_text, plot_scores
+from .frozen_report import collect_frozen, depth_rows as frozen_rows, experiment_pages, frozen_text, interpretation, plot_scores
 from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
@@ -492,12 +492,8 @@ def paper(data, date):
         for r in data["newer_judges"]["results"]:
             if not r.get("metrics"):
                 line(escape(f"{r['model']}: {r['result']}."))
-        decision=data["newer_judges"]["decision"]
-        if decision:
-            line(escape(decision["result"]+"."))
-            for name,e in decision.get("estimates",{}).items():
-                lo,hi=e["ci"]
-                line(escape(f"{name}, paired difference {e['delta']*100:+.2f} pp (95% interval {lo*100:+.2f} to {hi*100:+.2f})."))
+        for finding in interpretation(data["newer_judges"]):
+            line(escape(finding))
     line(f"Model sizes, pinned weights, inclusion rules and the separate follow-up protocol are available in the <link href='{GITHUB}/blob/main/reports/newer-frozen-judges.md'>newer frozen judge protocol</link>. The calibrated final assessment includes paired depth and flat-vote contrasts, signed-difficulty, layout and length transfer, natural verdict changes and visible/masked evidence interventions.")
     from reportlab.lib.styles import ParagraphStyle
     small = ParagraphStyle("InventoryCell", parent=styles["BodyText"], fontSize=7.6, leading=9.6, spaceBefore=0, spaceAfter=0)
@@ -617,6 +613,10 @@ def build():
     frozen_summary += frozen_chart
     experiment_pages(data["newer_judges"], REPORTS/"experiments/new-judges")
     atomic(REPORTS/"experiments/new-judges/experiment.md", frozen_summary+"\n\n[Protocol and case selection](../../newer-frozen-judges.md).\n")
+    findings = interpretation(data["newer_judges"])
+    if findings:
+        atomic(REPORTS/"experiments/new-judges/learnings.md", "# Findings on frozen judge releases\n\n"+
+               "\n\n".join(findings)+"\n\n[All scored runs and costs](experiment.md) · [Protocol](../../newer-frozen-judges.md).\n")
     ledger_links = (f"[Run inventory, including upcoming experiments]({GITHUB}/blob/main/reports/run-inventory.md) · "
                     f"[Newer frozen Qwen protocol]({GITHUB}/blob/main/reports/newer-frozen-judges.md)")
     atomic(REPORTS/"run-inventory.md","# Run inventory\n\n"+ledger+"\n\n"+ledger_links+"\n")
@@ -695,7 +695,8 @@ def build():
     references+="".join(f"\n- [Original {r['name']}]({r['name']}/experiment.md)" for r in data["original_development"])
     methods_table=markdown(["Run","Role","Reward","Seed","Problem source","Dev. parsed","Dev. exact","Held-out exact"],methods)
     atomic(experiments/"experiments.md","# Experiment index\n\n"+ledger_links+"\n\nAll learned models use grouped reinforcement learning with one active LoRA adapter on the shared, quantized Qwen2.5-1.5B-Instruct backbone. The solver predicts values in signed-integer expression trees. Judges predict exact evidence records about earlier outputs. A parsed output supplies the required number of integers. An exact output also gets every field right.\n\n"+methods_table+"\n\n[Update counts and sample sizes](../summary.md) · [Objectives and curricula](../planned-runs.md) · [Analysis protocol](../preregistration.md)\n\n"+references+"\n")
-    atomic(experiments/"learnings.md","# Experimental learnings\n\n"+("\n".join(notes) or "No experimental observations yet.")+"\n")
+    link_to_findings = "[Frozen judge comparisons and independent confirmation](new-judges/learnings.md).\n\n" if findings else ""
+    atomic(experiments/"learnings.md","# Experimental learnings\n\n"+link_to_findings+("\n".join(notes) or "No experimental observations yet.")+"\n")
     core=[r for r in data["runs"] if r["name"]!="base" and not r["diagnostic"] and not r["supplemental"]]
     complete=sum(r["completed_final"] for r in core)
     trained=sum(r["updates"] is not None for r in core)

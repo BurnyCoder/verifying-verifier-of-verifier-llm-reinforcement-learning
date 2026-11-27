@@ -164,7 +164,14 @@ function showNewJudges() {
   }
   for (const r of study.inventory ?? []) if (r.id.startsWith("new-judges/") &&
       (r.status.startsWith("Evaluating") || r.status.startsWith("Checking GPU"))) messages.push(r.id+" · "+r.status);
+  for (const finding of newer.conversions ?? []) messages.push(finding.replace(/\.$/,""));
   if (newer.decision?.result) messages.push(newer.decision.result);
+  for (const [name, estimate] of Object.entries(newer.decision?.estimates ?? {})) {
+    const points = x => (100*x).toFixed(2);
+    const outcome = name === "twins" ? "Whole evidence pairs" : "Balanced Judge 3 verdicts";
+    messages.push(outcome+", candidate minus control, differed by "+points(estimate.delta)+" percentage points on "+estimate.n+
+      " paired confirmation problems (95% interval "+points(estimate.ci[0])+" to "+points(estimate.ci[1])+")");
+  }
   byId("frozen-status").textContent=messages.join(". ") || "Waiting for the first completed GPU-only evaluation.";
 }
 byId("inventory-phase").addEventListener("change", showInventory);
