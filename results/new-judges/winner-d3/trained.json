@@ -1,0 +1,41 @@
+{
+  "time": "2026-11-27T11:05:31.858+00:00",
+  "run": {
+    "name": "new-judges/winner-d3",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 2399.8280000000086,
+  "resumed_at": 0,
+  "frozen_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "initial_adapter_sha256": "ab3878076992e76c7a0564c053405ae0463c0809a9e61620cf5c35e96f1954d8",
+  "usage": {
+    "solver": {
+      "calls": 1024,
+      "input_tokens": 168240,
+      "output_tokens": 6016,
+      "gpu_seconds": 205.2818586730957,
+      "wall_seconds": 205.59099999976752
+    },
+    "development_solver": {
+      "calls": 64,
+      "input_tokens": 10528,
+      "output_tokens": 344,
+      "gpu_seconds": 7.494354858398438,
+      "wall_seconds": 7.470000000001164
+    }
+  },
+  "unfinished_generation_batches": 0
+}

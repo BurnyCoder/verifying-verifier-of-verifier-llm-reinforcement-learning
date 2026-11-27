@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 |
 | Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | 29/32 |
-| Frozen Qwen3.5-4B Judge 3 | 0 | — | Scheduled |
+| Frozen Qwen3.5-4B Judge 3 | 256 | 15/256 | Trained |
 
 The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
 
@@ -16,7 +16,7 @@ The fresh solvers train on the same arithmetic prompts. Each finished checkpoint
 
 [Run inventory, including upcoming experiments](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/run-inventory.md) · [Newer frozen Qwen protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md) · [Paused solver checkpoint, update 16](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/5274be501a83e4c881664370cfe75f912c69413f/resumable/calibrated/top-depth2/checkpoint-16)
 
-Owner prioritized GPU-only frozen newer Qwen judging and deferred optimization and sealed evaluation to a later day.
+The unfinished original optimizer blocks and their sealed evaluation were deferred. The newer frozen-judge solver comparison and solver hardware checks have separate authorization. [Run priorities](plan.md).
 
 calibrated/top-depth2 · Paused · 20/256 logged, checkpoint 16.
 
