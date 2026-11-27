@@ -187,6 +187,8 @@ def main():
     actions=parser.add_subparsers(dest="action",required=True)
     schedule=actions.add_parser("campaign")
     schedule.add_argument("--publish",action="store_true")
+    frozen=actions.add_parser("frozen-judges",help="Run the GPU-only cross-model screen and independent confirmation")
+    frozen.add_argument("--publish",action="store_true")
     schedule.add_argument("--registered-only", action="store_true",
                           help="Reproduce the original signed-arithmetic matrix independently")
     names=[*(r.name for r in matrix({})),*MATCHED_NAMES]
@@ -208,7 +210,10 @@ def main():
     pub.add_argument("--milestone",required=True)
     pub.add_argument("--run")
     args=parser.parse_args()
-    if args.action == "campaign":
+    if args.action == "frozen-judges":
+        from .frozen_suite import campaign as frozen_campaign
+        print(json.dumps(frozen_campaign(args.publish),ensure_ascii=False),flush=True)
+    elif args.action == "campaign":
         if TRACK == "calibrated":
             from .benchmark import freeze_profile
             freeze_profile(ORIGINAL_RESULTS)

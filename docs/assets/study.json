@@ -239388,6 +239388,24 @@
     },
     {
       "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q35-9b-ollama",
+      "treatment": "Qwen3.5-9B frozen, Ollama Q4_K_M deployment replicate",
+      "status": "Planned",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q35-4b-ollama",
+      "treatment": "Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate",
+      "status": "Planned",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
       "id": "new-judges/q25-1p5b",
       "treatment": "Qwen2.5-1.5B-Instruct frozen, same-runtime screen",
       "status": "Planned",
@@ -239459,6 +239477,10 @@
       "evidence": null
     }
   ],
+  "newer_judges": {
+    "results": [],
+    "decision": {}
+  },
   "matched_depth": [
     {
       "phase": "development",

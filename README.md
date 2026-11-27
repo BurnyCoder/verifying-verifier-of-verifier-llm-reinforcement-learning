@@ -107,6 +107,8 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 
 | Run | Treatment or measurement | Status | Development or pilot result | Held-out result |
 | --- | --- | --- | --- | --- |
+| new-judges/q35-9b-ollama | Qwen3.5-9B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
+| new-judges/q35-4b-ollama | Qwen3.5-4B frozen, Ollama Q4_K_M deployment replicate | Planned | Pending | — |
 | new-judges/q25-1p5b | Qwen2.5-1.5B-Instruct frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-4b | Qwen3.5-4B frozen, same-runtime screen | Planned | Pending | — |
 | new-judges/q35-9b | Qwen3.5-9B frozen, same-runtime screen | Planned | Pending | — |
@@ -158,6 +160,10 @@ On the original frozen judges’ row, Judge 3 fixed Judge 2’s verdict on 0/32 
 </details>
 
 “Only final judge trained” fits the judge used for that column’s terminal decision and uses original judges for preceding calls. “All participating judges trained” uses fitted adapters at every depth. Top-down training uses the shared exact-trained Judge 3. Pending cells have no completed matched measurement. [Matched comparison protocol](reports/matched-depth-protocol.md)
+
+## Newer frozen judges on fixed solver answers
+
+No completed fixed-trace score has been released.
 
 ## Why did the two-judge and three-judge solvers diverge?
 

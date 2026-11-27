@@ -2,7 +2,7 @@
 
 from .curriculum import FAMILIES, STYLES
 from .design import GITHUB, PILOTS, ROUTES, matched_runs, matrix
-from .frozen_models import MODELS
+from .frozen_models import LOCAL_REPLICATES, MODELS
 from .matched_tables import cell
 from .storage import read_json, rows
 from .tables import markdown
@@ -164,6 +164,7 @@ def inventory(root, profile, observed, contrasts=None):
                 "Complete" if done==len(eligible) else "In progress" if done else "Deferred" if deferred else "Planned", "—",
                 f"{done}/{len(eligible)} eligible checkpoints evaluated" if done else "Pending")
     for key, description, conditional in (
+        *((m.key,m.title+" frozen, Ollama Q4_K_M deployment replicate",False) for m in LOCAL_REPLICATES),
         *((m.key, m.title+" frozen, same-runtime screen", False) for m in MODELS),
         ("confirm-control", "Frozen Qwen2.5 control, fresh confirmation", True),
         ("confirm-winner", "Selected newer frozen judge, fresh confirmation", True),
@@ -172,8 +173,16 @@ def inventory(root, profile, observed, contrasts=None):
     ):
         folder = root/"new-judges"/key
         receipt = read_json(folder/"result.json",{})
+        active = read_json(folder/"progress.json",{})
         planned = "Conditional, later day" if deferred and key.startswith("winner-d") else "Conditional" if conditional else "Planned"
-        state = receipt.get("status", "Started" if (folder/"calls.jsonl").exists() else planned)
+        if active:
+            planned = active["status"] + (f" · {active['calls']}/{active['target']} calls" if "calls" in active else "")
+        state = receipt.get("status", planned)
+        decision = read_json(root/"new-judges/decision.json",{})
+        if key.startswith("winner-d") and decision:
+            state = "Eligible, deferred" if decision.get("online_gate") else "Gate not met" if "online_gate" in decision else "Deferred"
+        if key=="confirm-winner" and receipt.get("model"):
+            description += " · "+receipt["model"]
         add("Newer frozen Qwen judges", "new-judges/"+key, description, state, receipt.get("result","Pending"),
             evidence="new-judges/"+key if folder.is_dir() else None)
     return ledger

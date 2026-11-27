@@ -49,3 +49,15 @@ base = AutoModelForCausalLM.from_pretrained(
 )
 policy = PeftModel.from_pretrained(base, ".local/release/runs/timing").eval()
 ```
+## GPU-only frozen-judge experiment
+
+Install the project's uv environment and a CUDA build of llama.cpp b12807. Set `STUDY_LLAMA_SERVER` to the path to its server executable and `STUDY_FROZEN_DIR` to a directory with room for the pinned GGUF artifacts. On Windows the release contains a server archive and a matching CUDA runtime archive. Extract both into the same directory. Check `llama-server --list-devices` for CUDA0. [Pinned release](https://github.com/ggml-org/llama.cpp/releases/tag/b12807) · [Registered weights and checksums](../src/study/frozen_models.py)
+
+```powershell
+uv sync --extra gpu
+$env:STUDY_TRACK = "calibrated"
+uv run study frozen-judges
+uv run study report
+```
+
+The command downloads and checks each artifact, verifies full GPU placement, runs fixed-answer and evidence-twin probes, and confirms the selected judge on independent development IDs. Restart the same command after interruption. It checks prompt and configuration identity before reusing completed calls. Keep the archived calibrated base replay under `results/calibrated/base/`. Use the default local mode for independent replications. The research repository owner uses `--publish` to release every completed milestone. All optimizer work remains deferred. [Study protocol](../reports/newer-frozen-judges.md)
