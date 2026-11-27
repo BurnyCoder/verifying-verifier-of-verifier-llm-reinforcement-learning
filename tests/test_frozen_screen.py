@@ -4,7 +4,7 @@ import pytest
 
 from study.domain import Problem
 from study.frozen_cases import CaseRunner, metrics, paired_confirmation
-from study.frozen_gpu import LocalCUDA, verify_placement
+from study.frozen_gpu import GPUFitError, LocalCUDA, require_dedicated_memory, verify_placement
 
 
 class FixtureBackend:
@@ -37,6 +37,13 @@ def test_native_graph_log_checks_scheduled_devices_and_rejects_host_compute(tmp_
         f.write("## SPLIT #2: CPU # 3 inputs\n")
     with pytest.raises(ValueError,match="CPU-free computation"):
         graph_assignments(log)
+
+
+def test_dedicated_gpu_allocation_must_cover_weights_and_cache():
+    planned={"weights_mib":5200,"cache_mib":160}
+    require_dedicated_memory(planned, 5370)
+    with pytest.raises(GPUFitError,match="5100"):
+        require_dedicated_memory(planned,5100)
 
 
 def test_template_prefill_never_becomes_a_judge_answer(monkeypatch, tmp_path):
