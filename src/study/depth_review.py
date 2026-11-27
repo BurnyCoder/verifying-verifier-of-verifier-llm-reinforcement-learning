@@ -8,6 +8,7 @@ from itertools import batched, combinations
 from .design import SEEDS
 from .domain import Problem
 from .learning_review import execute_steps
+from .paired_examples import differing_examples, outcome_counts, output_table, pair_saved_outputs
 from .storage import read_json, rows
 from .tables import markdown
 
@@ -51,11 +52,19 @@ def group_evidence(deep):
     fixes = harms = changed = 0
     preferences = [Counter(), Counter()]
     paid = [dict(correct=0,wrong=0) for _ in range(2)]
+    credit_example = None
     for group in batched(deep, 4):
         if len(group) != 4:
             raise ValueError("A comparison requires four samples per group")
         labels = [r["label"] for r in group]
         second, third = [[effective_bit(r["reports"][index]) for r in group] for index in (1, 2)]
+        if (credit_example is None and second == labels
+                and any(y and not bit for y, bit in zip(labels, third, strict=True))
+                and any(not y and bit for y, bit in zip(labels, third, strict=True))):
+            # First archived group where J3 both removed credit from a correct sample and gave it to a wrong one.
+            credit_example = dict(update=group[0]["step"]+1, expression=group[0]["expression"],
+                                  samples=[[row["answer"], bool(row["label"]), a, b]
+                                           for row, a, b in zip(group, second, third, strict=True)])
         for counts, votes in zip(paid,(second,third),strict=True):
             for label,bit in zip(labels,votes,strict=True):
                 counts["correct" if label else "wrong"] += bit
@@ -69,7 +78,7 @@ def group_evidence(deep):
             good, bad = (i, j) if labels[i] else (j, i)
             for counts, votes in zip(preferences, (second, third), strict=True):
                 counts[votes[good] - votes[bad]] += 1
-    return dict(fixes=fixes, harms=harms, changed_groups=changed, same_answers_paid=paid,
+    return dict(fixes=fixes, harms=harms, changed_groups=changed, same_answers_paid=paid, credit_example=credit_example,
                 j2_pairs=[preferences[0][i] for i in (1, 0, -1)], j3_pairs=[preferences[1][i] for i in (1, 0, -1)])
 
 
@@ -109,6 +118,26 @@ def audit_arm(directory, depth):
     return training, dev, dict(training=parts, rewarded=paid, dev=cases, first_quarter=windows[0], last_quarter=windows[1])
 
 
+def fixed_answer_replay(records):
+    """Reconstruct both graders' decisions while holding one checkpoint's written solutions fixed."""
+    accepted, agreement = [0, 0], [0, 0]
+    transitions = []
+    for row in records:
+        reports = row["reports"][1:3]
+        verdicts = [effective_bit(report) for report in reports]
+        if len(verdicts) != 2 or verdicts != row["verdicts"][1:3]:
+            raise ValueError("The fixed-answer replay disagrees with the logged verdicts")
+        for i, bit in enumerate(verdicts):
+            accepted[i] += bit
+            agreement[i] += bit == row["correct"]
+        if verdicts[0] != verdicts[1]:
+            transitions.append(dict(expression=row["expression"], output=row["trace"], truth=row["expected_values"],
+                                    bits=verdicts, reports=reports, correct=row["correct"]))
+    fixes = sum(change["bits"][1] == change["correct"] for change in transitions)
+    return dict(correct=sum(row["correct"] for row in records), n=len(records), accepted=accepted,
+                agreement=agreement, fixes=fixes, harms=len(transitions)-fixes, transitions=transitions)
+
+
 def audited_seed(directory, seed):
     """Read both completed reward treatments. No held-out record is used by this diagnostic."""
     paths = [directory/f"d{depth}-{seed}" for depth in (2, 3)]
@@ -119,26 +148,19 @@ def audited_seed(directory, seed):
     if ([r["key"] for r in shallow] != [r["key"] for r in deep] or
             [r["key"] for r in dev2] != [r["key"] for r in dev3] or len({r["key"] for r in dev3}) != len(dev3)):
         raise ValueError("The depth comparison requires the same problems in the same order")
-    transitions = []
-    accepted, agreement = [0, 0], [0, 0]
-    shared_error = None
     paired = Counter()
+    shared_error = None
     for a, b in zip(dev2, dev3, strict=True):
-        verdicts = [effective_bit(b["reports"][i]) for i in (1, 2)]
-        if verdicts != b["verdicts"][1:]:
-            raise ValueError("The fixed-answer replay disagrees with the logged verdicts")
-        for i, bit in enumerate(verdicts):
-            accepted[i] += bit
-            agreement[i] += bit == b["correct"]
         outcome = "both" if a["correct"] and b["correct"] else "two only" if a["correct"] else "three only" if b["correct"] else "neither"
         paired[outcome] += 1
-        if verdicts[0] != verdicts[1]:
-            transitions.append(dict(expression=b["expression"], output=b["trace"], truth=b["expected_values"],
-                                    bits=verdicts, reports=b["reports"][1:], correct=b["correct"]))
         if shared_error is None and a["correct"] and not b["correct"] and not b["malformed"] and b["verdicts"] == [1,1,1]:
             shared_error = dict(expression=b["expression"], right=a["trace"], wrong=b["trace"])
+    replays = [fixed_answer_replay(dev2), fixed_answer_replay(dev3)]
+    # Published study.json revisions exposed these three-judge replay fields at the top level.
+    original_replay = {key: replays[1][key] for key in ("accepted", "agreement", "transitions")}
     return dict(seed=seed, n=len(deep), groups=len(deep)//4, dev_n=len(dev3), two=stats2, three=stats3,
-                paired=paired, accepted=accepted, agreement=agreement, transitions=transitions, shared_error=shared_error,
+                paired_outputs=pair_saved_outputs(dev2, dev3),
+                paired=paired, replays=replays, shared_error=shared_error, **original_replay,
                 transcript_audit=read_json(directory/"diagnostics"/f"depth-transcripts-{seed}.json"), **group_evidence(deep))
 
 
@@ -153,6 +175,17 @@ def reward_rates(r):
         gap = f"{100*(paid['correct']/valid - paid['wrong']/wrong):+.1f}" if valid and wrong else "—"
         records.append([f"Judge {level}",*cells,gap])
     return markdown(["Frozen reward source","Correct answers rewarded","Wrong answers rewarded","Correct minus wrong rate (pp)"],records)
+
+
+def replay_table(reviews):
+    """Reading down the exact-score column compares training. Reading across a row compares graders."""
+    rows = []
+    for depth, replay in enumerate(reviews, 2):
+        counts = [replay["correct"], *replay["accepted"]]
+        rows.append([f"Judge {depth}", *(f"{value}/{replay['n']}" for value in counts),
+                     replay["fixes"], replay["harms"]])
+    return markdown(["Final judge used for training", "Solutions exactly correct", "Judge 2 approved",
+                     "Judge 3 approved", "Grading errors Judge 3 fixed", "Grading errors Judge 3 introduced"], rows)
 
 
 def readme_depth(data):
@@ -183,16 +216,25 @@ def readme_depth(data):
                  if key in measured]
     if reference:
         sections.append("The same evaluation gave "+", ".join(f"{dev_score(key)} for {label}" for key,label in reference)+".")
-    fixed = sum(e["bits"][1] == e["correct"] for e in r["transitions"])
-    sections += ["### What happens if we stop at Judge 2 on the same answers?",
-        f"The three-judge-trained solver still solved **{correct}/{n}**. Its written answers were already fixed "
-        f"before grading. On those answers, Judge 3 changed {len(r['transitions'])} of Judge 2’s verdicts. "
-        f"It corrected {fixed} and wrongly overturned {len(r['transitions'])-fixed}.",
-        markdown(["Stopping point on the fixed answers", "Answers approved", "Verdicts agreeing with the checker"],
-                 [[f"Judge {i+2}",f"{r['accepted'][i]}/{n}",f"{r['agreement'][i]}/{n}"] for i in range(2)])]
-    if r["transitions"]:
+    second, third = r["replays"]
+    sections += ["### What changes if we remove Judge 3 during training or during grading?",
+        f"**During training**, the final judge rewards the solver after each group of answers. Two copies of the "
+        f"starting solver learned separately. They then answered the same {n} development questions and earned "
+        f"different arithmetic scores. **During grading**, we took each copy’s saved answers and read Judge 2’s "
+        f"and Judge 3’s decisions on exactly that text. Each row below holds the written answers fixed.",
+        replay_table(r["replays"]),
+        f"The solver trained with Judge 3 earns **{correct}/{n}** from the integer checker whichever grader reads it. "
+        f"Judge 3 changed {len(third['transitions'])} decisions on that solver’s answers. It fixed {third['fixes']} "
+        f"and introduced {third['harms']}. The **{abs(correct-two_correct)}-solution gap** comes from comparing "
+        f"the answers the two solvers wrote after separate training runs.",
+        f"On the Judge 2-trained solver’s answers, Judge 2 and Judge 3 agreed with the checker on "
+        f"{second['agreement'][0]}/{n} and {second['agreement'][1]}/{n}, respectively. On the Judge 3-trained "
+        f"solver’s answers they agreed with the checker on {third['agreement'][0]}/{n} and {third['agreement'][1]}/{n}. "
+        f"[Two-judge answers](results/calibrated/d2-{seed}/replay.jsonl) · "
+        f"[Three-judge answers](results/calibrated/d3-{seed}/replay.jsonl)"]
+    if third["transitions"]:
         example_rows = []
-        for e in r["transitions"]:
+        for e in third["transitions"]:
             decisions = []
             for bit, report in zip(e["bits"],e["reports"],strict=True):
                 record = numbers(report,6)
@@ -201,12 +243,22 @@ def readme_depth(data):
                     detail = f" (invalid audit flag {record[0]})"
                 decisions.append(("Accepted" if bit else "Rejected")+detail)
             example_rows.append([e["expression"],e["output"].replace("\n"," "),",".join(map(str,e["truth"])),*decisions])
-        sections += ["Every changed development verdict appears here.",
+        sections += ["Judge 3 changed the following verdicts on the three-judge-trained solver’s saved answers.",
                      markdown(["Problem","Submitted steps","Correct steps","Judge 2","Judge 3"],example_rows)]
-    if r["shared_error"]:
-        e = r["shared_error"]
-        sections.append(f"On `{e['expression']}`, the two-judge-trained solver wrote `{e['right']}`. The three-judge-trained "
-                        f"solver wrote `{e['wrong']}`, and all three judges approved it in the replay.")
+    counts = outcome_counts(r["paired_outputs"])
+    sections += ["### What did the solvers and judges actually write?",
+        f"On {sum(counts.values())} problems only the two-judge-trained solver wrote a correct solution. "
+        f"When the graders read the other solver’s wrong answers on those problems, both approved {counts[1,1]}, "
+        f"both rejected {counts[0,0]}, Judge 3 caught {counts[1,0]} that Judge 2 approved, and Judge 3 approved "
+        f"{counts[0,1]} that Judge 2 rejected. In the reverse direction, only the three-judge-trained solver "
+        f"solved {paired['three only']}/{n}.",
+        "Each pair shows the same question answered by each solver. The judge cells give the decision on the "
+        "solver and the literal output, including any incorrect evidence. For Judges 2 and 3, the first three "
+        "numbers review the preceding judge. Field four gives the verdict on the solution. Judge 3 also read "
+        "the two-judge-trained solver’s answers in this replay.",
+        output_table(differing_examples(r["paired_outputs"])),
+        f"The examples show the first well-formatted case available for each observed verdict pattern and the "
+        f"first reverse outcome. [All {n} paired outputs and judge reports](reports/reviews/paired-outputs-seed-{seed}.md)"]
     sections += ["### What changed during training?",
         f"On the same {r['n']:,} training answers sampled by the three-judge solver, Judge 3 fixed {r['fixes']} "
         f"of Judge 2’s verdicts and spoiled {r['harms']}. Substituting Judge 2’s reward would have changed the "
@@ -226,6 +278,15 @@ def readme_depth(data):
         f"In its first quarter of training, the three-judge solver produced {deep['first_quarter'][0]} correct "
         f"answers per {r['groups']} samples and received {deep['first_quarter'][1]} positive rewards. In the last "
         f"quarter it produced {deep['last_quarter'][0]} correct answers and received {deep['last_quarter'][1]} positive rewards."]
+    if example := r["credit_example"]:
+        sections += [
+            f"At optimizer update {example['update']}, the three-judge run sampled four answers to "
+            f"`{example['expression']}`. The table shows the first group in which Judge 2 graded every sample correctly "
+            "and Judge 3 both removed a correct answer’s reward and awarded a wrong answer. Each duplicate "
+            "was a separate sampled completion with its own sampled judge reports.",
+            markdown(["Solver wrote", "Exact checker", "Judge 2 reward on this sample", "Judge 3 reward used for training"],
+                     [[answer, "correct" if label else "wrong", a, b] for answer, label, a, b in example["samples"]]),
+            f"[Complete training records for this solver](results/calibrated/d3-{seed}/rollouts.jsonl)"]
     local = "first wrong, second consistent"
     bad_first = deep["dev"][local]+deep["dev"]["first wrong, second inconsistent"]
     sections.append(f"The two-judge solver gave the correct first value on {two_correct+r['two']['dev']['second wrong']}/{n} "
@@ -314,11 +375,14 @@ def review_text(reviews):
                 "[Analysis code](../../src/study/depth_review.py) · [GRPO group advantages](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)"]
     for r in reviews:
         seed, deep = r["seed"], r["three"]
+        _, third = r["replays"]
         sections.extend([f"## Seed {seed}",
             f"On {r['dev_n']} matched development problems the two-judge solver alone was correct on "
             f"{r['paired']['two only']}, the three-judge solver alone on {r['paired']['three only']}, both on "
-            f"{r['paired']['both']}, and neither on {r['paired']['neither']}. Holding the three-judge solver's outputs "
-            f"fixed, Judge 2 accepted {r['accepted'][0]} and Judge 3 accepted {r['accepted'][1]}.",
+            f"{r['paired']['both']}, and neither on {r['paired']['neither']}. Each row below uses a different trained "
+            f"solver on those same questions. The two graders read identical saved text within each row.",
+            replay_table(r["replays"]),
+            f"[Every paired solver output and all three raw judge reports](paired-outputs-seed-{seed}.md)",
             markdown(["Three-judge solver error", "Development answers", "Training answers", "Training answers rewarded"],
                      [[k,deep["dev"][k],deep["training"][k],deep["rewarded"][k]] for k in
                       ("correct","first wrong, second consistent","first wrong, second inconsistent","second wrong","format")]),
@@ -333,11 +397,11 @@ def review_text(reviews):
             markdown(["Training run and window", "Correct", "Rewarded", "Sampled"],
                      [[role+" / "+label, *r[key][window], r["groups"]] for role,key in (("Two judges","two"),("Three judges","three"))
                       for label,window in (("first quarter","first_quarter"),("last quarter","last_quarter"))])])
-        if r["transitions"]:
+        if third["transitions"]:
             sections.extend(["Every development verdict change on the three-judge solver’s fixed responses is shown below.",
                 markdown(["Expression", "Solver", "Exact values", "Judge 2 report", "Judge 3 report", "Verdict change"],
                          [[e["expression"],e["output"].replace("\n"," "),",".join(map(str,e["truth"])), *e["reports"],
-                           "Fixed" if e["bits"][1] == e["correct"] else "Introduced error"] for e in r["transitions"]])])
+                           "Fixed" if e["bits"][1] == e["correct"] else "Introduced error"] for e in third["transitions"]])])
         sections.append(f"[Two-judge records](../../results/calibrated/d2-{seed}) · [Three-judge records](../../results/calibrated/d3-{seed})")
     sections.append("These comparisons distinguish a change of verdict on an already written answer from a change "
                     "to the solver learned over successive updates. Replacing the reward in an archived group reveals "

@@ -44,3 +44,38 @@ def test_group_evidence_rejects_an_incomplete_training_group():
 
     with pytest.raises(ValueError, match="four"):
         group_evidence([{}])
+
+
+def test_training_example_keeps_duplicate_samples_and_actual_terminal_rewards():
+    from study.depth_review import group_evidence
+
+    problem = "(18 - 11) - 3"
+    group = [dict(step=19, expression=problem, answer=answer, label=y,
+                  reports=["1,0,4", f"1,0,4,{y},0,4", f"1,0,4,{b},0,4"])
+             for answer, y, b in [("7,4",1,0), ("7,4",1,1), ("5,2",0,0), ("5,2",0,1)]]
+    example = group_evidence(group)["credit_example"]
+    assert (example["expression"], example["update"]) == (problem, 20)
+    assert example["samples"] == [["7,4",True,1,0], ["7,4",True,1,1], ["5,2",False,0,0], ["5,2",False,0,1]]
+
+
+def test_fixed_answer_replay_keeps_exact_grades_separate_from_judge_approvals():
+    from study.depth_review import fixed_answer_replay
+
+    problem = Problem.from_expression("(39 + 12) - 5")
+    def replay(trace, correct, second, third):
+        return dict(expression=problem.expression, trace=trace, correct=correct, expected_values=[51, 46],
+                    verdicts=[1, second, third],
+                    reports=["1,0,46", f"1,0,46,{second},0,46", f"1,0,46,{third},0,46"])
+
+    # Both graders approve one answer. Their verdicts differ on both responses.
+    cases = [replay("51,46", True, 0, 1), replay("16,11", False, 1, 0)]
+    result = fixed_answer_replay(cases)
+    assert (result["correct"], result["n"]) == (1, 2)
+    assert result["accepted"] == [1, 1]
+    assert result["agreement"] == [0, 2]
+    assert (result["fixes"], result["harms"]) == (2, 0)
+    assert [row["output"] for row in result["transitions"]] == ["51,46", "16,11"]
+
+    cases[0]["verdicts"][2] = 0
+    with pytest.raises(ValueError, match="logged verdicts"):
+        fixed_answer_replay(cases)

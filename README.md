@@ -2,7 +2,7 @@
 
 A small language model solves numbered arithmetic problems. A second call judges the solution, a third checks that judgment, and a fourth checks the review. An exact integer evaluator can check each answer and each piece of evidence. We measure whether the final reviewer catches errors and whether its reward improves a solver trained with Group Relative Policy Optimization. [Preregistration](reports/preregistration.md)
 
-For example, a solver can give the right final answer to (4 + 3) × 2 while recording 8 in the first step. A reviewer can endorse the correct rejection and still give the wrong correction. The study distinguishes both mistakes.
+For example, a solver can give the right final answer to (4 + 3) × 2 while recording 8 in the first step. A reviewer can endorse the correct rejection and still give the wrong correction. [Compare the two trained solvers’ answers and each judge’s actual output](#what-did-the-solvers-and-judges-actually-write).
 
 <!-- RESULTS:START -->
 ## Matched accuracy by judge depth
@@ -41,23 +41,44 @@ Always accepting scores 20/32 (62.5%) on these same responses. The stack trained
 
 The same evaluation gave 20/32 for the starting solver, 21/32 for one judge, 24/32 for three independent votes, 32/32 for the exact checker, 31/32 for the third judge gated by the exact checker, 5/32 for shuffled three-judge rewards.
 
-### What happens if we stop at Judge 2 on the same answers?
+### What changes if we remove Judge 3 during training or during grading?
 
-The three-judge-trained solver still solved **3/32**. Its written answers were already fixed before grading. On those answers, Judge 3 changed 2 of Judge 2’s verdicts. It corrected 1 and wrongly overturned 1.
+**During training**, the final judge rewards the solver after each group of answers. Two copies of the starting solver learned separately. They then answered the same 32 development questions and earned different arithmetic scores. **During grading**, we took each copy’s saved answers and read Judge 2’s and Judge 3’s decisions on exactly that text. Each row below holds the written answers fixed.
 
-| Stopping point on the fixed answers | Answers approved | Verdicts agreeing with the checker |
-| --- | --- | --- |
-| Judge 2 | 21/32 | 12/32 |
-| Judge 3 | 21/32 | 12/32 |
+| Final judge used for training | Solutions exactly correct | Judge 2 approved | Judge 3 approved | Grading errors Judge 3 fixed | Grading errors Judge 3 introduced |
+| --- | --- | --- | --- | --- | --- |
+| Judge 2 | 25/32 | 19/32 | 19/32 | 0 | 0 |
+| Judge 3 | 3/32 | 21/32 | 21/32 | 1 | 1 |
 
-Every changed development verdict appears here.
+The solver trained with Judge 3 earns **3/32** from the integer checker whichever grader reads it. Judge 3 changed 2 decisions on that solver’s answers. It fixed 1 and introduced 1. The **22-solution gap** comes from comparing the answers the two solvers wrote after separate training runs.
+
+On the Judge 2-trained solver’s answers, Judge 2 and Judge 3 agreed with the checker on 16/32 and 16/32, respectively. On the Judge 3-trained solver’s answers they agreed with the checker on 12/32 and 12/32. [Two-judge answers](results/calibrated/d2-17/replay.jsonl) · [Three-judge answers](results/calibrated/d3-17/replay.jsonl)
+
+Judge 3 changed the following verdicts on the three-judge-trained solver’s saved answers.
 
 | Problem | Submitted steps | Correct steps | Judge 2 | Judge 3 |
 | --- | --- | --- | --- | --- |
 | (36 - 7) + 7 | 8,15 | 29,36 | Accepted | Rejected |
 | (1 + 6) - 6 | -5,-1 | 7,1 | Rejected (invalid audit flag -1) | Accepted |
 
-On `(39 + 12) - 5`, the two-judge-trained solver wrote `51,46`. The three-judge-trained solver wrote `16,11`, and all three judges approved it in the replay.
+### What did the solvers and judges actually write?
+
+On 23 problems only the two-judge-trained solver wrote a correct solution. When the graders read the other solver’s wrong answers on those problems, both approved 15, both rejected 7, Judge 3 caught 1 that Judge 2 approved, and Judge 3 approved 0 that Judge 2 rejected. In the reverse direction, only the three-judge-trained solver solved 1/32.
+
+Each pair shows the same question answered by each solver. The judge cells give the decision on the solver and the literal output, including any incorrect evidence. For Judges 2 and 3, the first three numbers review the preceding judge. Field four gives the verdict on the solution. Judge 3 also read the two-judge-trained solver’s answers in this replay.
+
+| Problem → exact steps | Training reward | Solver wrote | Judge 1 | Judge 2 | Judge 3 |
+| --- | --- | --- | --- | --- | --- |
+| <code>(39 + 12) - 5</code> → <code>51,46</code> | Judge 2 | <code>51,46</code> · correct | accept <code>1,0,46</code> | accept <code>1,0,46,1,0,46</code> | accept <code>1,0,46,1,0,46</code> |
+| ↳ same problem | Judge 3 | <code>16,11</code> · wrong | accept <code>1,0,16</code> | accept <code>1,0,16,1,0,16</code> | accept <code>1,0,16,1,0,16</code> |
+| <code>(36 - 7) + 7</code> → <code>29,36</code> | Judge 2 | <code>29,36</code> · correct | accept <code>1,0,36</code> | accept <code>1,0,36,1,0,36</code> | accept <code>1,0,36,1,0,36</code> |
+| ↳ same problem | Judge 3 | <code>8,15</code> · wrong | accept <code>1,0,15</code> | accept <code>1,0,15,1,0,15</code> | reject <code>1,0,15,0,1,15</code> |
+| <code>(35 + 8) - 1</code> → <code>43,42</code> | Judge 2 | <code>43,42</code> · correct | accept <code>1,0,42</code> | reject <code>1,0,42,0,1,42</code> | reject <code>1,0,42,0,1,42</code> |
+| ↳ same problem | Judge 3 | <code>6,59</code> · wrong | accept <code>1,0,59</code> | reject <code>1,0,59,0,1,59</code> | reject <code>1,0,59,0,1,59</code> |
+| <code>(22 - 10) + 12</code> → <code>12,24</code> | Judge 2 | <code>12,14</code> · wrong | accept <code>1,0,14</code> | accept <code>1,0,14,1,0,14</code> | accept <code>1,0,14,1,0,14</code> |
+| ↳ same problem | Judge 3 | <code>12,24</code> · correct | accept <code>1,0,24</code> | accept <code>1,0,24,1,0,24</code> | accept <code>1,0,24,1,0,24</code> |
+
+The examples show the first well-formatted case available for each observed verdict pattern and the first reverse outcome. [All 32 paired outputs and judge reports](reports/reviews/paired-outputs-seed-17.md)
 
 ### What changed during training?
 
@@ -78,6 +99,17 @@ During its own training run, the two-judge solver generated 648/1,024 exact answ
 | Judge 3 on those answers | 22 | 84 | 28 |
 
 In its first quarter of training, the three-judge solver produced 80 correct answers per 256 samples and received 173 positive rewards. In the last quarter it produced 15 correct answers and received 171 positive rewards.
+
+At optimizer update 20, the three-judge run sampled four answers to `(18 - 11) - 3`. The table shows the first group in which Judge 2 graded every sample correctly and Judge 3 both removed a correct answer’s reward and awarded a wrong answer. Each duplicate was a separate sampled completion with its own sampled judge reports.
+
+| Solver wrote | Exact checker | Judge 2 reward on this sample | Judge 3 reward used for training |
+| --- | --- | --- | --- |
+| 7,4 | correct | 1 | 0 |
+| 7,4 | correct | 1 | 1 |
+| 5,2 | wrong | 0 | 0 |
+| 5,2 | wrong | 0 | 1 |
+
+[Complete training records for this solver](results/calibrated/d3-17/rollouts.jsonl)
 
 The two-judge solver gave the correct first value on 32/32 development problems. The three-judge solver gave a wrong first value on 28 and a malformed answer on 1. In 20 cases it applied the second operation correctly to its own wrong intermediate value. Judge 3 rewarded 357/508 training answers with that error pattern.
 
@@ -151,7 +183,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
-[How the third judge changed actual training rewards and worked examples](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/depth-diagnosis.md).
+[How the third judge changed actual training rewards and worked examples](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/depth-diagnosis.md). [Side-by-side solver outputs and judge reports](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/paired-outputs-seed-17.md).
 
 **Benchmark difficulty.** The frozen-model screen selected two-add with demonstrated prompts. On 16 screening problems it produced a mix of correct and incorrect answers on 2 problems. [All difficulty levels](reports/learnability.md).
 
