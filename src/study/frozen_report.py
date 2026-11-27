@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from .frozen_audit import audit
+from .frozen_audit import audit, confirmation_review
 from .frozen_device import measured_engine_times
 from .frozen_models import LOCAL_REPLICATES, MODELS
 from .storage import atomic, read_json, rows
@@ -16,6 +16,11 @@ HEAD = ["Model and cohort","J1 verdict","J2 verdict","J3 verdict","J3 visible pa
 def released_audit(folder, receipt_time):
     """A completed receipt identifies immutable calls. Avoid re-reading them on every dashboard refresh."""
     return audit(folder, read_json(folder/"result.json"))
+
+
+@lru_cache(maxsize=4)
+def released_confirmation_review(root, receipt_time):
+    return confirmation_review(root, read_json(root/'decision.json'))
 
 
 @lru_cache(maxsize=8)
@@ -71,7 +76,9 @@ def collect_frozen(root):
                     receipt["gpu"] = dict(peak_dedicated_mib=max(r["dedicated_bytes"] for r in samples)/2**20,
                                           engines=measured_engine_times(samples),last_sample=samples[-1]["time"])
             results.append({**receipt,"key":key})
-    return dict(results=results,decision=read_json(root/"decision.json",{}),conversions=conversion_findings(root,results),fit_failures=failed)
+    decision = read_json(root/'decision.json',{})
+    review = released_confirmation_review(root,decision['time']) if decision.get('estimates') else {}
+    return dict(results=results,decision=decision,conversions=conversion_findings(root,results),fit_failures=failed,review=review)
 
 
 def depth_rows(study):
@@ -126,6 +133,23 @@ def interpretation(study):
         if decision.get("estimates"):
             parts.append("Intervals resample confirmation problems in pairs and condition on the deployed model files. The solver responses were fixed throughout. Measuring what the solver learns from these rewards requires the deferred online comparison.")
     return parts
+
+
+def confirmation_review_text(study):
+    """Publish the checks and limits alongside links to immutable case-level evidence."""
+    from .design import GITHUB
+    checks=study['review']
+    source=f'{GITHUB}/tree/main/results/new-judges'
+    winner=study['decision']['selected']
+    amendment = "The sustained-throughput fallback was declared after partial inference at higher precision. " if 'original_completed_selection' in study['decision'] else ""
+    return ("# Review of the independent frozen-judge confirmation\n\n"
+            f"The audit regenerated the {checks['fresh_ids']} assigned confirmation problem IDs. None overlapped the {checks['screen_ids']} distinct development problems observed during screening, including the natural traces. "
+            f"The original judge and selected file received identical inputs on all {checks['matched_cases']} matched cases, including the two versions of Judge 2's evidence. Each problem supplied a valid trace, an invalid trace and one evidence-pair case. "
+            f"[Control records]({source}/confirm-control) · [Selected model records]({source}/confirm-winner).\n\n"
+            f"The release recomputed the rank of {checks['ranked_candidates']} completed candidates, verified that the two confirmation configurations matched their screen files and runtime settings, and regenerated both registered bootstrap intervals and the online eligibility decision. "
+            f"The winning screen record was `{winner}`. [Selection]({source}/decision.json) · [Reconstruction]({GITHUB}/blob/main/src/study/frozen_audit.py).\n\n"
+            "The intervals condition on these frozen deployments and the arithmetic generator. Model size, post-training and compression vary together. "+amendment+"A trained solver's response to these rewards remains a separate experiment. "
+            f"[Protocol and amendment]({GITHUB}/blob/main/reports/newer-frozen-judges.md) · [All measured outcomes]({GITHUB}/blob/main/reports/experiments/new-judges/experiment.md).\n")
 
 
 def plot_scores(study, path):

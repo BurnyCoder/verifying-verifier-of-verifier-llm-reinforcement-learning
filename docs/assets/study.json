@@ -241222,7 +241222,8 @@
         "file": "Qwen3.8-27B-UD-IQ2_XXS.gguf",
         "reason": "The process has 7034.1 MiB in dedicated GPU memory, below 7139.4 MiB of weights and state"
       }
-    ]
+    ],
+    "review": {}
   },
   "matched_depth": [
     {

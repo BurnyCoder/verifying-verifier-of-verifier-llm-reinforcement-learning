@@ -187,3 +187,15 @@ def test_fresh_throughput_fallback_can_win_without_its_partial_predecessor(tmp_p
     assert decision['original_completed_selection']=='q35-4b' and decision['selected']=='q38-27b-iq1s'
     assert ('confirm-winner','q38-27b',suite.SMALLER_FILES['q38-27b'][-1][0]) in observed
     assert not decision['online_gate']
+
+
+def test_confirmation_identity_check_detects_overlap_and_changed_prior_evidence():
+    from study.frozen_audit import confirmation_identities
+    probes={f'{kind}/fresh':dict(kind=kind, key='fresh', expression='2+2', trace='4') for kind in ('twins','balanced-valid','balanced-invalid')}
+    probes['twins/fresh'].update(first='J1',reviews=['good','bad'])
+    assert confirmation_identities(set(),{'fresh'},probes,probes)==1
+    with pytest.raises(ValueError,match='overlap'):
+        confirmation_identities({'fresh'},{'fresh'},probes,probes)
+    altered={**probes,'twins/fresh':{**probes['twins/fresh'],'reviews':['good','changed']}}
+    with pytest.raises(ValueError,match='inputs'):
+        confirmation_identities(set(),{'fresh'},probes,altered)

@@ -8,6 +8,58 @@ from .records import expected, mask_evidence, parse, render, solver_truth, sound
 from .storage import rows
 
 
+def confirmation_identities(screen_keys, expected_keys, control, winner):
+    """Check every input pair, including the literal J1 report and both controlled J2 reviews."""
+    if expected_keys & screen_keys:
+        raise ValueError('Confirmation and screening problem IDs overlap')
+    expected_cases = {f'{kind}/{key}' for key in expected_keys for kind in ('twins','balanced-valid','balanced-invalid')}
+    if control.keys()!=expected_cases or winner.keys()!=expected_cases:
+        raise ValueError('Confirmation cases differ from the preregistered problem IDs or conditions')
+    for key in expected_cases:
+        if any(control[key].get(f)!=winner[key].get(f) for f in ('kind','key','expression','trace','first','reviews')):
+            raise ValueError(f'Candidate and control received different inputs on {key}')
+    return len(expected_keys)
+
+
+def confirmation_review(root, decision):
+    """Rebuild the inclusion, selection, model identities, paired effects and gate from the release."""
+    from .curriculum import curriculum_problems
+    from .frozen_cases import paired_confirmation
+    from .frozen_models import LOCAL_REPLICATES, MODELS
+    from .storage import read_json
+    family = read_json(root.parent/'calibrated/profile.json')['family']
+    stream = curriculum_problems(family,'confirm',320)
+    expected_screen, expected_confirm = ({p.key for p in stream[start:stop]} for start,stop in ((96,128),(256,320)))
+    candidates, all_screen = {}, set()
+    for key in [*(m.key for m in (*LOCAL_REPLICATES,*MODELS)), 'q38-27b-iq1s']:
+        local = list(rows(root/key/'cases.jsonl'))
+        all_screen.update(r['key'] for r in local)
+        receipt = read_json(root/key/'result.json',{})
+        if receipt.get('status')!='Complete':
+            continue
+        if {c['key'] for c in local if c['kind']=='twins'}!=expected_screen:
+            raise ValueError(f'Unexpected arithmetic IDs for the {key} evidence screen')
+        if key in {m.key for m in MODELS[1:]} or key=='q38-27b-iq1s':
+            metrics=receipt['metrics']
+            candidates[key]=(metrics['twins']['visible'], metrics['balanced']['depths'][2]['accuracy'], -receipt['cost']['elapsed_seconds'])
+    chosen = max(candidates,key=candidates.get)
+    if chosen!=decision['selected']:
+        raise ValueError('Raw screen ranking disagrees with the confirmed selection')
+    original = {key:score for key,score in candidates.items() if key!='q38-27b-iq1s'}
+    if 'original_completed_selection' in decision and max(original,key=original.get)!=decision['original_completed_selection']:
+        raise ValueError('Original completed candidate ranking disagrees with its release')
+    def settings(key):
+        return {k:v for k,v in read_json(root/key/'configuration.json').items() if k!='phase'}
+    if settings(chosen)!=settings('confirm-winner') or settings(MODELS[0].key)!=settings('confirm-control'):
+        raise ValueError('Screen and confirmation used different model files or inference settings')
+    control, winner = ({r['id']:r for r in rows(root/key/'cases.jsonl')} for key in ('confirm-control','confirm-winner'))
+    count = confirmation_identities(all_screen,expected_confirm,control,winner)
+    estimates = paired_confirmation(winner,control)
+    if estimates!=decision['estimates'] or all(e['delta']>0 for e in estimates.values())!=decision['online_gate']:
+        raise ValueError('Released intervals or online gate disagree with the paired records')
+    return dict(screen_ids=len(all_screen), fresh_ids=count, matched_cases=len(control), ranked_candidates=len(candidates))
+
+
 def audit(folder, receipt):
     """Audit the scored output boundary without interpreting the server's prefilling as model text."""
     data = list(rows(folder/"cases.jsonl"))
