@@ -170,9 +170,10 @@ function showOnline() {
   const fixed=byId("fixed-rows"), examples=byId("online-examples");
   fixed.replaceChildren(); examples.replaceChildren();
   replays.forEach((r,i)=>row(fixed,["Judge "+(r.depth ?? i+2), ...[r.solver,r.j1_correct,r.j2_correct,r.j3_correct].map(k=>k==null ? "—" : k+"/"+r.n), r.fixed,r.harmed]));
-  for (const ex of online.comparison?.examples ?? []) {
+  const allDepths=online.three_depths?.examples;
+  for (const ex of allDepths ?? online.comparison?.examples ?? []) {
     const lines=["Exact steps: "+ex.expected.join(", ")];
-    ex.traces.forEach((trace,i)=>lines.push("Solver trained with Judge "+(i+2)+" wrote "+JSON.stringify(trace)+
+    ex.traces.forEach((trace,i)=>lines.push("Solver trained with Judge "+(i+(allDepths ? 1 : 2))+" wrote "+JSON.stringify(trace)+
       (ex.correct[i] ? " (correct)" : " (incorrect)"),...ex.reports[i].map((r,j)=>"  Judge "+(j+1)+" wrote "+JSON.stringify(r))));
     examples.append(exampleCard(ex.expression,lines,ex.correct.includes(0)));
   }

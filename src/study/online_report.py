@@ -4,12 +4,13 @@ from itertools import batched, groupby
 from statistics import mean
 
 from .benchmark import population
-from .design import GITHUB, Run
+from .design import GITHUB, PAGES, Run
 from .depth_review import compare_training_groups, different_group_credit, effective_bit, numbers
 from .domain import Problem
 from .exposures import check_exposures
 from .learnability_analysis import paired_change
 from .learning_review import execute_steps
+from .online_evidence import audit_intervention, paired_examples, solver_bit
 from .online_solvers import NAMES, ORIGINAL_PAIR, SINGLE
 from .online_trajectory import trajectory_evidence, trajectory_note, trajectory_text
 from .prompts import messages
@@ -85,14 +86,6 @@ def collect_online(root):
     return dict(plan=plan, base=dict(correct=sum(base.values()),n=len(base)), arms=arms,
                 comparison=read_json(root/"online-comparison.json", {}),
                 three_depths=read_json(root/"three-depth-comparison.json", {}) if amended else {})
-
-
-def solver_bit(text, depth):
-    """Reconstruct the published solution verdict independently of the trainer's reward callback."""
-    if depth == 1:
-        record = numbers(text, 3)
-        return int(record is not None and record[0] == 1)
-    return effective_bit(text)
 
 
 def verified_training(folder, depth, keys, identity, updates):
@@ -217,10 +210,11 @@ def verify_three_depths(root, pair):
             (setting["updates"],setting["group"]) != (plan["updates"],plan["group"])):
             raise ValueError("Unmatched online solver recipes")
     scores = [exact_scores(root/"calibrated/base/replay.jsonl", keys)]
-    arms = []
+    arms, interventions, cohorts = [], [], []
     for depth,name in enumerate(NAMES,1):
         target = root/name
         score, replay = checked_development(target, keys)
+        cohorts.append(replay)
         scores.append(score)
         audit = replay_verdicts(replay)
         direct = [solver_bit(r["reports"][0], 1) for r in replay]
@@ -228,13 +222,18 @@ def verify_three_depths(root, pair):
                for bit,r in zip(direct,replay,strict=True)):
             raise ValueError("Direct judge verdict differs from its fixed-answer grade")
         cost = read_json(target/"train-cost.json")
+        for previous in range(1,depth):
+            interventions.append(dict(depth=depth,lower=previous,upper=depth,
+                                      **audit_intervention(rows(target/"rollouts.jsonl"),previous,depth)))
         arms.append(dict(depth=depth,**audit,j1_correct=sum(b==r["valid"] for b,r in zip(direct,replay,strict=True)),
-                         train_calls=cost["calls"], train_seconds=read_json(target/"trained.json")["elapsed_seconds"],
+                         train_calls=cost["calls"],judge_input_tokens=cost["input_tokens"],judge_output_tokens=cost["output_tokens"],
+                         train_seconds=read_json(target/"trained.json")["elapsed_seconds"],
                          final_adapter_sha256=read_json(target/"development.json")["weights"]))
     differences = dict(one_minus_base=paired_change(scores[1],scores[0]),
                        two_minus_one=paired_change(scores[2],scores[1]), three_minus_one=paired_change(scores[3],scores[1]),
                        three_minus_two=pair["d3_minus_d2"])
-    result = dict(arms=arms, contrasts=differences, initial_adapter_sha256=identity, prompt_order_sha256=digests)
+    result = dict(arms=arms, contrasts=differences, initial_adapter_sha256=identity, prompt_order_sha256=digests,
+                  interventions=interventions, examples=paired_examples(cohorts))
     write_json(root/"new-judges/three-depth-comparison.json", result)
     return result
 
@@ -266,6 +265,18 @@ def single_contrasts(study):
             table.append([label, change["fixed"],change["harmed"],f"{100*change['delta']:+.2f}",
                           f"{100*lo:+.1f} to {100*hi:+.1f}"])
     return head,table
+
+
+def cost_table(complete):
+    head = ["Reward depth", "Judge calls", "Judge input tokens", "Judge output tokens", "Training minutes"]
+    return head,[[arm["depth"],f"{arm['train_calls']:,}",f"{arm['judge_input_tokens']:,}",
+                  f"{arm['judge_output_tokens']:,}", f"{arm['train_seconds']/60:.1f}"] for arm in complete["arms"]]
+
+
+def intervention_table(complete):
+    head = ["Training run", "Verdict comparison", "Fixed", "Introduced errors", "Changed relative credit"]
+    return head,[[f"{i['depth']} judges",f"J{i['upper']} vs J{i['lower']}",i["fixed"],i["harmed"],
+                  f"{i['changed_credit_groups']}/{i['groups']} groups"] for i in complete["interventions"]]
 
 
 def conclusion(study):
@@ -335,6 +346,16 @@ def experiment_pages(study, destination):
 
 
 def solver_examples(study):
+    complete = study.get("three_depths",{})
+    if complete:
+        data = [[e["expression"],", ".join(map(str,e["expected"])),
+                 *(f"`{t}` ({'correct' if y else 'wrong'})" for t,y in zip(e["traces"],e["correct"],strict=True))]
+                for e in complete["examples"]]
+        return ("### What each solver wrote on the same calculation\n\n"+
+                markdown(["Expression","Exact steps","One-judge solver","Two-judge solver","Three-judge solver"],data)+
+                "\n\nEach row is the first development problem with that combination of successes and failures. "
+                f"The entries give the predicted first and second step. The explorer shows the literal judge reports "
+                f"for every answer in these rows. [Interactive explorer]({PAGES})\n\n")
     examples = study.get("comparison",{}).get("examples",[])
     if not examples:
         return ""
@@ -466,9 +487,20 @@ def paired_review(study):
                 f"{len(c['matched_groups']['different_credits'])} received different group-relative credit. "
                 "Each effective training reward was recomputed from the raw terminal report and checked against its exact prompt history and the reward mean TRL logged for the optimizer. "
                 "Every finished checkpoint contributed one greedy trace per development problem. The training and development IDs were disjoint.")
+    supplement = ""
+    complete = study.get("three_depths",{})
+    if complete:
+        supplement = ("\n\n## Direct and recursive rewards on the same live answers\n\n"+
+                      markdown(*intervention_table(complete))+
+                      "\n\nEvery comparison uses the lower and upper reports from the same training run. "
+                      "A fix or an introduced error counts one answer. A change in relative credit counts one "
+                      "four-answer group. The saved training traces support this substitution without another model call.\n\n"+
+                      markdown(*cost_table(complete))+
+                      "\n\nThe durations are trainer wall time, including reward generation and periodic probes. "
+                      f"[Call timings, GPU engine counters and solver CUDA events]({GITHUB}/tree/main/results/new-judges).\n")
     return ("# Independent review of the Qwen3.5-4B solver-reward comparison\n\n"+online_text(study)+
             markdown(["Paired comparison","Problems","Gained","Lost","Difference (pp)","95% interval (pp)"],data)+
-            "\n\n"+provenance+"\n\n"+trajectory_text(c.get("trajectory"))+solver_examples(study))
+            "\n\n"+provenance+supplement+"\n\n"+trajectory_text(c.get("trajectory"))+solver_examples(study))
 
 
 def plot_online(study, path):
