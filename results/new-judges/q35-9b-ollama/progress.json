@@ -1,0 +1,11 @@
+{
+  "time": "2026-11-27T06:24:33.461+00:00",
+  "status": "Evaluating",
+  "model": "Qwen3.5-9B",
+  "phase": "deployment replicate",
+  "file": "Ollama-Qwen3.5-9B-Q4_K_M.gguf",
+  "calls": 420,
+  "target": 420,
+  "cases": 128,
+  "timing_seconds": 0.6365000000041618
+}

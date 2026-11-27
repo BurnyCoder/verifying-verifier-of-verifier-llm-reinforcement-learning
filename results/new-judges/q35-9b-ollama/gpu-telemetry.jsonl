@@ -1,0 +1,14 @@
+{"time":"2026-11-27T06:23:16.2861503Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.3259215},{"engine":"3D","seconds":141.8902029}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:22.1005513Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.4144959},{"engine":"3D","seconds":146.3385889}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:27.7418201Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.4934325},{"engine":"3D","seconds":150.4403976}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:33.5729574Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.5727258},{"engine":"3D","seconds":154.6830933}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:39.1651446Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.6549595},{"engine":"3D","seconds":158.5984021}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:44.8524396Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.7382634},{"engine":"3D","seconds":162.808799}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:50.4829263Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.812192},{"engine":"3D","seconds":166.2296791}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:23:56.1155801Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.8951531},{"engine":"3D","seconds":170.3473418}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:24:01.7478537Z","pid":30812,"engines":[{"engine":"Copy","seconds":3.9782973},{"engine":"3D","seconds":174.597217}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:24:07.3915728Z","pid":30812,"engines":[{"engine":"Copy","seconds":4.0533777},{"engine":"3D","seconds":178.4592693}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:24:13.0647541Z","pid":30812,"engines":[{"engine":"Copy","seconds":4.128345},{"engine":"3D","seconds":182.6478582}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:24:18.6972600Z","pid":30812,"engines":[{"engine":"Copy","seconds":4.212284},{"engine":"3D","seconds":186.6776018}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:24:24.3721418Z","pid":30812,"engines":[{"engine":"Copy","seconds":4.2964721},{"engine":"3D","seconds":191.7425381}],"dedicated_bytes":5900943360,"shared_bytes":88080384}
+{"time":"2026-11-27T06:24:30.0568777Z","pid":30812,"engines":[{"engine":"Copy","seconds":4.3711994},{"engine":"3D","seconds":195.4857742}],"dedicated_bytes":5900943360,"shared_bytes":88080384}

@@ -1,0 +1,88 @@
+{
+  "time": "2026-11-27T06:24:33.465+00:00",
+  "phase": "deployment replicate",
+  "model": "Qwen3.5-9B",
+  "status": "Complete",
+  "result": "J3 verdict 43/64, twins 1/32, masked 0/32",
+  "file": "Ollama-Qwen3.5-9B-Q4_K_M.gguf",
+  "metrics": {
+    "natural": {
+      "n": 32,
+      "valid": 20,
+      "depths": [
+        {
+          "correct": 23,
+          "accuracy": 0.71875,
+          "full": 15,
+          "malformed": 0,
+          "false_accept": 9,
+          "false_reject": 0
+        },
+        {
+          "correct": 24,
+          "accuracy": 0.75,
+          "full": 14,
+          "malformed": 0,
+          "false_accept": 8,
+          "false_reject": 0
+        },
+        {
+          "correct": 24,
+          "accuracy": 0.75,
+          "full": 14,
+          "malformed": 0,
+          "false_accept": 8,
+          "false_reject": 0
+        }
+      ],
+      "fixed": 0,
+      "harmed": 0
+    },
+    "balanced": {
+      "n": 64,
+      "valid": 32,
+      "depths": [
+        {
+          "correct": 37,
+          "accuracy": 0.578125,
+          "full": 25,
+          "malformed": 0,
+          "false_accept": 25,
+          "false_reject": 2
+        },
+        {
+          "correct": 44,
+          "accuracy": 0.6875,
+          "full": 22,
+          "malformed": 0,
+          "false_accept": 18,
+          "false_reject": 2
+        },
+        {
+          "correct": 43,
+          "accuracy": 0.671875,
+          "full": 21,
+          "malformed": 1,
+          "false_accept": 18,
+          "false_reject": 3
+        }
+      ],
+      "fixed": 0,
+      "harmed": 1
+    },
+    "twins": {
+      "n": 32,
+      "visible": 1,
+      "masked": 0
+    }
+  },
+  "cost": {
+    "input_tokens": 191377,
+    "output_tokens": 4963,
+    "elapsed_seconds": 241.37100000024657,
+    "calls": 416,
+    "prompt_ms": 148935.65,
+    "generation_ms": 88132.605
+  },
+  "timing_seconds": 0.6365000000041618
+}
