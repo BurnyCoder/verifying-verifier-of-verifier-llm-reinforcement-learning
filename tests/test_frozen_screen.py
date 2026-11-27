@@ -15,6 +15,7 @@ class FixtureBackend:
         self.calls += 1
         # A constant answer earns some solution bits but cannot distinguish evidence twins.
         return {"text":"1,0,7,0,1,7", "input_tokens":20, "output_tokens":11,
+                "generated_token_ids":[1,2], "rendered_prompt":str(conversation),
                 "elapsed_seconds":.01, "timings":{}, "finish_reason":"stop"}
 
 
@@ -62,3 +63,22 @@ def test_replay_preserves_twin_labels_and_resumes_identical_calls(tmp_path):
     assert paired_confirmation(resumed.completed,runner.completed)["twins"]["delta"] == 0
     with pytest.raises(ValueError):
         CaseRunner(tmp_path, backend, "different-weights", lambda *args,**kwargs: None)
+
+
+def test_release_audit_detects_changed_evidence_even_when_verdict_totals_match(tmp_path):
+    import json
+    from study.frozen_audit import audit
+    from study.storage import atomic, rows
+    p = Problem.from_expression("(4+3)*2")
+    r = CaseRunner(tmp_path,FixtureBackend(),"fixture",lambda *a,**kw:None)
+    for i in range(4):
+        r.ask(f"timing/{i}",1,p,"8,14",[])
+    r.balanced(p,0)
+    r.twins(p,0)
+    receipt = dict(metrics=metrics(r.completed.values()),cost={"calls":10})
+    assert audit(tmp_path,receipt)["matched_masked_outputs"]==1
+    data=list(rows(tmp_path/"cases.jsonl"))
+    data[-1]["visible"]["outputs"][1]="0,3,7,0,1,7"
+    atomic(tmp_path/"cases.jsonl","".join(json.dumps(v)+"\n" for v in data))
+    with pytest.raises(ValueError,match="Logged judge output"):
+        audit(tmp_path,receipt)

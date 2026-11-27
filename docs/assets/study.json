@@ -240433,6 +240433,62 @@
           "generation_ms": 88132.605
         },
         "timing_seconds": 0.6365000000041618,
+        "audit": {
+          "calls": 416,
+          "matched_masked_outputs": 32,
+          "examples": {
+            "failed": {
+              "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
+              "expression": "(15 - 6) - 12",
+              "trace": "9,-2",
+              "first": "0,2,-2",
+              "reviews": [
+                "0,3,-3,0,2,-3",
+                "0,3,-2,0,2,-3"
+              ],
+              "outputs": [
+                "0,3,-2,0,2,-2",
+                "0,3,-2,0,2,-3"
+              ],
+              "expected": [
+                "1,0,-3,0,2,-3",
+                "0,3,-3,0,2,-3"
+              ]
+            },
+            "passed": {
+              "key": "9a0a01b8dc0073b26eecd9b2acd1b76450355b7298314025f8f9e0a5b183396f",
+              "expression": "(12 + 12) - 6",
+              "trace": "24,18",
+              "first": "1,0,18",
+              "reviews": [
+                "1,0,18,1,0,18",
+                "1,0,17,1,0,18"
+              ],
+              "outputs": [
+                "1,0,18,1,0,18",
+                "0,3,18,1,0,18"
+              ],
+              "expected": [
+                "1,0,18,1,0,18",
+                "0,3,18,1,0,18"
+              ]
+            }
+          }
+        },
+        "gpu": {
+          "peak_dedicated_mib": 5627.578125,
+          "engines": [
+            {
+              "engine": "Copy",
+              "seconds": 4.3711994
+            },
+            {
+              "engine": "3D",
+              "seconds": 195.4857742
+            }
+          ],
+          "last_sample": "2026-11-27T06:24:30.0568777Z"
+        },
         "key": "q35-9b-ollama"
       }
     ],

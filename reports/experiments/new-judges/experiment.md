@@ -11,4 +11,6 @@ Qwen3.5-9B · Archived, invalid scoring. Empty reasoning wrapper on 65/65 delive
 
 Qwen3.5-9B (deployment replicate, Ollama-Qwen3.5-9B-Q4_K_M.gguf) used 191,377 input and 4,963 output tokens in 241.4 seconds of end-to-end calls. On the 32 natural traces, Judge 3 fixed 0 verdicts and introduced 0 errors.
 
+![Frozen verdict and whole-pair accuracy](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/raw/refs/heads/main/docs/assets/frozen-judge-scores.png)
+
 [Protocol and case selection](../../newer-frozen-judges.md).

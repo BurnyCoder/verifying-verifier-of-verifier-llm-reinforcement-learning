@@ -21,6 +21,8 @@ Qwen3.5-9B · Archived, invalid scoring. Empty reasoning wrapper on 65/65 delive
 
 Qwen3.5-9B (deployment replicate, Ollama-Qwen3.5-9B-Q4_K_M.gguf) used 191,377 input and 4,963 output tokens in 241.4 seconds of end-to-end calls. On the 32 natural traces, Judge 3 fixed 0 verdicts and introduced 0 errors.
 
+![Frozen verdict and whole-pair accuracy](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/raw/refs/heads/main/docs/assets/frozen-judge-scores.png)
+
 The matched-depth extension has trained 3 of 4 additional shallow solvers. [Extension](matched-depth-protocol.md).
 
 The timing pilot selected 256 updates per block at 38.3 seconds per pilot update. A block at that rate would take 2.72 hours.
