@@ -36,6 +36,7 @@ def test_earlier_judge_can_grade_same_group_better_while_aggregate_agreement_tie
     assert result["changed_groups"] == 1
     assert result["j2_pairs"] == [1,2,0]
     assert result["j3_pairs"] == [0,2,1]
+    assert result["same_answers_paid"] == [{"correct":1,"wrong":2},{"correct":0,"wrong":1}]
 
 
 def test_group_evidence_rejects_an_incomplete_training_group():
