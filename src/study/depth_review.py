@@ -47,6 +47,24 @@ def trace_error(problem, answer):
     return "first wrong, second consistent" if proposed[1] == implied else "first wrong, second inconsistent"
 
 
+def different_group_credit(first, second):
+    """Two constant binary vectors both produce zero GRPO advantages even when their rewards differ."""
+    return first != second and (len(set(first)) > 1 or len(set(second)) > 1)
+
+
+def compare_training_groups(shallow, deep):
+    """Find real optimizer groups that received identical solver texts and identical lower reviews in both runs."""
+    matched, different = [], []
+    for update, (left, right) in enumerate(zip(batched(shallow, 4), batched(deep, 4), strict=True), 1):
+        if not all(a["key"] == b["key"] and a["answer"] == b["answer"] and a["reports"] == b["reports"][:2]
+                   for a, b in zip(left, right, strict=True)):
+            continue
+        matched.append(update)
+        if different_group_credit([row["reward"] for row in left], [row["reward"] for row in right]):
+            different.append(update)
+    return dict(matched=matched, different_credits=different)
+
+
 def group_evidence(deep):
     """Replay both reward rules on identical samples, preserving the four-way GRPO groups."""
     fixes = harms = changed = 0
@@ -70,8 +88,7 @@ def group_evidence(deep):
                 counts["correct" if label else "wrong"] += bit
         fixes += sum(a != y and b == y for a, b, y in zip(second, third, labels, strict=True))
         harms += sum(a == y and b != y for a, b, y in zip(second, third, labels, strict=True))
-        # Centered binary returns induce the same normalized advantages if both vectors are constant.
-        changed += second != third and (len(set(second)) > 1 or len(set(third)) > 1)
+        changed += different_group_credit(second, third)
         for i, j in combinations(range(4), 2):
             if labels[i] == labels[j]:
                 continue
@@ -135,6 +152,7 @@ def fixed_answer_replay(records):
                                     bits=verdicts, reports=reports, correct=row["correct"]))
     fixes = sum(change["bits"][1] == change["correct"] for change in transitions)
     return dict(correct=sum(row["correct"] for row in records), n=len(records), accepted=accepted,
+                identical_reports=sum(row["reports"][1] == row["reports"][2] for row in records),
                 agreement=agreement, fixes=fixes, harms=len(transitions)-fixes, transitions=transitions)
 
 
@@ -159,7 +177,7 @@ def audited_seed(directory, seed):
     # Published study.json revisions exposed these three-judge replay fields at the top level.
     original_replay = {key: replays[1][key] for key in ("accepted", "agreement", "transitions")}
     return dict(seed=seed, n=len(deep), groups=len(deep)//4, dev_n=len(dev3), two=stats2, three=stats3,
-                paired_outputs=pair_saved_outputs(dev2, dev3),
+                paired_outputs=pair_saved_outputs(dev2, dev3), matched_training=compare_training_groups(shallow, deep),
                 paired=paired, replays=replays, shared_error=shared_error, **original_replay,
                 transcript_audit=read_json(directory/"diagnostics"/f"depth-transcripts-{seed}.json"), **group_evidence(deep))
 
@@ -227,9 +245,11 @@ def readme_depth(data):
         f"Judge 3 changed {len(third['transitions'])} decisions on that solver’s answers. It fixed {third['fixes']} "
         f"and introduced {third['harms']}. The **{abs(correct-two_correct)}-solution gap** comes from comparing "
         f"the answers the two solvers wrote after separate training runs.",
-        f"On the Judge 2-trained solver’s answers, Judge 2 and Judge 3 agreed with the checker on "
+        f"On the Judge 2-trained solver’s answers, Judges 2 and 3 agreed with the checker on "
         f"{second['agreement'][0]}/{n} and {second['agreement'][1]}/{n}, respectively. On the Judge 3-trained "
-        f"solver’s answers they agreed with the checker on {third['agreement'][0]}/{n} and {third['agreement'][1]}/{n}. "
+        f"solver’s answers those figures were {third['agreement'][0]}/{n} and {third['agreement'][1]}/{n}. Their "
+        f"entire six-number reports were identical on {third['identical_reports']}/{n} of the latter answers. "
+        f"The accept/reject decision matched on {n-len(third['transitions'])}/{n}. "
         f"[Two-judge answers](results/calibrated/d2-{seed}/replay.jsonl) · "
         f"[Three-judge answers](results/calibrated/d3-{seed}/replay.jsonl)"]
     if third["transitions"]:
@@ -262,7 +282,9 @@ def readme_depth(data):
         f"first reverse outcome. [All {n} paired outputs and judge reports](reports/reviews/paired-outputs-seed-{seed}.md)"]
     sections += ["### What changed during training?",
         f"On the same {r['n']:,} training answers sampled by the three-judge solver, Judge 3 fixed {r['fixes']} "
-        f"of Judge 2’s verdicts and spoiled {r['harms']}. Substituting Judge 2’s reward would have changed the "
+        f"of Judge 2’s verdicts and spoiled {r['harms']}. Both judges made the same reward decision on "
+        f"{r['n']-r['fixes']-r['harms']:,} samples and different decisions on {r['fixes']+r['harms']:,}. "
+        f"Substituting Judge 2’s reward would have changed the "
         f"relative credits in **{r['changed_groups']}/{r['groups']} optimizer updates**. "
         "Each GRPO update compares four answers to one question. When gradings change early on, the solvers can "
         "learn different answers and receive different training data at subsequent updates. "
@@ -279,15 +301,34 @@ def readme_depth(data):
         f"In its first quarter of training, the three-judge solver produced {deep['first_quarter'][0]} correct "
         f"answers per {r['groups']} samples and received {deep['first_quarter'][1]} positive rewards. In the last "
         f"quarter it produced {deep['last_quarter'][0]} correct answers and received {deep['last_quarter'][1]} positive rewards."]
+    matched = r["matched_training"]
+    sections.append(f"We also compared the **two actual training runs** while matching the prompt, all four solver "
+                    f"texts and all Judge 1 and Judge 2 reports word for word. This held at {len(matched['matched'])}/"
+                    f"{r['groups']} updates. The reward used in each run gave the samples different relative credit "
+                    f"at {len(matched['different_credits'])} of these matched updates.")
     if example := r["credit_example"]:
+        both_runs = example["update"] in matched["matched"]
+        source = ("Both runs sampled these same four answers and produced the same lower reports. The last two "
+                  "columns show the rewards used in the two training runs." if both_runs else
+                  "The two reward columns compare the preceding report with the actual reward on this solver’s samples.")
+        correct_samples = [s for s in example["samples"] if s[1]]
+        wrong_samples = [s for s in example["samples"] if not s[1]]
+        def rewarded(samples, column):
+            return f"{sum(s[column] for s in samples)}/{len(samples)}"
         sections += [
             f"At optimizer update {example['update']}, the three-judge run sampled four answers to "
             f"`{example['expression']}`. The table shows the first group in which Judge 2 graded every sample correctly "
             "and Judge 3 both removed a correct answer’s reward and awarded a wrong answer. Each duplicate "
-            "was a separate sampled completion with its own sampled judge reports.",
-            markdown(["Solver wrote", "Exact checker", "Judge 2 reward on this sample", "Judge 3 reward used for training"],
+            f"was a separate sampled completion with its own sampled judge reports. {source}",
+            markdown(["Solver wrote", "Exact checker", "Judge 2 reward used for training" if both_runs else "Judge 2 reward on this sample",
+                      "Judge 3 reward used for training"],
                      [[answer, "correct" if label else "wrong", a, b] for answer, label, a, b in example["samples"]]),
-            f"[Complete training records for this solver](results/calibrated/d3-{seed}/rollouts.jsonl)"]
+            f"Judge 2 rewarded **{rewarded(correct_samples,2)} correct attempts** and "
+            f"**{rewarded(wrong_samples,2)} wrong attempts**. Judge 3 rewarded "
+            f"**{rewarded(correct_samples,3)} correct attempts** and **{rewarded(wrong_samples,3)} wrong attempts**. "
+            "Each individual attempt received either one point or zero.",
+            f"[Two-judge training records](results/calibrated/d2-{seed}/rollouts.jsonl) · "
+            f"[Three-judge training records](results/calibrated/d3-{seed}/rollouts.jsonl)"]
     local = "first wrong, second consistent"
     bad_first = deep["dev"][local]+deep["dev"]["first wrong, second inconsistent"]
     sections.append(f"The two-judge solver gave the correct first value on {two_correct+r['two']['dev']['second wrong']}/{n} "

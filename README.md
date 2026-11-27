@@ -52,7 +52,7 @@ The same evaluation gave 20/32 for the starting solver, 21/32 for one judge, 24/
 
 The solver trained with Judge 3 earns **3/32** from the integer checker whichever grader reads it. Judge 3 changed 2 decisions on that solver’s answers. It fixed 1 and introduced 1. The **22-solution gap** comes from comparing the answers the two solvers wrote after separate training runs.
 
-On the Judge 2-trained solver’s answers, Judge 2 and Judge 3 agreed with the checker on 16/32 and 16/32, respectively. On the Judge 3-trained solver’s answers they agreed with the checker on 12/32 and 12/32. [Two-judge answers](results/calibrated/d2-17/replay.jsonl) · [Three-judge answers](results/calibrated/d3-17/replay.jsonl)
+On the Judge 2-trained solver’s answers, Judges 2 and 3 agreed with the checker on 16/32 and 16/32, respectively. On the Judge 3-trained solver’s answers those figures were 12/32 and 12/32. Their entire six-number reports were identical on 24/32 of the latter answers. The accept/reject decision matched on 30/32. [Two-judge answers](results/calibrated/d2-17/replay.jsonl) · [Three-judge answers](results/calibrated/d3-17/replay.jsonl)
 
 Judge 3 changed the following verdicts on the three-judge-trained solver’s saved answers.
 
@@ -84,7 +84,7 @@ The examples show the first well-formatted case available for each observed verd
 
 ### What changed during training?
 
-On the same 1,024 training answers sampled by the three-judge solver, Judge 3 fixed 58 of Judge 2’s verdicts and spoiled 44. Substituting Judge 2’s reward would have changed the relative credits in **81/256 optimizer updates**. Each GRPO update compares four answers to one question. When gradings change early on, the solvers can learn different answers and receive different training data at subsequent updates. [GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)
+On the same 1,024 training answers sampled by the three-judge solver, Judge 3 fixed 58 of Judge 2’s verdicts and spoiled 44. Both judges made the same reward decision on 922 samples and different decisions on 102. Substituting Judge 2’s reward would have changed the relative credits in **81/256 optimizer updates**. Each GRPO update compares four answers to one question. When gradings change early on, the solvers can learn different answers and receive different training data at subsequent updates. [GRPO advantage calculation](https://huggingface.co/docs/trl/grpo_trainer#computing-the-advantage)
 
 Reading each frozen verdict on exactly the same sampled answers measures the change in reward for correct and incorrect arithmetic. A positive rate difference means correct answers receive reward more often.
 
@@ -102,16 +102,20 @@ During its own training run, the two-judge solver generated 648/1,024 exact answ
 
 In its first quarter of training, the three-judge solver produced 80 correct answers per 256 samples and received 173 positive rewards. In the last quarter it produced 15 correct answers and received 171 positive rewards.
 
-At optimizer update 20, the three-judge run sampled four answers to `(18 - 11) - 3`. The table shows the first group in which Judge 2 graded every sample correctly and Judge 3 both removed a correct answer’s reward and awarded a wrong answer. Each duplicate was a separate sampled completion with its own sampled judge reports.
+We also compared the **two actual training runs** while matching the prompt, all four solver texts and all Judge 1 and Judge 2 reports word for word. This held at 29/256 updates. The reward used in each run gave the samples different relative credit at 9 of these matched updates.
 
-| Solver wrote | Exact checker | Judge 2 reward on this sample | Judge 3 reward used for training |
+At optimizer update 20, the three-judge run sampled four answers to `(18 - 11) - 3`. The table shows the first group in which Judge 2 graded every sample correctly and Judge 3 both removed a correct answer’s reward and awarded a wrong answer. Each duplicate was a separate sampled completion with its own sampled judge reports. Both runs sampled these same four answers and produced the same lower reports. The last two columns show the rewards used in the two training runs.
+
+| Solver wrote | Exact checker | Judge 2 reward used for training | Judge 3 reward used for training |
 | --- | --- | --- | --- |
 | 7,4 | correct | 1 | 0 |
 | 7,4 | correct | 1 | 1 |
 | 5,2 | wrong | 0 | 0 |
 | 5,2 | wrong | 0 | 1 |
 
-[Complete training records for this solver](results/calibrated/d3-17/rollouts.jsonl)
+Judge 2 rewarded **2/2 correct attempts** and **0/2 wrong attempts**. Judge 3 rewarded **1/2 correct attempts** and **1/2 wrong attempts**. Each individual attempt received either one point or zero.
+
+[Two-judge training records](results/calibrated/d2-17/rollouts.jsonl) · [Three-judge training records](results/calibrated/d3-17/rollouts.jsonl)
 
 The two-judge solver gave the correct first value on 32/32 development problems. The three-judge solver gave a wrong first value on 28 and a malformed answer on 1. In 20 cases it applied the second operation correctly to its own wrong intermediate value. Judge 3 rewarded 357/508 training answers with that error pattern.
 
