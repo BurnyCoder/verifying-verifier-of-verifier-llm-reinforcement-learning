@@ -1,0 +1,47 @@
+{
+  "time": "2026-11-27T02:12:53.216+00:00",
+  "run": {
+    "name": "alt-exact-j1",
+    "seed": 17,
+    "role": "j1",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": "exact-j1",
+    "teacher": null,
+    "corpus": "exact-prefix3",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 1180.8280000000013,
+  "resumed_at": 0,
+  "frozen_checksum": "0af13f955fb4f569585a0adda19737d18484b3d7bc14c314b318da9d812d5375",
+  "usage": {
+    "corpus_solver": {
+      "calls": 64,
+      "input_tokens": 10517,
+      "output_tokens": 376,
+      "gpu_seconds": 13.523838989257813,
+      "wall_seconds": 13.52900000000227
+    },
+    "j1": {
+      "calls": 1088,
+      "input_tokens": 307907,
+      "output_tokens": 7454,
+      "gpu_seconds": 258.54967102050784,
+      "wall_seconds": 258.7939999999944
+    },
+    "j2": {
+      "calls": 64,
+      "input_tokens": 28415,
+      "output_tokens": 880,
+      "gpu_seconds": 30.21574755859375,
+      "wall_seconds": 30.235000000007858
+    }
+  },
+  "unfinished_generation_batches": 0
+}

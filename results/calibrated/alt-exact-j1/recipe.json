@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "alt-exact-j1",
+    "seed": 17,
+    "role": "j1",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": "exact-j1",
+    "teacher": null,
+    "corpus": "exact-prefix3",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-27T01:53:11.036+00:00"
+}
