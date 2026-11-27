@@ -24,7 +24,7 @@ def test_real_reward_callback_uses_external_terminal_solution_bit(tmp_path, monk
     monkeypatch.setattr(training, "RESULTS", tmp_path)
     batch = dict(prompts=["p"]*4, completions=["8,14"]*4, expression=["(4+3)*2"]*4,
                  trace=[""]*4, history_json=["[]"]*4, trainer_state=SimpleNamespace(global_step=0))
-    for level in (2, 3):
+    for level in (1, 2, 3):
         calls.clear()
         run = Run(f"new-judges/winner-d{level}", reward=f"d{level}")
         callback = Reward(solver, run, lambda ps, ts, d, step: score_chain(ask, ps, ts, d, step))
@@ -32,6 +32,33 @@ def test_real_reward_callback_uses_external_terminal_solution_bit(tmp_path, monk
         assert len(set(c[0] for c in calls)) == 4*level
         records = list(rows(tmp_path/run.name/"rollouts.jsonl"))
         assert all(r["label"] == 0 and len(r["reports"]) == level for r in records)
+
+
+def test_single_online_arm_requires_matched_addendum(tmp_path, monkeypatch):
+    from study import online_solvers
+
+    name = "new-judges/winner-d1"
+    monkeypatch.setattr(online_solvers, "ORIGINAL_RESULTS", tmp_path)
+    monkeypatch.setattr(online_solvers, "TRACK", "original")
+    root = tmp_path/"new-judges"
+    plan = dict(seed=17, updates=256, group=4, development_n=32, depths=[2,3])
+    write_json(root/"online-plan.json", plan)
+    write_json(tmp_path/"calibrated/profile.json", dict(updates=256, family="two-add", style="demonstrated"))
+    with pytest.raises(ValueError, match="addendum"):
+        online_solvers.recipe(name)
+    write_json(root/"one-judge-plan.json", dict(parent="online-plan.json", depth=1))
+    run = online_solvers.recipe(name)
+    assert (run.seed, run.role, run.initial, run.reward) == (17, "solver", None, "d1")
+
+
+def test_independent_verdict_parser_distinguishes_direct_grading_from_audit():
+    from study.online_report import solver_bit
+
+    assert solver_bit("1,0,14", 1) == 1
+    assert solver_bit("0,1,7", 1) == 0
+    assert solver_bit("1,0,14,0,1,7", 1) == 0
+    assert solver_bit("1,0,14,0,1,7", 2) == 0
+    assert solver_bit("0,1,7,1,0,14", 3) == 1
 
 
 def test_online_gate_rejects_artifact_drift_and_closed_gate(tmp_path):

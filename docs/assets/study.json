@@ -240326,6 +240326,15 @@
     },
     {
       "group": "Newer frozen Qwen judges",
+      "id": "new-judges/winner-d1",
+      "treatment": "Fresh Qwen2.5 solver, selected frozen J1 reward, seed 17 (addendum) · Qwen3.5-4B",
+      "status": "Scheduled",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
       "id": "new-judges/winner-d2",
       "treatment": "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B",
       "status": "Evaluated",
@@ -240401,6 +240410,30 @@
       "n": 32
     },
     "arms": [
+      {
+        "name": "new-judges/winner-d1",
+        "depth": 1,
+        "status": "Scheduled",
+        "updates": 0,
+        "n": null,
+        "correct": null,
+        "elapsed_seconds": null,
+        "signal": {
+          "groups": 0,
+          "samples": 0,
+          "reward": 0,
+          "exact": 0,
+          "false_accept": 0,
+          "false_reject": 0,
+          "mixed": 0,
+          "curves": [],
+          "j3_fixed": 0,
+          "j3_harmed": 0,
+          "changed_advantage_groups": 0
+        },
+        "probes": [],
+        "latest_group": []
+      },
       {
         "name": "new-judges/winner-d2",
         "depth": 2,
@@ -243707,7 +243740,8 @@
           ]
         }
       ]
-    }
+    },
+    "three_depths": {}
   },
   "solver_fit": [
     {

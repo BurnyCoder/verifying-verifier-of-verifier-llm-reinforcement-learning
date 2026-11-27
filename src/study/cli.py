@@ -195,7 +195,7 @@ def main():
     schedule.add_argument("--publish",action="store_true")
     frozen=actions.add_parser("frozen-judges",help="Run the GPU-only cross-model screen and independent confirmation")
     frozen.add_argument("--publish",action="store_true")
-    online=actions.add_parser("online-solvers",help="Train fresh solvers with the independently confirmed frozen J2 and J3")
+    online=actions.add_parser("online-solvers",help="Train matched solvers with direct and recursive frozen Qwen3.5 rewards")
     online.add_argument("--publish",action="store_true")
     from .solver_fit import CANDIDATES
     fit=actions.add_parser("solver-fit",help="Measure less-quantized and pretraining-only solvers on the study GPU")

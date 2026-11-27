@@ -14,7 +14,9 @@ from .frozen_models import MODELS
 from .storage import ORIGINAL_RESULTS, STATE, TRACK, Journal, adapter, log_directory, read_json, rows, stamp, write_json
 
 
-NAMES = ("new-judges/winner-d2", "new-judges/winner-d3")
+ORIGINAL_PAIR = ("new-judges/winner-d2", "new-judges/winner-d3")
+SINGLE = "new-judges/winner-d1"
+NAMES = (SINGLE, *ORIGINAL_PAIR)
 
 
 def selected_judge(root):
@@ -33,9 +35,13 @@ def selected_judge(root):
 
 
 def recipe(name):
-    """Scope the two development arms independently of the paused original campaign and its seal."""
+    """Use the original pair's settings for the registered single-judge extension."""
     if name not in NAMES or TRACK != "original":
-        raise ValueError("Use the original results root for the two newer-judge solver arms")
+        raise ValueError("Use the original results root for the newer-judge solver arms")
+    if name == SINGLE:
+        amendment = read_json(ORIGINAL_RESULTS/"new-judges/one-judge-plan.json", {})
+        if amendment.get("parent") != "online-plan.json" or amendment.get("depth") != 1:
+            raise ValueError("The single-judge arm requires the matched protocol addendum")
     plan = read_json(ORIGINAL_RESULTS/"new-judges/online-plan.json")
     profile = read_json(ORIGINAL_RESULTS/"calibrated/profile.json")
     if not plan or not profile or profile["updates"] != plan["updates"]:
@@ -162,12 +168,13 @@ def evaluate_online(name):
 
 
 def campaign(publish=False):
-    """Run only the two authorized solvers with a durable publication boundary at every milestone."""
+    """Finish the original pair, then its registered extension, with resumable milestone publication."""
     from .cli import study_lock, worker
-    from .online_report import verify_pair
     with study_lock("online-solvers"):
-        selected_judge(ORIGINAL_RESULTS/"new-judges")
-        for name in NAMES:
+        root = ORIGINAL_RESULTS/"new-judges"
+        selected_judge(root)
+        single = (root/"one-judge-plan.json").is_file()
+        for name in (*ORIGINAL_PAIR, SINGLE) if single else ORIGINAL_PAIR:
             recipe(name)
             for action, marker, phase in (("train","train-cost","trained"),("evaluate","development","development")):
                 if not (ORIGINAL_RESULTS/name/(marker+".json")).is_file():
@@ -177,8 +184,8 @@ def campaign(publish=False):
                     worker("publish", "--milestone", milestone, "--run", name)
                 elif not publish:
                     worker("report")
-        verify_pair(ORIGINAL_RESULTS)
+        milestone = "new-judges-three-depth-comparison" if single else "new-judges-online-comparison"
         if publish:
-            worker("publish","--milestone","new-judges-online-comparison")
+            worker("publish","--milestone",milestone)
         else:
             worker("report")

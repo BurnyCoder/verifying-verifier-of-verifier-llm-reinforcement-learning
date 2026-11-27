@@ -170,9 +170,12 @@ def inventory(root, profile, observed, contrasts=None):
         ("q38-27b-iq1s", "Frozen 27B IQ1_S, fresh screen conditional on sustained latency at higher precision", True),
         ("confirm-control", "Frozen Qwen2.5 control, fresh confirmation", True),
         ("confirm-winner", "Selected newer frozen judge, fresh confirmation", True),
+        ("winner-d1", "Fresh Qwen2.5 solver, selected frozen J1 reward, seed 17 (addendum)", True),
         ("winner-d2", "Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17", True),
         ("winner-d3", "Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17", True),
     ):
+        if key == "winner-d1" and not (root/"new-judges/one-judge-plan.json").is_file():
+            continue
         folder = root/"new-judges"/key
         receipt = read_json(folder/"result.json",{})
         active = read_json(folder/"progress.json",{})
