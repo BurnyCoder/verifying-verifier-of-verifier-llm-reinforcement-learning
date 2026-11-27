@@ -116,7 +116,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | --- | --- | --- | --- | --- |
 | [solver-fit/original-nf4](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/solver-fit/original-nf4) | Qwen/Qwen2.5-1.5B-Instruct, NF4, disposable GRPO update | One update completed | 10/16 exact before the update | — |
 | [solver-fit/original-bf16](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/solver-fit/original-bf16) | Qwen/Qwen2.5-1.5B-Instruct, BF16, disposable GRPO update | One update completed | 9/16 exact before the update | — |
-| solver-fit/original-int8 | Qwen/Qwen2.5-1.5B-Instruct, INT8, disposable GRPO update | BF16 fit; fallback unnecessary | Pending | — |
+| solver-fit/original-int8 | Qwen/Qwen2.5-1.5B-Instruct, INT8, disposable GRPO update | Skipped after BF16 fit | — | — |
 | [solver-fit/base-2b](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/solver-fit/base-2b) | Qwen/Qwen3.5-2B-Base, NF4, disposable GRPO update | One update completed | 12/16 exact before the update | — |
 
 [Run inventory, including upcoming experiments](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/run-inventory.md) · [Newer frozen Qwen protocol](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md) · [Paused solver checkpoint, update 16](https://huggingface.co/BurnyCoder/recursive-judge-grpo-adapters/tree/5274be501a83e4c881664370cfe75f912c69413f/resumable/calibrated/top-depth2/checkpoint-16)

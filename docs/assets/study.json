@@ -240364,8 +240364,8 @@
       "group": "Solver hardware and train-split calibration",
       "id": "solver-fit/original-int8",
       "treatment": "Qwen/Qwen2.5-1.5B-Instruct, INT8, disposable GRPO update",
-      "status": "BF16 fit; fallback unnecessary",
-      "result": "Pending",
+      "status": "Skipped after BF16 fit",
+      "result": "—",
       "held_out": "—",
       "evidence": null
     },
