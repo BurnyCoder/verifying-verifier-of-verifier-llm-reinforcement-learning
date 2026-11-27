@@ -17,7 +17,7 @@ Every solver answers the same 32 questions. A solution is correct when every int
 | --- | --- | --- | --- |
 | Only solver trained · original judges | 21/32 (65.6%) | 25/32 (78.1%) | 3/32 (9.4%) |
 | Exact-trained judges, then solver | 20/32 (62.5%) | 20/32 (62.5%) | 25/32 (78.1%) |
-| Top-down-trained judges, then solver | Pending | Pending | 28/32 (87.5%) |
+| Top-down-trained judges, then solver | 25/32 (78.1%) | Pending | 28/32 (87.5%) |
 
 With judges first trained on exact labels, the one-judge and two-judge solver runs wrote identical text on 1,024/1,024 training completions. Their applied rewards matched on 1,024/1,024, with 1,024 and 1,024 positive rewards respectively. Their solver outputs also matched on 32/32 development questions.
 
@@ -214,7 +214,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | alt-top-j3 | j3 | 256 | 31.2% | 32 | — | 0 |
 | exact-depth1 | solver | 256 | 62.5% | 32 | — | 0 |
 | exact-depth2 | solver | 256 | 62.5% | 32 | — | 0 |
-| top-depth1 | solver | 256 | — | 0 | — | 0 |
+| top-depth1 | solver | 256 | 78.1% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 
