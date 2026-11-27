@@ -240299,6 +240299,15 @@
     },
     {
       "group": "Newer frozen Qwen judges",
+      "id": "new-judges/q38-27b-iq1s",
+      "treatment": "Frozen 27B IQ1_S, fresh screen conditional on sustained latency at higher precision",
+      "status": "Conditional",
+      "result": "Pending",
+      "held_out": "—",
+      "evidence": null
+    },
+    {
+      "group": "Newer frozen Qwen judges",
       "id": "new-judges/confirm-control",
       "treatment": "Frozen Qwen2.5 control, fresh confirmation",
       "status": "Conditional",
@@ -240493,11 +240502,17 @@
           "engines": [
             {
               "engine": "Copy",
-              "seconds": 4.3711994
+              "seconds": 1.0452778999999999,
+              "interval_seconds": 73.770727,
+              "usable": 13,
+              "discarded": 0
             },
             {
               "engine": "3D",
-              "seconds": 195.4857742
+              "seconds": 53.59557130000002,
+              "interval_seconds": 73.770727,
+              "usable": 13,
+              "discarded": 0
             }
           ],
           "last_sample": "2026-11-27T06:24:30.0568777Z"
@@ -240651,11 +240666,17 @@
           "engines": [
             {
               "engine": "Copy",
-              "seconds": 4.0930045
+              "seconds": 3.8267114,
+              "interval_seconds": 181.19548399999996,
+              "usable": 31,
+              "discarded": 0
             },
             {
               "engine": "3D",
-              "seconds": 1844674407025.169
+              "seconds": 105.560607528125,
+              "interval_seconds": 175.47737299999997,
+              "usable": 30,
+              "discarded": 1
             }
           ],
           "last_sample": "2026-11-27T06:28:10.1969205Z"
@@ -240791,11 +240812,17 @@
           "engines": [
             {
               "engine": "Copy",
-              "seconds": 0.3915645
+              "seconds": 0.2771048,
+              "interval_seconds": 78.97356699999999,
+              "usable": 14,
+              "discarded": 0
             },
             {
               "engine": "3D",
-              "seconds": 39.153601
+              "seconds": 38.1849177,
+              "interval_seconds": 78.97356699999999,
+              "usable": 14,
+              "discarded": 0
             }
           ],
           "last_sample": "2026-11-27T06:30:14.0400598Z"
@@ -240949,11 +240976,17 @@
           "engines": [
             {
               "engine": "Copy",
-              "seconds": 4.1535561
+              "seconds": 4.0017347,
+              "interval_seconds": 186.40789900000004,
+              "usable": 33,
+              "discarded": 0
             },
             {
               "engine": "3D",
-              "seconds": 1844674406577.2244
+              "seconds": 112.423271115625,
+              "interval_seconds": 180.70772300000004,
+              "usable": 32,
+              "discarded": 1
             }
           ],
           "last_sample": "2026-11-27T06:34:33.5119098Z"
@@ -241107,11 +241140,17 @@
           "engines": [
             {
               "engine": "Copy",
-              "seconds": 4.5312259
+              "seconds": 3.9984248,
+              "interval_seconds": 276.07783400000005,
+              "usable": 54,
+              "discarded": 0
             },
             {
               "engine": "3D",
-              "seconds": 193.2695304
+              "seconds": 193.21427970000002,
+              "interval_seconds": 276.07783400000005,
+              "usable": 54,
+              "discarded": 0
             }
           ],
           "last_sample": "2026-11-27T07:01:37.1673096Z"
