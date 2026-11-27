@@ -11,7 +11,7 @@ Every solver answers the same 32 questions. A solution is correct when every int
 | Training condition | One judge · J1 | Two judges · J2 checks J1 | Three judges · J3 checks J2 |
 | --- | --- | --- | --- |
 | Only solver trained · original judges | 21/32 (65.6%) | 25/32 (78.1%) | 3/32 (9.4%) |
-| Exact-trained judges, then solver | 20/32 (62.5%) | Pending | 25/32 (78.1%) |
+| Exact-trained judges, then solver | 20/32 (62.5%) | 20/32 (62.5%) | 25/32 (78.1%) |
 | Top-down-trained judges, then solver | Pending | Pending | 28/32 (87.5%) |
 
 ### Development judge verdict accuracy
@@ -59,7 +59,7 @@ Amended primary comparison is pending. Every arm uses two-add problems and demon
 | alt-exact-solver | solver | 256 | 6.2% | 32 | — | 0 |
 | alt-top-j3 | j3 | 256 | 31.2% | 32 | — | 0 |
 | exact-depth1 | solver | 256 | 62.5% | 32 | — | 0 |
-| exact-depth2 | solver | 256 | — | 0 | — | 0 |
+| exact-depth2 | solver | 256 | 62.5% | 32 | — | 0 |
 | learn-oracle-17 | solver | 128 | — | 0 | — | 0 |
 | learn-shuffle-17 | solver | 128 | — | 0 | — | 0 |
 

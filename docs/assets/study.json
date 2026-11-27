@@ -212179,10 +212179,10 @@
       "zero_on_correct": 0,
       "zero_groups": 256,
       "groups": 256,
-      "dev_n": 0,
-      "dev": null,
-      "dev_final": null,
-      "dev_correct_n": 0,
+      "dev_n": 32,
+      "dev": 0.625,
+      "dev_final": 0.6875,
+      "dev_correct_n": 20,
       "dev_malformed": 0,
       "dev_named_correct": 0,
       "test_named_correct": 0,
@@ -212244,24 +212244,24 @@
           "reports": 0
         }
       ],
-      "twins_n": 0,
-      "twins": null,
-      "masked": null,
+      "twins_n": 8,
+      "twins": 0,
+      "masked": 0,
       "evidence_fields": {
         "visible": {
-          "reports": 0,
-          "parsed": 0,
-          "solution_bit": 0,
-          "audit_bit": 0,
-          "faults": 0,
+          "reports": 16,
+          "parsed": 15,
+          "solution_bit": 15,
+          "audit_bit": 8,
+          "faults": 8,
           "localized_and_repaired": 0
         },
         "masked": {
-          "reports": 0,
+          "reports": 16,
           "parsed": 0,
           "solution_bit": 0,
           "audit_bit": 0,
-          "faults": 0,
+          "faults": 8,
           "localized_and_repaired": 0
         }
       },
@@ -212278,57 +212278,97 @@
         "visible": null,
         "masked": null
       },
-      "evidence_sources": {},
-      "twin_split": null,
-      "paired_example": null,
+      "evidence_sources": {
+        "development-twins.jsonl": "exact-j3"
+      },
+      "twin_split": "dev",
+      "paired_example": {
+        "key": "e16fc863af6c8d1b4fca6d92483d750fae583460e86609adf6f3b1e63e4de32f",
+        "expression": "(7 - 7) + 12",
+        "trace": "0,12",
+        "first": "1,0,12",
+        "reviews": [
+          "1,0,12,1,0,12",
+          "1,0,11,1,0,12"
+        ],
+        "labels": [
+          [
+            1,
+            0,
+            12,
+            1,
+            0,
+            12
+          ],
+          [
+            0,
+            3,
+            12,
+            1,
+            0,
+            12
+          ]
+        ],
+        "visible": [
+          "1,0,12,1,0,12",
+          "1,0,12,1,0,12"
+        ],
+        "masked": [
+          "1,0,12,0,?,?,?",
+          "1,0,12,0,?,?,?"
+        ],
+        "split": "dev",
+        "visible_pair": 0,
+        "masked_pair": 0
+      },
       "replay": [
         {
           "method": "D1",
-          "n": 0,
-          "valid": 0,
-          "invalid": 0,
-          "agreement": null,
-          "evidence_correct": 0,
-          "false_accept": 0,
+          "n": 32,
+          "valid": 20,
+          "invalid": 12,
+          "agreement": 0.625,
+          "evidence_correct": 20,
+          "false_accept": 12,
           "false_reject": 0,
           "malformed": 0,
-          "reports": 0
+          "reports": 32
         },
         {
           "method": "D2",
-          "n": 0,
-          "valid": 0,
-          "invalid": 0,
-          "agreement": null,
-          "evidence_correct": 0,
-          "false_accept": 0,
+          "n": 32,
+          "valid": 20,
+          "invalid": 12,
+          "agreement": 0.625,
+          "evidence_correct": 20,
+          "false_accept": 12,
           "false_reject": 0,
           "malformed": 0,
-          "reports": 0
+          "reports": 32
         },
         {
           "method": "D3",
-          "n": 0,
-          "valid": 0,
-          "invalid": 0,
-          "agreement": null,
-          "evidence_correct": 0,
-          "false_accept": 0,
+          "n": 32,
+          "valid": 20,
+          "invalid": 12,
+          "agreement": 0.625,
+          "evidence_correct": 20,
+          "false_accept": 12,
           "false_reject": 0,
           "malformed": 0,
-          "reports": 0
+          "reports": 32
         },
         {
           "method": "Flat",
-          "n": 0,
-          "valid": 0,
-          "invalid": 0,
-          "agreement": null,
+          "n": 32,
+          "valid": 20,
+          "invalid": 12,
+          "agreement": 0.625,
           "evidence_correct": null,
-          "false_accept": 0,
+          "false_accept": 12,
           "false_reject": 0,
           "malformed": 0,
-          "reports": 0
+          "reports": 96
         }
       ],
       "curves": [
@@ -220841,8 +220881,105 @@
           "epoch": 1.0
         }
       ],
-      "examples": [],
-      "common_example": null,
+      "examples": [
+        {
+          "key": "e16fc863af6c8d1b4fca6d92483d750fae583460e86609adf6f3b1e63e4de32f",
+          "expression": "(7 - 7) + 12",
+          "problem": [
+            "s1 = 7 - 7",
+            "s2 = s1 + 12"
+          ],
+          "trace": "5,17",
+          "expected_values": [
+            0,
+            12
+          ],
+          "correct": 0,
+          "final_correct": 0,
+          "malformed": false,
+          "split": "dev",
+          "reports": [
+            "1,0,17",
+            "1,0,17,1,0,17",
+            "1,0,17,1,0,17"
+          ],
+          "votes": [
+            "1,0,17",
+            "1,0,17",
+            "1,0,17"
+          ],
+          "verdicts": [
+            1,
+            1,
+            1
+          ],
+          "flat": 1,
+          "full_report_correct": [
+            0,
+            0,
+            0
+          ],
+          "judge_malformed": [
+            false,
+            false,
+            false
+          ],
+          "fixed": 0,
+          "harmed": 0
+        },
+        {
+          "key": "d17e44c2d66fa4a6e359dba7d5977224ca63381baa127a9747fab551de6120bd",
+          "expression": "(10 - 10) + 11",
+          "problem": [
+            "s1 = 10 - 10",
+            "s2 = s1 + 11"
+          ],
+          "trace": "0,11",
+          "expected_values": [
+            0,
+            11
+          ],
+          "correct": 1,
+          "final_correct": 1,
+          "malformed": false,
+          "split": "dev",
+          "reports": [
+            "1,0,11",
+            "1,0,11,1,0,11",
+            "1,0,11,1,0,11"
+          ],
+          "votes": [
+            "1,0,11",
+            "1,0,11",
+            "1,0,11"
+          ],
+          "verdicts": [
+            1,
+            1,
+            1
+          ],
+          "flat": 1,
+          "full_report_correct": [
+            1,
+            1,
+            1
+          ],
+          "judge_malformed": [
+            false,
+            false,
+            false
+          ],
+          "fixed": 0,
+          "harmed": 0
+        }
+      ],
+      "common_example": {
+        "key": "e16fc863af6c8d1b4fca6d92483d750fae583460e86609adf6f3b1e63e4de32f",
+        "expression": "(7 - 7) + 12",
+        "actual": "5,17",
+        "expected": "0,12",
+        "correct": 0
+      },
       "usage": {
         "solver": {
           "calls": 1024,
@@ -220876,7 +221013,7 @@
       "elapsed_seconds": 1948.375,
       "transfer": {},
       "completed_final": false,
-      "completed_development": false
+      "completed_development": true
     },
     {
       "name": "learn-oracle-17",
@@ -229814,7 +229951,7 @@
         [
           "Exact-trained judges, then solver",
           "20/32 (62.5%)",
-          "Pending",
+          "20/32 (62.5%)",
           "25/32 (78.1%)"
         ],
         [
