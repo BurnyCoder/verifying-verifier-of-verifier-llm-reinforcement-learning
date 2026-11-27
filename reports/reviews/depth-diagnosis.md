@@ -21,7 +21,7 @@ On 32 matched development problems the two-judge solver alone was correct on 23,
 | second wrong | 0 | 18 | 3 |
 | format | 1 | 93 | 49 |
 
-On the same 1024 training answers, Judge 3 fixed 58 effective Judge 2 verdicts and spoiled 44. Its decision changed the within-group advantages in 81/256 optimizer updates. Reward rates compare all answers of each class on this fixed trajectory.
+On the same 1024 training answers, Judge 3 fixed 58 effective Judge 2 verdicts and spoiled 44. Its decision changed the within-group advantages in 81/256 optimizer updates. In 219/256 groups it introduced zero new errors. On 1/256 groups, Judge 2 got every verdict right and Judge 3 both removed credit from a correct answer and paid an incorrect answer. Reward rates below compare all answers of each class on this fixed trajectory.
 
 | Frozen reward source | Correct answers rewarded | Wrong answers rewarded | Correct minus wrong rate (pp) |
 | --- | --- | --- | --- |

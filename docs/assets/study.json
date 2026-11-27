@@ -223109,6 +223109,24 @@
       "credit_example": {
         "update": 20,
         "expression": "(18 - 11) - 3",
+        "reports": [
+          [
+            "1,0,4,1,0,4",
+            "0,2,4,0,1,0"
+          ],
+          [
+            "1,0,4,1,0,4",
+            "1,0,4,1,0,4"
+          ],
+          [
+            "1,0,3,0,1,5",
+            "1,0,3,0,1,5"
+          ],
+          [
+            "1,0,3,0,1,2",
+            "0,2,3,1,0,3"
+          ]
+        ],
         "samples": [
           [
             "7,4",
@@ -223136,6 +223154,18 @@
           ]
         ]
       },
+      "verdict_flips": [
+        {
+          "reject_to_accept": 27,
+          "accept_to_reject": 57
+        },
+        {
+          "reject_to_accept": 1,
+          "accept_to_reject": 17
+        }
+      ],
+      "example_pattern_groups": 1,
+      "groups_without_new_errors": 219,
       "j2_pairs": [
         28,
         81,

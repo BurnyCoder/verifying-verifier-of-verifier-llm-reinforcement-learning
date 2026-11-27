@@ -8,7 +8,7 @@ from itertools import batched, combinations
 from .design import SEEDS
 from .domain import Problem
 from .learning_review import execute_steps
-from .paired_examples import differing_examples, outcome_counts, output_table, pair_saved_outputs, report_key
+from .paired_examples import differing_examples, explain_report, outcome_counts, output_table, pair_saved_outputs, report_key
 from .storage import read_json, rows
 from .tables import markdown
 
@@ -71,23 +71,30 @@ def group_evidence(deep):
     preferences = [Counter(), Counter()]
     paid = [dict(correct=0,wrong=0) for _ in range(2)]
     credit_example = None
+    pattern_groups = groups_without_harm = 0
+    flips = [dict(reject_to_accept=0, accept_to_reject=0) for _ in range(2)]
     for group in batched(deep, 4):
         if len(group) != 4:
             raise ValueError("A comparison requires four samples per group")
         labels = [r["label"] for r in group]
         second, third = [[effective_bit(r["reports"][index]) for r in group] for index in (1, 2)]
-        if (credit_example is None and second == labels
-                and any(y and not bit for y, bit in zip(labels, third, strict=True))
-                and any(not y and bit for y, bit in zip(labels, third, strict=True))):
-            # First archived group where J3 both removed credit from a correct sample and gave it to a wrong one.
+        directions = [(y, b) for a, b, y in zip(second, third, labels, strict=True) if a != b]
+        for label, accepted in directions:
+            flips[int(label)]["reject_to_accept" if accepted else "accept_to_reject"] += 1
+        pattern = second == labels and (1, 0) in directions and (0, 1) in directions
+        pattern_groups += pattern
+        if credit_example is None and pattern:
             credit_example = dict(update=group[0]["step"]+1, expression=group[0]["expression"],
+                                  reports=[row["reports"][1:3] for row in group],
                                   samples=[[row["answer"], bool(row["label"]), a, b]
                                            for row, a, b in zip(group, second, third, strict=True)])
         for counts, votes in zip(paid,(second,third),strict=True):
             for label,bit in zip(labels,votes,strict=True):
                 counts["correct" if label else "wrong"] += bit
-        fixes += sum(a != y and b == y for a, b, y in zip(second, third, labels, strict=True))
-        harms += sum(a == y and b != y for a, b, y in zip(second, third, labels, strict=True))
+        group_harms = sum(accepted != truth for truth, accepted in directions)
+        harms += group_harms
+        fixes += len(directions) - group_harms
+        groups_without_harm += group_harms == 0
         changed += different_group_credit(second, third)
         for i, j in combinations(range(4), 2):
             if labels[i] == labels[j]:
@@ -96,6 +103,7 @@ def group_evidence(deep):
             for counts, votes in zip(preferences, (second, third), strict=True):
                 counts[votes[good] - votes[bad]] += 1
     return dict(fixes=fixes, harms=harms, changed_groups=changed, same_answers_paid=paid, credit_example=credit_example,
+                verdict_flips=flips, example_pattern_groups=pattern_groups, groups_without_new_errors=groups_without_harm,
                 j2_pairs=[preferences[0][i] for i in (1, 0, -1)], j3_pairs=[preferences[1][i] for i in (1, 0, -1)])
 
 
@@ -283,7 +291,9 @@ def readme_depth(data):
     sections += ["### What changed during training?",
         f"On the same {r['n']:,} training answers sampled by the three-judge solver, Judge 3 fixed {r['fixes']} "
         f"of Judge 2’s verdicts and spoiled {r['harms']}. Both judges made the same reward decision on "
-        f"{r['n']-r['fixes']-r['harms']:,} samples and different decisions on {r['fixes']+r['harms']:,}. "
+        f"{r['n']-r['fixes']-r['harms']:,} samples and different decisions on {r['fixes']+r['harms']:,} "
+        f"({100*(r['fixes']+r['harms'])/r['n']:.1f}%). A previously correct grade became wrong on "
+        f"{100*r['harms']/r['n']:.1f}% of all samples. "
         f"Substituting Judge 2’s reward would have changed the "
         f"relative credits in **{r['changed_groups']}/{r['groups']} optimizer updates**. "
         "Each GRPO update compares four answers to one question. When gradings change early on, the solvers can "
@@ -292,6 +302,10 @@ def readme_depth(data):
         "Reading each frozen verdict on exactly the same sampled answers measures the change in reward for correct "
         "and incorrect arithmetic. A positive rate difference means correct answers receive reward more often.",
         reward_rates(r),
+        markdown(["Exact grade of the training answer","Judge 2 rejected → Judge 3 accepted",
+                  "Judge 2 accepted → Judge 3 rejected"],
+                 [[label,r["verdict_flips"][idx]["reject_to_accept"],r["verdict_flips"][idx]["accept_to_reject"]]
+                  for label,idx in (("Correct",1),("Wrong",0))]),
         f"During its own training run, the two-judge solver generated {r['two']['training']['correct']}/{r['n']:,} "
         f"exact answers and received {sum(r['two']['rewarded'].values())} positive rewards. The three-judge solver "
         f"generated {deep['training']['correct']}/{r['n']:,} exact answers and received {sum(deep['rewarded'].values())} positive rewards. "
@@ -322,11 +336,15 @@ def readme_depth(data):
             f"was a separate sampled completion with its own sampled judge reports. {source}",
             markdown(["Solver wrote", "Exact checker", "Judge 2 reward used for training" if both_runs else "Judge 2 reward on this sample",
                       "Judge 3 reward used for training"],
-                     [[answer, "correct" if label else "wrong", a, b] for answer, label, a, b in example["samples"]]),
+                     [[answer, "correct" if label else "wrong", f"**{a}** · {explain_report(j2,2,a)}",
+                       f"**{b}** · {explain_report(j3,3,b)}"]
+                      for (answer,label,a,b),(j2,j3) in zip(example["samples"],example["reports"],strict=True)]),
             f"Judge 2 rewarded **{rewarded(correct_samples,2)} correct attempts** and "
             f"**{rewarded(wrong_samples,2)} wrong attempts**. Judge 3 rewarded "
             f"**{rewarded(correct_samples,3)} correct attempts** and **{rewarded(wrong_samples,3)} wrong attempts**. "
-            "Each individual attempt received either one point or zero.",
+            f"Each individual attempt received either one point or zero. Across the run, "
+            f"**{r['example_pattern_groups']}/{r['groups']} groups** met the selection rule for this example. "
+            f"In **{r['groups_without_new_errors']}/{r['groups']} groups**, Judge 3 introduced zero new grading errors.",
             f"[Two-judge training records](results/calibrated/d2-{seed}/rollouts.jsonl) · "
             f"[Three-judge training records](results/calibrated/d3-{seed}/rollouts.jsonl)"]
     local = "first wrong, second consistent"
@@ -430,7 +448,10 @@ def review_text(reviews):
                       ("correct","first wrong, second consistent","first wrong, second inconsistent","second wrong","format")]),
             f"On the same {r['n']} training answers, Judge 3 fixed {r['fixes']} effective Judge 2 verdicts and "
             f"spoiled {r['harms']}. Its decision changed the within-group advantages in {r['changed_groups']}/{r['groups']} "
-            "optimizer updates. Reward rates compare all answers of each class on this fixed trajectory.",
+            f"optimizer updates. In {r['groups_without_new_errors']}/{r['groups']} groups it introduced zero new errors. "
+            f"On {r['example_pattern_groups']}/{r['groups']} groups, Judge 2 got every verdict right and Judge 3 "
+            "both removed credit from a correct answer and paid an incorrect answer. Reward rates below compare all "
+            "answers of each class on this fixed trajectory.",
             reward_rates(r),
             "Within-question pairs compare correct and incorrect completions of the same problem. "
             "Pairs within and across rows share observations.",
