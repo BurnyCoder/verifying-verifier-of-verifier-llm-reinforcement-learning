@@ -78,7 +78,9 @@ def collect_frozen(root):
             results.append({**receipt,"key":key})
     decision = read_json(root/'decision.json',{})
     review = released_confirmation_review(root,decision['time']) if decision.get('estimates') else {}
-    return dict(results=results,decision=decision,conversions=conversion_findings(root,results),fit_failures=failed,review=review)
+    study = dict(results=results,decision=decision,conversions=conversion_findings(root,results),fit_failures=failed,review=review)
+    study['headline']=confirmation_headline(study)
+    return study
 
 
 def depth_rows(study):
@@ -94,6 +96,25 @@ def depth_rows(study):
             values = [f"{d['correct']}/{record['n']}" for d in record["depths"]]
             pairs = [f"{twins[c]}/{twins['n']}" if cohort=="balanced" else "—" for c in ("visible","masked")]
             yield [f"{result['model']} · {result['phase']} · {cohort}", *values, *pairs, f"{record['fixed']} / {record['harmed']}"]
+
+
+def confirmation_headline(study):
+    """Lead with the independent estimates and their units once both files have been verified."""
+    if not study.get('review'):
+        return ''
+    records={r['key']:r for r in study['results']}
+    winner,control=(records[key] for key in ('confirm-winner','confirm-control'))
+    w,c=winner['metrics'],control['metrics']
+    followup = 'The eligible online solver comparison is deferred.' if study['decision']['online_gate'] else 'The selected judge did not meet both conditions for online solver training.'
+    fixed,harmed=(w['balanced'][key] for key in ('fixed','harmed'))
+    changes = (f"For {winner['model']}, Judge 3 agreed with Judge 2 on every solution verdict." if fixed+harmed==0 else
+               f"For {winner['model']}, Judge 3 fixed {fixed} Judge 2 errors and overturned {harmed} correct verdicts.")
+    intervals=[study['decision']['estimates'][k]['ci'] for k in ('twins','balanced_verdict')]
+    ranges = [f"{100*lo:+.2f} to {100*hi:+.2f}" for lo,hi in intervals]
+    return (f"On {study['review']['fresh_ids']} fresh problems, frozen {winner['model']} correctly audited both reviews on "
+            f"{w['twins']['visible']}/{w['twins']['n']} evidence pairs, compared with {c['twins']['visible']}/{c['twins']['n']} for {control['model']}. "
+            f"Their third judges correctly graded {w['balanced']['depths'][2]['correct']}/{w['balanced']['n']} and "
+            f"{c['balanced']['depths'][2]['correct']}/{c['balanced']['n']} fixed solver traces, respectively. {changes} The paired 95% intervals for the differences were {ranges[0]} percentage points for evidence and {ranges[1]} for verdicts. {followup}")
 
 
 def frozen_text(study):
@@ -122,7 +143,10 @@ def interpretation(study):
     if decision:
         if decision.get('original_completed_selection'):
             old = next(r for r in study['results'] if r['key']==decision['original_completed_selection'])
-            parts.append(f"Among the completed original screens, {old['model']} ranked first. The amended ranking also considers the separately restarted 27B file when it completes.")
+            fallback = next(r for r in study['results'] if r['key']=='q38-27b-iq1s')
+            note = ("The amended ranking included the completed lower-precision 27B screen." if fallback['status']=='Complete'
+                    else "The lower-precision 27B screen supplied no complete cohort score.")
+            parts.append(f"Among the completed original screens, {old['model']} ranked first. {note}")
         selected = next((r for r in study["results"] if r["key"]==decision.get("selected")),None)
         if selected:
             parts.append(f"The screen selected {selected['model']} ({selected['file']}) for independent confirmation against the original frozen model.")

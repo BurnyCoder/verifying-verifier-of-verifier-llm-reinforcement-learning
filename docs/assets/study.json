@@ -241745,7 +241745,8 @@
       "fresh_ids": 64,
       "matched_cases": 192,
       "ranked_candidates": 3
-    }
+    },
+    "headline": "On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The eligible online solver comparison is deferred."
   },
   "matched_depth": [
     {

@@ -59,7 +59,7 @@ Qwen3.5-9B passed 4/32 whole pairs with the Unsloth release and 1/32 with the Ol
 
 Qwen3.5-4B passed 7/32 whole pairs with the Unsloth release and 1/32 with the Ollama release. Of 64 matched visible reviews, 64 had identical messages, 64 had identical rendered prompts, 64 had equal input token counts and 27 produced identical output text.
 
-Among the completed original screens, Qwen3.5-4B ranked first. The amended ranking also considers the separately restarted 27B file when it completes.
+Among the completed original screens, Qwen3.5-4B ranked first. The amended ranking included the completed lower-precision 27B screen.
 
 The screen selected Qwen3.5-4B (Qwen3.5-4B-Q4_K_M.gguf) for independent confirmation against the original frozen model.
 
