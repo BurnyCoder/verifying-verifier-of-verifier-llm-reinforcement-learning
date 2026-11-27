@@ -1,0 +1,306 @@
+{
+  "arms": [
+    {
+      "depth": 1,
+      "n": 32,
+      "solver": 18,
+      "j2_correct": 20,
+      "j3_correct": 20,
+      "fixed": 0,
+      "harmed": 0,
+      "j1_correct": 20,
+      "train_calls": 1024,
+      "judge_input_tokens": 293965,
+      "judge_output_tokens": 6983,
+      "train_seconds": 1252.4370000000054,
+      "final_adapter_sha256": "1c06b609bac0e2de7c138459aa7c5dd9cc1b0886db3b4ec64183495f9c6f9c20"
+    },
+    {
+      "depth": 2,
+      "n": 32,
+      "solver": 29,
+      "j2_correct": 28,
+      "j3_correct": 28,
+      "fixed": 0,
+      "harmed": 0,
+      "j1_correct": 28,
+      "train_calls": 2048,
+      "judge_input_tokens": 752632,
+      "judge_output_tokens": 20969,
+      "train_seconds": 1869.875,
+      "final_adapter_sha256": "2a0f9fc603328957b5fb680b217fddebc26b05ea830295379e84402acd75660d"
+    },
+    {
+      "depth": 3,
+      "n": 32,
+      "solver": 27,
+      "j2_correct": 26,
+      "j3_correct": 26,
+      "fixed": 0,
+      "harmed": 0,
+      "j1_correct": 26,
+      "train_calls": 3072,
+      "judge_input_tokens": 1306285,
+      "judge_output_tokens": 34985,
+      "train_seconds": 2399.8280000000086,
+      "final_adapter_sha256": "835bb64dc95e4e085cb5b71c9bc011ef2ca68eb25906d75c0f270f778d3699c3"
+    }
+  ],
+  "contrasts": {
+    "one_minus_base": {
+      "n": 32,
+      "delta": -0.0625,
+      "interval": [
+        -0.25,
+        0.09375
+      ],
+      "fixed": 3,
+      "harmed": 5
+    },
+    "two_minus_one": {
+      "n": 32,
+      "delta": 0.34375,
+      "interval": [
+        0.15625,
+        0.53125
+      ],
+      "fixed": 12,
+      "harmed": 1
+    },
+    "three_minus_one": {
+      "n": 32,
+      "delta": 0.28125,
+      "interval": [
+        0.09375,
+        0.46875
+      ],
+      "fixed": 10,
+      "harmed": 1
+    },
+    "three_minus_two": {
+      "n": 32,
+      "delta": -0.0625,
+      "interval": [
+        -0.15625,
+        0.0
+      ],
+      "fixed": 0,
+      "harmed": 2
+    }
+  },
+  "initial_adapter_sha256": "ab3878076992e76c7a0564c053405ae0463c0809a9e61620cf5c35e96f1954d8",
+  "prompt_order_sha256": {
+    "new-judges/winner-d1": "172667e238436f39fbea0e9d1aa2b11f6f3b8fea16d6ca3db70fefd916db3051",
+    "new-judges/winner-d2": "172667e238436f39fbea0e9d1aa2b11f6f3b8fea16d6ca3db70fefd916db3051",
+    "new-judges/winner-d3": "172667e238436f39fbea0e9d1aa2b11f6f3b8fea16d6ca3db70fefd916db3051"
+  },
+  "interventions": [
+    {
+      "depth": 2,
+      "lower": 1,
+      "upper": 2,
+      "samples": 1024,
+      "groups": 256,
+      "fixed": 1,
+      "harmed": 0,
+      "changed_credit_groups": 1
+    },
+    {
+      "depth": 3,
+      "lower": 1,
+      "upper": 3,
+      "samples": 1024,
+      "groups": 256,
+      "fixed": 4,
+      "harmed": 0,
+      "changed_credit_groups": 0
+    },
+    {
+      "depth": 3,
+      "lower": 2,
+      "upper": 3,
+      "samples": 1024,
+      "groups": 256,
+      "fixed": 4,
+      "harmed": 0,
+      "changed_credit_groups": 0
+    }
+  ],
+  "examples": [
+    {
+      "key": "e16fc863af6c8d1b4fca6d92483d750fae583460e86609adf6f3b1e63e4de32f",
+      "expression": "(7 - 7) + 12",
+      "expected": [
+        0,
+        12
+      ],
+      "correct": [
+        0,
+        0,
+        0
+      ],
+      "traces": [
+        "0,19",
+        "0,19",
+        "0,19"
+      ],
+      "reports": [
+        [
+          "1,0,19",
+          "1,0,19,1,0,19",
+          "1,0,19,1,0,19"
+        ],
+        [
+          "1,0,19",
+          "1,0,19,1,0,19",
+          "1,0,19,1,0,19"
+        ],
+        [
+          "1,0,19",
+          "1,0,19,1,0,19",
+          "1,0,19,1,0,19"
+        ]
+      ]
+    },
+    {
+      "key": "c06a5fa6c861c10303f61fede8cbacd99a61a4178b46b802dfbaf922eda27546",
+      "expression": "(39 + 12) - 5",
+      "expected": [
+        51,
+        46
+      ],
+      "correct": [
+        1,
+        1,
+        1
+      ],
+      "traces": [
+        "51,46",
+        "51,46",
+        "51,46"
+      ],
+      "reports": [
+        [
+          "1,0,46",
+          "1,0,46,1,0,46",
+          "1,0,46,1,0,46"
+        ],
+        [
+          "1,0,46",
+          "1,0,46,1,0,46",
+          "1,0,46,1,0,46"
+        ],
+        [
+          "1,0,46",
+          "1,0,46,1,0,46",
+          "1,0,46,1,0,46"
+        ]
+      ]
+    },
+    {
+      "key": "1f80d2fbca5cdc54e5ca16782b69abb94af16998c09b30c5a4d50193e9031dd6",
+      "expression": "(47 - 9) - 7",
+      "expected": [
+        38,
+        31
+      ],
+      "correct": [
+        0,
+        1,
+        1
+      ],
+      "traces": [
+        "38, 21",
+        "38,31",
+        "38,31"
+      ],
+      "reports": [
+        [
+          "1,0,21",
+          "1,0,21,1,0,21",
+          "1,0,21,1,0,21"
+        ],
+        [
+          "1,0,31",
+          "1,0,31,1,0,31",
+          "1,0,31,1,0,31"
+        ],
+        [
+          "1,0,31",
+          "1,0,31,1,0,31",
+          "1,0,31,1,0,31"
+        ]
+      ]
+    },
+    {
+      "key": "5167f2de3b04fb359f1161a9cea938d71a5e3185c113dd28211131853f875500",
+      "expression": "(12 - 12) + 11",
+      "expected": [
+        0,
+        11
+      ],
+      "correct": [
+        0,
+        1,
+        0
+      ],
+      "traces": [
+        "0,13",
+        "0,11",
+        "0,13"
+      ],
+      "reports": [
+        [
+          "1,0,13",
+          "1,0,13,1,0,13",
+          "1,0,13,1,0,13"
+        ],
+        [
+          "1,0,11",
+          "1,0,11,1,0,11",
+          "1,0,11,1,0,11"
+        ],
+        [
+          "1,0,13",
+          "1,0,13,1,0,13",
+          "1,0,13,1,0,13"
+        ]
+      ]
+    },
+    {
+      "key": "5596a51e9f9c6827aff57fb92020fe7c229b9186407e93a8e3c38e9c43a96f3e",
+      "expression": "(1 + 6) - 6",
+      "expected": [
+        7,
+        1
+      ],
+      "correct": [
+        1,
+        0,
+        0
+      ],
+      "traces": [
+        "7,1",
+        "7,-5",
+        "7, -5"
+      ],
+      "reports": [
+        [
+          "0,1,1",
+          "0,1,1,0,1,1",
+          "0,1,1,0,1,1"
+        ],
+        [
+          "0,1,5",
+          "0,1,5,0,1,5",
+          "0,1,5,0,1,5"
+        ],
+        [
+          "0,1,0",
+          "0,1,0,0,1,0",
+          "0,-1,0,0,-1,0"
+        ]
+      ]
+    }
+  ]
+}
