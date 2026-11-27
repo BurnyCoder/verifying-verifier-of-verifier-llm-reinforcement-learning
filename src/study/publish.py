@@ -47,7 +47,7 @@ def publish(milestone, run=None):
     logdir = log_directory()/(milestone if not run else run)
     if milestone.endswith("-development") or milestone.endswith("-final"):
         logdir = log_directory()/(run+"-development" if run and run.startswith("new-judges/") else milestone)
-    native_logs = list(logdir.glob("*-server.log")) if milestone.startswith("new-judges-") else []
+    native_logs = list(logdir.glob("*-server.log")) if milestone.startswith(("new-judges-","solver-fit-")) else []
     for path in sorted([*logdir.glob("*.jsonl"),*native_logs]):
         packed=STATE/"publication"/"compressed"/logdir.name/(path.name+".gz")
         packed.parent.mkdir(parents=True,exist_ok=True)

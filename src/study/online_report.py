@@ -1,16 +1,18 @@
 """Recompute the solver comparison from literal rollouts and matched development answers."""
 
-from itertools import groupby
+from itertools import batched, groupby
 from statistics import mean
 
 from .benchmark import population
 from .design import GITHUB, Run
+from .depth_review import compare_training_groups, different_group_credit, effective_bit, numbers
 from .domain import Problem
 from .exposures import check_exposures
 from .learnability_analysis import paired_change
+from .learning_review import execute_steps
 from .online_solvers import NAMES
 from .prompts import messages
-from .records import solver_truth, terminal
+from .records import terminal
 from .storage import atomic, read_json, rows, write_json
 from .tables import markdown
 
@@ -23,7 +25,7 @@ def exact_scores(path, keys):
     scores = {}
     for row in data:
         problem = Problem.from_expression(row["expression"])
-        grade = solver_truth(problem, row["trace"])[0]
+        grade = int(numbers(row["trace"], len(problem.steps))==execute_steps(problem))
         if problem.key != row["key"] or grade != row["correct"]:
             raise ValueError(f"Stored exact score differs for {row['key']}")
         scores[problem.key] = grade
@@ -41,7 +43,7 @@ def signal(rollouts):
         if all(len(r["reports"])==3 for r in group):
             j2 = [terminal(r["reports"][1],2) for r in group]
             j3 = [r["reward"] for r in group]
-            changed_groups += j2 != j3 and (len(set(j2))>1 or len(set(j3))>1)
+            changed_groups += different_group_credit(j2,j3)
     curves = [dict(step=g[0]["step"]+1, reward=mean(r["reward"] for r in g), exact=mean(r["label"] for r in g)) for g in complete]
     return dict(groups=len(complete), samples=len(samples), reward=sum(r["reward"] for r in samples),
                 exact=sum(r["label"] for r in samples), false_accept=sum(r["reward"]>r["label"] for r in samples),
@@ -94,17 +96,22 @@ def verified_training(folder, depth, keys, identity, updates):
     for attempt in sorted((folder/"train").glob("*/calls.jsonl")):
         calls.update((r["id"], r) for r in rows(attempt))
     effective = list(rows(folder/"rollouts.jsonl"))
+    optimizer = {r["step"]:r["rewards/registered_reward/mean"] for r in rows(folder/"metrics.jsonl")
+                 if "rewards/registered_reward/mean" in r}
+    if set(optimizer)!=set(range(1,updates+1)) or any(optimizer[i]!=mean(r["reward"] for r in g)
+        for i,g in enumerate(batched(effective,4),1)):
+        raise ValueError("TRL's optimizer reward differs from the frozen judge's logged reward")
     for row in effective:
         p, trace, reports = Problem.from_expression(row["expression"]), row["answer"], row["reports"]
-        if (p.key in keys or p.key != row["key"] or len(reports)!=depth or row["label"]!=solver_truth(p,trace)[0]
-            or row["reward"]!=terminal(reports[-1],depth)):
+        if (p.key in keys or p.key != row["key"] or len(reports)!=depth or row["label"]!=(numbers(trace,len(p.steps))==execute_steps(p))
+            or row["reward"]!=effective_bit(reports[-1])):
             raise ValueError(f"Training reward or split mismatch at {row['step']}/{row['sample']}")
         for level, output in enumerate(reports,1):
             call = calls[f"{row['step']}/{row['sample']}/j{level}"]
             if (call["artifact"].split("|")[0]!=confirmed["sha256"] or call["text"] != output or
                 call["messages"] != messages(f"j{level}",p,trace,reports[:level-1],"demonstrated")):
                 raise ValueError("Training rollout does not match the recorded frozen-judge call")
-    return [r["answer"] for r in effective[:4]]
+    return effective
 
 
 def verify_pair(root):
@@ -117,12 +124,14 @@ def verify_pair(root):
     baseline = exact_scores(root/"calibrated/base/replay.jsonl", keys)
     identity = read_json(root/NAMES[0]/"recipe.json")["initial_adapter_sha256"]
     signatures = check_exposures(root, [Run(name) for name in NAMES])
-    first, scores, examples = [], [], []
+    trajectories, scores, examples, weights = [], [], [], []
     for depth, name in enumerate(NAMES, 2):
         folder = root/name
-        first.append(verified_training(folder, depth, keys, identity, plan["updates"]))
+        trajectories.append(verified_training(folder, depth, keys, identity, plan["updates"]))
         score = exact_scores(folder/"solutions.jsonl", keys)
-        if sum(score.values()) != read_json(folder/"development.json")["correct"]:
+        evaluation = read_json(folder/"development.json")
+        weights.append(evaluation["weights"])
+        if sum(score.values()) != evaluation["correct"]:
             raise ValueError("Final development exact-score receipt differs from the solver outputs")
         # Verify the full frozen chain on both checkpoints' literal development answers.
         replay = read_json(folder/"replay-audit.json")
@@ -142,8 +151,11 @@ def verify_pair(root):
             p = Problem.from_expression(examples[0][key]["expression"])
             cases.append(dict(key=key, expression=p.expression, expected=list(p.values),
                 traces=[e[key]["trace"] for e in examples], reports=[e[key]["reports"] for e in examples], correct=[x,y]))
+    same = compare_training_groups(*trajectories)
+    first = [[r["answer"] for r in arm[:4]] for arm in trajectories]
     comparison = dict(vs_base=[paired_change(s,baseline) for s in scores], d3_minus_d2=difference,
                       initial_adapter_sha256=identity, first_four_answers_matched=first[0]==first[1],
+                      final_adapter_sha256=weights, matched_groups=same,
                       prompt_order_sha256=signatures, examples=cases)
     write_json(root/"new-judges/online-comparison.json", comparison)
     return comparison
@@ -259,7 +271,9 @@ def paired_review(study):
     provenance=(f"The two fresh adapters had the same initial SHA-256 `{c['initial_adapter_sha256']}`. The actual prompt-order digest "
                 f"for both training trajectories was `{next(iter(c['prompt_order_sha256'].values()))}`. "
                 f"The first four sampled answers {'matched' if c['first_four_answers_matched'] else 'differed'}. "
-                "Each effective training reward was recomputed from the raw terminal report and checked against its exact prompt history. "
+                f"Both arms produced the same four answers and lower reports on {len(c['matched_groups']['matched'])} whole groups. Of these, "
+                f"{len(c['matched_groups']['different_credits'])} received different group-relative credit. "
+                "Each effective training reward was recomputed from the raw terminal report and checked against its exact prompt history and the reward mean TRL logged for the optimizer. "
                 "Every finished checkpoint contributed one greedy trace per development problem. The training and development IDs were disjoint.")
     return ("# Independent review of the Qwen3.5-4B solver-reward comparison\n\n"+online_text(study)+
             markdown(["Paired comparison","Problems","Gained","Lost","Difference (pp)","95% interval (pp)"],data)+
