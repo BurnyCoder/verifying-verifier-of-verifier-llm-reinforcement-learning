@@ -74,6 +74,28 @@ def device_memory():
     return dict(device=name.strip(),total_mib=int(total),free_mib=int(free))
 
 
+def require_dedicated_memory(placement, dedicated_mib):
+    """On WDDM a CUDA allocation can exceed the physical local storage committed to a process."""
+    required=placement["weights_mib"]+placement["cache_mib"]
+    if dedicated_mib < required:
+        raise GPUFitError(f"The process has {dedicated_mib:.1f} MiB in dedicated GPU memory, below {required:.1f} MiB of weights and state")
+
+
+def process_dedicated_memory(pid):
+    """Read per-process WDDM allocations after initialization and before the first token."""
+    selector=f"Name LIKE 'pid_{int(pid)}_%'"
+    command=(f"$gpu=Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUProcessMemory -Filter \"{selector}\"; "
+             "if($null -eq $gpu){exit 2}; [int64](($gpu|Measure-Object -Property DedicatedUsage -Sum).Sum)")
+    for attempt in range(3):
+        sample=subprocess.run(["powershell","-NoProfile","-Command",command],capture_output=True,text=True,
+                              timeout=15,creationflags=subprocess.CREATE_NO_WINDOW)
+        if sample.returncode==0 and sample.stdout.strip().isdigit():
+            return int(sample.stdout.strip())/2**20
+        if attempt!=2:
+            time.sleep(.5)
+    raise RuntimeError("The Windows per-process dedicated video memory measurement is unavailable")
+
+
 class LocalCUDA:
     def __init__(self, path, log_path, template=None, telemetry=None):
         self.path, self.log_path = path, log_path
@@ -123,6 +145,10 @@ class LocalCUDA:
             log = self.log_path.read_text(encoding="utf-8",errors="replace")
             self.placement = dict(**verify_placement(log),before=self.before,after=device_memory(),
                                   load_seconds=time.monotonic()-start,build=BUILD,command=command)
+            if os.name=="nt":
+                dedicated=process_dedicated_memory(self.process.pid)
+                require_dedicated_memory(self.placement,dedicated)
+                self.placement["dedicated_mib_before_inference"]=dedicated
             if self.telemetry and os.name=="nt":
                 self.meter=subprocess.Popen(["powershell","-NoProfile","-ExecutionPolicy","Bypass","-File",
                     str(Path(__file__).with_name("frozen_device.ps1")),"-ServerId",str(self.process.pid),
