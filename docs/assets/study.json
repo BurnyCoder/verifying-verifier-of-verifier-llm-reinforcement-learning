@@ -222977,6 +222977,55 @@
           ]
         }
       ],
+      "shared_error": {
+        "expression": "(39 + 12) - 5",
+        "right": "51,46",
+        "wrong": "16,11"
+      },
+      "accepted": [
+        21,
+        21
+      ],
+      "agreement": [
+        12,
+        12
+      ],
+      "transitions": [
+        {
+          "expression": "(36 - 7) + 7",
+          "output": "8,15",
+          "truth": [
+            29,
+            36
+          ],
+          "bits": [
+            1,
+            0
+          ],
+          "reports": [
+            "1,0,15,1,0,15",
+            "1,0,15,0,1,15"
+          ],
+          "correct": 0
+        },
+        {
+          "expression": "(1 + 6) - 6",
+          "output": "-5,-1",
+          "truth": [
+            7,
+            1
+          ],
+          "bits": [
+            0,
+            1
+          ],
+          "reports": [
+            "-1,-1,-5,1,0,-5",
+            "1,0,-5,1,0,-5"
+          ],
+          "correct": 0
+        }
+      ],
       "transcript_audit": {
         "seed": 17,
         "arms": {

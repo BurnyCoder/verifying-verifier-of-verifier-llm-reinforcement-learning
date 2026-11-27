@@ -364,6 +364,7 @@ def paper(data, date):
             truth = ", ".join(map(str, pair["truth"]))
             line(f"On {pair['expression']}, the exact steps were {truth}. The table gives the literal solution and "
                  "three post-training reports for each solver. Judge 2 and Judge 3 put the solver verdict in field four.")
+            story[-1].keepWithNext = True
             table(["Training reward","Solver wrote","Judge 1","Judge 2","Judge 3"],
                   [[f"Judge {d}", out["trace"], *out["reports"]] for d, out in enumerate(pair["outputs"], 2)])
         line(f"<link href='{GITHUB}/blob/main/reports/reviews/paired-outputs-seed-{first['seed']}.md'>Every paired "

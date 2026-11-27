@@ -149,12 +149,18 @@ def audited_seed(directory, seed):
             [r["key"] for r in dev2] != [r["key"] for r in dev3] or len({r["key"] for r in dev3}) != len(dev3)):
         raise ValueError("The depth comparison requires the same problems in the same order")
     paired = Counter()
+    shared_error = None
     for a, b in zip(dev2, dev3, strict=True):
         outcome = "both" if a["correct"] and b["correct"] else "two only" if a["correct"] else "three only" if b["correct"] else "neither"
         paired[outcome] += 1
+        if shared_error is None and a["correct"] and not b["correct"] and not b["malformed"] and b["verdicts"] == [1,1,1]:
+            shared_error = dict(expression=b["expression"], right=a["trace"], wrong=b["trace"])
+    replays = [fixed_answer_replay(dev2), fixed_answer_replay(dev3)]
+    # Published study.json revisions exposed these three-judge replay fields at the top level.
+    original_replay = {key: replays[1][key] for key in ("accepted", "agreement", "transitions")}
     return dict(seed=seed, n=len(deep), groups=len(deep)//4, dev_n=len(dev3), two=stats2, three=stats3,
                 paired_outputs=pair_saved_outputs(dev2, dev3),
-                paired=paired, replays=[fixed_answer_replay(dev2), fixed_answer_replay(dev3)],
+                paired=paired, replays=replays, shared_error=shared_error, **original_replay,
                 transcript_audit=read_json(directory/"diagnostics"/f"depth-transcripts-{seed}.json"), **group_evidence(deep))
 
 
