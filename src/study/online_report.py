@@ -75,9 +75,11 @@ def collect_online(root):
     arms = []
     for name in NAMES:
         folder = root.parent/name
+        rollouts = list(rows(folder/"rollouts.jsonl"))
+        completed = len(rollouts)//4*4
         probes = [r for r in rows(folder/"metrics.jsonl") if "development_accuracy" in r]
         arms.append(dict(name=name, depth=int(name[-1]), **arm_progress(folder, plan["updates"]),
-                         signal=signal(rows(folder/"rollouts.jsonl")), probes=probes))
+                         signal=signal(rollouts), probes=probes, latest_group=rollouts[max(0,completed-4):completed]))
     return dict(plan=plan, base=dict(correct=sum(base.values()),n=len(base)), arms=arms,
                 comparison=read_json(root/"online-comparison.json", {}))
 

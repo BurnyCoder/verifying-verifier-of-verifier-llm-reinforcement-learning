@@ -144,7 +144,29 @@ function showOnline() {
   }
   byId("online-result").textContent=effect ? "Three judges minus two on the same development questions: "+(effect.delta*100).toFixed(1)+" percentage points (paired 95% interval "+effect.interval.map(x=>(100*x).toFixed(1)).join(" to ")+")." :
     "Fresh seed-17 solver adapters receive the final judge’s verdict. The independent integer checker scores every arithmetic step.";
-  drawTrend(online.arms.find(a=>a.depth===Number(byId("online-depth").value)).signal.curves,byId("online-trend"));
+  const selected=online.arms.find(a=>a.depth===Number(byId("online-depth").value));
+  drawTrend(selected.signal.curves,byId("online-trend"));
+  const group=selected.latest_group ?? [];
+  byId("online-group").hidden=!group.length;
+  const groupRows=byId("group-rows");
+  groupRows.replaceChildren();
+  if (group.length) {
+    byId("group-problem").textContent="Update "+(group[0].step+1)+" · "+group[0].expression+" · "+group.at(-1).time;
+    for (const r of group) row(groupRows,[r.answer,r.reports[0],r.reports[1],r.reports[2],r.label,r.reward]);
+    byId("online-log").href=live ? "/live/training-log/"+selected.depth :
+      "https://huggingface.co/datasets/BurnyCoder/recursive-judge-grpo-study/tree/main/logs/"+selected.name;
+  }
+  const replays=online.comparison?.development_replays ?? [];
+  byId("online-fixed").hidden=!replays.length;
+  const fixed=byId("fixed-rows"), examples=byId("online-examples");
+  fixed.replaceChildren(); examples.replaceChildren();
+  replays.forEach((r,i)=>row(fixed,["Judge "+(i+2), ...[r.solver,r.j2_correct,r.j3_correct].map(k=>k+"/"+r.n), r.fixed,r.harmed]));
+  for (const ex of online.comparison?.examples ?? []) {
+    const lines=["Exact steps: "+ex.expected.join(", ")];
+    ex.traces.forEach((trace,i)=>lines.push("Solver trained with Judge "+(i+2)+" wrote "+JSON.stringify(trace)+
+      (ex.correct[i] ? " (correct)" : " (incorrect)"),...ex.reports[i].map((r,j)=>"  Judge "+(j+1)+" wrote "+JSON.stringify(r))));
+    examples.append(exampleCard(ex.expression,lines,ex.correct.includes(0)));
+  }
 }
 function showNewJudges() {
   const body = byId("frozen-scores");

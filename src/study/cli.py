@@ -139,9 +139,14 @@ def campaign(public, registered_only=False):
 
 def dashboard(port):
     from .report import collect
+    from .online_logs import serve_transcript
+    transcripts = {f"/live/training-log/{name[-1]}":name for name in ONLINE_NAMES}
     class Handler(SimpleHTTPRequestHandler):
         def do_GET(self):
-            if self.path.split("?")[0] == "/live.json":
+            path = self.path.split("?")[0]
+            if path in transcripts:
+                serve_transcript(self, transcripts[path])
+            elif path == "/live.json":
                 payload=json.dumps(collect(),ensure_ascii=False,allow_nan=False).encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type","application/json; charset=utf-8")
