@@ -1,0 +1,21 @@
+{
+  "run": {
+    "name": "top-prefix2",
+    "seed": 17,
+    "role": "solver",
+    "reward": "d3",
+    "judges": [
+      "top-j1",
+      "top-j2",
+      null
+    ],
+    "initial": null,
+    "teacher": null,
+    "corpus": "base",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "group": 4,
+  "started": "2026-11-27T00:30:50.552+00:00"
+}
