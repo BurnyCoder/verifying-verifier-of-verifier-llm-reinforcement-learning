@@ -127,3 +127,13 @@ def test_frozen_table_shows_offsetting_errors_when_depth_scores_tie():
     assert len(row) == len(HEAD)
     assert row[2:4] == ["2/4", "2/4"]
     assert row[-1] == "1 / 1"
+
+
+def test_failed_gpu_fit_is_visible_before_any_model_answers(tmp_path):
+    from study.frozen_report import collect_frozen, interpretation
+    from study.storage import write_json
+    write_json(tmp_path/"q38-27b/fit.json", [{"file":"larger.gguf", "fit":False, "reason":"Insufficient dedicated memory"}])
+    data = collect_frozen(tmp_path)
+    assert not data["results"]
+    assert data["fit_failures"] == [{"key":"q38-27b", "file":"larger.gguf", "reason":"Insufficient dedicated memory"}]
+    assert "larger.gguf" in " ".join(interpretation(data))

@@ -55,8 +55,11 @@ def conversion_findings(root, results):
 
 
 def collect_frozen(root):
-    results = []
+    results, failed = [], []
     for key in ("runtime-format-pilot",*[model.key for model in (*LOCAL_REPLICATES,*MODELS)],"confirm-control","confirm-winner"):
+        for fit in read_json(root/key/"fit.json",[]):
+            if not fit["fit"]:
+                failed.append(dict(key=key,file=fit["file"],reason=fit["reason"].splitlines()[0]))
         receipt = read_json(root/key/"result.json",{})
         if receipt:
             if receipt.get("metrics"):
@@ -67,7 +70,7 @@ def collect_frozen(root):
                     receipt["gpu"] = dict(peak_dedicated_mib=max(r["dedicated_bytes"] for r in samples)/2**20,
                                           engines=samples[-1]["engines"],last_sample=samples[-1]["time"])
             results.append({**receipt,"key":key})
-    return dict(results=results,decision=read_json(root/"decision.json",{}),conversions=conversion_findings(root,results))
+    return dict(results=results,decision=read_json(root/"decision.json",{}),conversions=conversion_findings(root,results),fit_failures=failed)
 
 
 def depth_rows(study):
@@ -104,7 +107,7 @@ def frozen_text(study):
 
 def interpretation(study):
     """Keep the matched confirmation distinct from the exploratory comparison of file conversions."""
-    parts = []
+    parts = [f"{f['file']} failed the GPU fit check before generating any answers. {f['reason']}." for f in study.get("fit_failures",[])]
     if study.get("conversions"):
         parts += ["The comparison of two conversions of the same model was exploratory. Both used the same llama.cpp CUDA executable. The experiment varies each complete model file, so a specific conversion difference cannot be identified as the cause.",*study["conversions"]]
     decision = study["decision"]
@@ -164,6 +167,9 @@ def experiment_pages(study, dest):
         method = (f"# {r['model']} · {r['phase']}\n\n{r['status']}. {r['result']}\n\n"
                   f"[Complete raw records]({raw}) · [Case and selection protocol](../../../newer-frozen-judges.md)")
         note = [f"# What this run showed\n\n{r['result']}"]
+        for fit in study.get("fit_failures",[]):
+            if fit["key"]==r["key"]:
+                note.append(f"{fit['file']} failed the pre-inference GPU check. {fit['reason']}.")
         if r.get("metrics"):
             method += "\n\n"+markdown(HEAD,list(depth_rows({"results":[r]})))
             for label,record in r["audit"]["examples"].items():
