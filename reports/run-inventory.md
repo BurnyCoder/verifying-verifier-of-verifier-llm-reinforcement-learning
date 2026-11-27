@@ -108,7 +108,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | [new-judges/confirm-control](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-control) | Frozen Qwen2.5 control, fresh confirmation | Complete | J3 verdict 61/128, twins 1/64, masked 0/64 | — |
 | [new-judges/confirm-winner](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-winner) | Selected newer frozen judge, fresh confirmation · Qwen3.5-4B | Complete | J3 verdict 73/128, twins 10/64, masked 0/64 | — |
 | [new-judges/winner-d2](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d2) | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B | Evaluated | 29/32 (90.6%) exact solver traces | — |
-| [new-judges/winner-d3](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d3) | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B | Trained | Pending | — |
+| [new-judges/winner-d3](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d3) | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B | Evaluated | 27/32 (84.4%) exact solver traces | — |
 
 ### Solver hardware and train-split calibration
 

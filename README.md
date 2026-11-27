@@ -11,11 +11,32 @@ For example, a solver can give the right final answer to (4 + 3) × 2 while reco
 | --- | --- | --- | --- |
 | Starting solver | 0 | — | 20/32 |
 | Frozen Qwen3.5-4B Judge 2 | 256 | 17/256 | 29/32 |
-| Frozen Qwen3.5-4B Judge 3 | 256 | 15/256 | Trained |
+| Frozen Qwen3.5-4B Judge 3 | 256 | 15/256 | 27/32 |
 
-The fresh solvers train on the same arithmetic prompts. Each finished checkpoint is scored on the same development questions as the starting solver. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
+The three-judge solver changed exact development accuracy by -6.2 percentage points relative to the two-judge solver (paired 95% interval -15.6 to +0.0). It gained 0 solutions and lost 2 on the 32 shared problems. During three-judge training, Judge 3 fixed 4 solution verdicts and introduced 0 errors across 1,024 sampled answers. Using Judge 3 changed the within-group advantages in 0/256 groups on those same samples. The interval conditions on these seed-17 checkpoints and the development population. The first difference in sampled solver answers occurred at update 3. All earlier groups gave the two solvers the same relative credit. An earlier change in judge credit therefore cannot explain this first divergence. The logs do not identify which computation produced the differing sample. [Protocol and decoder](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/newer-frozen-judges.md#online-solver-comparison) · [Rollouts, rewards and exact scores](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges).
+
+### Grading each checkpoint's fixed answers
+
+| Whose written answers? | Exact solver answers | Correct J2 verdicts | Correct J3 verdicts | J3 fixes | J3 new errors |
+| --- | --- | --- | --- | --- | --- |
+| Solver trained with Judge 2 | 29/32 | 28/32 | 28/32 | 0 | 0 |
+| Solver trained with Judge 3 | 27/32 | 26/32 | 26/32 | 0 | 0 |
+
+A correct verdict accepts correct arithmetic or rejects an arithmetic or format error. Changing a verdict in this replay leaves the solver’s written answer fixed.
 
 ![Exact solver accuracy and the fraction of groups with mixed rewards](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/raw/refs/heads/main/docs/assets/online-solvers.png)
+
+### Both solvers on the same development calculation
+
+| Expression | Exact steps | Two-judge-trained solver and reviews | Three-judge-trained solver and reviews |
+| --- | --- | --- | --- |
+| (12 - 12) + 11 | 0, 11 | `0,11` (correct), J2 `1,0,11,1,0,11`, J3 `1,0,11,1,0,11` | `0,13` (wrong), J2 `1,0,13,1,0,13`, J3 `1,0,13,1,0,13` |
+| (39 + 12) - 5 | 51, 46 | `51,46` (correct), J2 `1,0,46,1,0,46`, J3 `1,0,46,1,0,46` | `51,46` (correct), J2 `1,0,46,1,0,46`, J3 `1,0,46,1,0,46` |
+| (7 - 7) + 12 | 0, 12 | `0,19` (wrong), J2 `1,0,19,1,0,19`, J3 `1,0,19,1,0,19` | `0,19` (wrong), J2 `1,0,19,1,0,19`, J3 `1,0,19,1,0,19` |
+
+Each solver writes its answer before grading. In the six-number reviews, the first number audits the preceding judge and the fourth accepts or rejects the solver. The examples take the first problem in each observed pair of outcomes in evaluation order.
+
+[Paired effects and independent reward checks](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/blob/main/reports/reviews/online-solvers.md).
 
 **Independent frozen-judge confirmation.** On 64 fresh problems, frozen Qwen3.5-4B correctly audited both reviews on 10/64 evidence pairs, compared with 1/64 for Qwen2.5-1.5B-Instruct. Their third judges correctly graded 73/128 and 61/128 fixed solver traces, respectively. For Qwen3.5-4B, Judge 3 agreed with Judge 2 on every solution verdict. The paired 95% intervals for the differences were +6.25 to +23.44 percentage points for evidence and +1.56 to +17.97 for verdicts. The selected judge qualified for the online solver comparison.
 
@@ -132,7 +153,7 @@ The original solver and judge adapters all use Qwen2.5-1.5B-Instruct. A solver s
 | [new-judges/confirm-control](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-control) | Frozen Qwen2.5 control, fresh confirmation | Complete | J3 verdict 61/128, twins 1/64, masked 0/64 | — |
 | [new-judges/confirm-winner](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/confirm-winner) | Selected newer frozen judge, fresh confirmation · Qwen3.5-4B | Complete | J3 verdict 73/128, twins 10/64, masked 0/64 | — |
 | [new-judges/winner-d2](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d2) | Fresh Qwen2.5 solver, selected frozen J2 reward, seed 17 · Qwen3.5-4B | Evaluated | 29/32 (90.6%) exact solver traces | — |
-| [new-judges/winner-d3](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d3) | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B | Trained | Pending | — |
+| [new-judges/winner-d3](https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/winner-d3) | Fresh Qwen2.5 solver, selected frozen J3 reward, seed 17 · Qwen3.5-4B | Evaluated | 27/32 (84.4%) exact solver traces | — |
 
 ### Solver hardware and train-split calibration
 
