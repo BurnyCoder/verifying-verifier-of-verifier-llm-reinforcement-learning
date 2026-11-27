@@ -8,7 +8,7 @@ from .storage import atomic, read_json, rows
 from .tables import markdown
 
 
-HEAD = ["Model and cohort","J1 verdict","J2 verdict","J3 verdict","J3 visible pairs","J3 masked pairs"]
+HEAD = ["Model and cohort","J1 verdict","J2 verdict","J3 verdict","J3 visible pairs","J3 masked pairs","J3 fixes / new errors"]
 
 
 @lru_cache(maxsize=16)
@@ -82,22 +82,20 @@ def depth_rows(study):
             twins = measure["twins"]
             values = [f"{d['correct']}/{record['n']}" for d in record["depths"]]
             pairs = [f"{twins[c]}/{twins['n']}" if cohort=="balanced" else "—" for c in ("visible","masked")]
-            yield [f"{result['model']} · {result['phase']} · {cohort}", *values, *pairs]
+            yield [f"{result['model']} · {result['phase']} · {cohort}", *values, *pairs, f"{record['fixed']} / {record['harmed']}"]
 
 
 def frozen_text(study):
     records = list(depth_rows(study))
     parts = ["## Newer frozen judges on fixed solver answers"]
     if records:
-        parts += ["Every depth grades the same solver responses within a cohort. A visible-pair success requires both complete audit records and the exact numerical correction. Each balanced problem contributes one valid trace and one invalid trace.",markdown(HEAD,records)]
+        parts += ["Every depth grades the same solver responses within a cohort. A visible-pair success requires both complete audit records and the exact numerical correction. Each balanced problem contributes one valid trace and one invalid trace. The last column counts Judge 2 errors that Judge 3 fixed, followed by correct Judge 2 verdicts that Judge 3 overturned.",markdown(HEAD,records)]
     else:
         parts.append("No completed fixed-trace score has been released.")
     for r in study["results"]:
         if r.get("metrics"):
-            m = r["metrics"]["natural"]
             costs = r["cost"]
-            parts.append(f"{r['model']} ({r['phase']}, {r['file']}) used {costs['input_tokens']:,} input and {costs['output_tokens']:,} output tokens in {costs['elapsed_seconds']:.1f} seconds of end-to-end calls."+
-                         (f" On the {m['n']} natural traces, Judge 3 fixed {m['fixed']} verdicts and introduced {m['harmed']} errors." if m["n"] else ""))
+            parts.append(f"{r['model']} ({r['phase']}, {r['file']}) used {costs['input_tokens']:,} input and {costs['output_tokens']:,} output tokens in {costs['elapsed_seconds']:.1f} seconds of end-to-end calls.")
         else:
             parts.append(f"{r['model']} · {r['status']}. {r['result']}.")
     parts.extend(interpretation(study))
