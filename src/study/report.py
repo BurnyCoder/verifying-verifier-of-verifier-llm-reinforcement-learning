@@ -15,7 +15,7 @@ from .final_review import review_completed, review_text as final_review_text
 from .learnability_report import collect_learnability, learnability_text, learning_figure
 from .learning_review import check_release, review_text
 from .inventory import GUIDE, HEADERS, grouped, inventory, inventory_markdown
-from .frozen_report import collect_frozen, confirmation_review_text, depth_rows as frozen_rows, experiment_pages, frozen_text, interpretation, plot_scores
+from .frozen_report import collect_frozen, confirmation_headline, confirmation_review_text, depth_rows as frozen_rows, experiment_pages, frozen_text, interpretation, plot_scores
 from .matched_tables import accuracy_grid, grid_markdown
 from .records import named_values
 from .storage import ORIGINAL_RESULTS, ROOT, atomic, read_json, rows, write_json
@@ -313,6 +313,9 @@ def paper(data, date):
     line("Libor “Burny” Burian · "+date, "Heading3")
     line("Abstract","Heading2")
     line("A solver submits an integer calculation trace. Three successive language-model calls grade the trace, audit the first judgment and audit the second judgment. An independent integer checker can evaluate every field. We test the incremental effect of the third review on online GRPO and its ability to detect an evidence-only error in another judge's report. The registered primary comparison currently has status <b>"+data["primary"]["status"]+"</b>.")
+    frozen_lead=confirmation_headline(data['newer_judges'])
+    if frozen_lead:
+        line(escape(frozen_lead))
     line("Motivation and related work","Heading2")
     line("Wen et al. studied third-order pairwise critique and reward-model-guided best-of-N selection [1]. DeepSeekMath-V2 used a learned meta-verifier to review identified proof defects [2]. Our intervention uses the terminal solution verdict as an online policy reward and tests the review itself through an exact counterfactual. Comparing a chain with three independent votes measures the contribution of reviewing previous claims at a comparable generation budget.")
     story.append(Image(str(DOCS/"assets/architecture.png"), width=164*mm, height=37*mm))
@@ -608,6 +611,8 @@ def build():
                            f" [All four quarters, denominators and original records]({GITHUB}/blob/main/reports/reviews/depth-diagnosis.md).")
     ledger = inventory_markdown(data["inventory"])
     frozen_summary = frozen_text(data["newer_judges"])
+    headline = confirmation_headline(data['newer_judges'])
+    highlight = f"**Independent frozen-judge confirmation.** {headline}\n\n" if headline else ""
     if data['newer_judges'].get('review'):
         atomic(REPORTS/'reviews/frozen-confirmation.md',confirmation_review_text(data['newer_judges']))
         frozen_summary += f"\n\n[Case identities, selection and interval audit]({GITHUB}/blob/main/reports/reviews/frozen-confirmation.md)."
@@ -627,7 +632,7 @@ def build():
         ledger_links += (f" · [Paused solver checkpoint, update {paused['checkpoint_step']}]"
                          f"(https://huggingface.co/{paused['repo']}/tree/{paused['revision']}/{paused['path']})")
     atomic(REPORTS/"run-inventory.md","# Run inventory\n\n"+ledger+"\n\n"+ledger_links+"\n")
-    atomic(REPORTS/"summary.md","# Study summary\n\n"+ledger_links+"\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
+    atomic(REPORTS/"summary.md","# Study summary\n\n"+highlight+ledger_links+"\n\n"+grid_text.replace("(reports/matched-depth-protocol.md)","(matched-depth-protocol.md)")+
            summary.replace("(reports/learnability.md)","(learnability.md)")+trajectory_note+"\n\n"+explanation+" [Preregistration](preregistration.md).\n\n"+frozen_summary+"\n\n## Run inventory\n\n"+ledger+"\n")
     readme = (ROOT/"README.md").read_text(encoding="utf-8")
     pre, tail = readme.split("<!-- RESULTS:START -->",1)
@@ -657,7 +662,7 @@ def build():
     if diagnostic:
         diagnostic += "## Study results\n\n"
     inline_inventory = ("<details>\n<summary>All runs, their results, and what is still scheduled</summary>\n\n"+ledger+"\n\n</details>\n\n")
-    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+ledger_links+"\n\n"+inline_inventory+grid_text+frozen_summary+"\n\n"+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
+    atomic(ROOT/"README.md",pre+"<!-- RESULTS:START -->\n"+highlight+ledger_links+"\n\n"+inline_inventory+grid_text+frozen_summary+"\n\n"+diagnostic+assets+summary+f"\n\n[Interactive results explorer]({PAGES}) · [Paper](reports/paper.pdf)\n<!-- RESULTS:END -->"+post)
     experiments=REPORTS/"experiments"
     notes=[]
     methods=[]

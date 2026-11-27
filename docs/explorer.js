@@ -129,7 +129,7 @@ function showNewJudges() {
   const body = byId("frozen-scores");
   body.replaceChildren();
   const newer = study.newer_judges ?? {};
-  const messages = [];
+  const messages = newer.headline ? [newer.headline.replace(/\.$/,"")] : [];
   const examples=byId("frozen-evidence");
   const openKeys=new Set([...examples.querySelectorAll("details[open]")].map(e=>e.dataset.key));
   examples.replaceChildren();
