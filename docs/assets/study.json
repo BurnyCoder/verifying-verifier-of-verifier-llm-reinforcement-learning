@@ -240265,10 +240265,10 @@
       "group": "Newer frozen Qwen judges",
       "id": "new-judges/q25-1p5b",
       "treatment": "Qwen2.5-1.5B-Instruct frozen, same-runtime screen",
-      "status": "Planned",
-      "result": "Pending",
+      "status": "Complete",
+      "result": "J3 verdict 28/64, twins 0/32, masked 0/32",
       "held_out": "—",
-      "evidence": null
+      "evidence": "https://github.com/BurnyCoder/verifying-verifier-of-verifier-llm-reinforcement-learning/tree/main/results/new-judges/q25-1p5b"
     },
     {
       "group": "Newer frozen Qwen judges",
@@ -240635,6 +240635,133 @@
           "last_sample": "2026-11-27T06:28:10.1969205Z"
         },
         "key": "q35-4b-ollama"
+      },
+      {
+        "time": "2026-11-27T06:30:18.702+00:00",
+        "phase": "screen",
+        "model": "Qwen2.5-1.5B-Instruct",
+        "status": "Complete",
+        "result": "J3 verdict 28/64, twins 0/32, masked 0/32",
+        "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        "metrics": {
+          "natural": {
+            "n": 32,
+            "valid": 20,
+            "depths": [
+              {
+                "correct": 23,
+                "accuracy": 0.71875,
+                "full": 16,
+                "malformed": 0,
+                "false_accept": 8,
+                "false_reject": 1
+              },
+              {
+                "correct": 19,
+                "accuracy": 0.59375,
+                "full": 11,
+                "malformed": 0,
+                "false_accept": 6,
+                "false_reject": 7
+              },
+              {
+                "correct": 13,
+                "accuracy": 0.40625,
+                "full": 2,
+                "malformed": 0,
+                "false_accept": 2,
+                "false_reject": 17
+              }
+            ],
+            "fixed": 4,
+            "harmed": 10
+          },
+          "balanced": {
+            "n": 64,
+            "valid": 32,
+            "depths": [
+              {
+                "correct": 32,
+                "accuracy": 0.5,
+                "full": 18,
+                "malformed": 0,
+                "false_accept": 30,
+                "false_reject": 2
+              },
+              {
+                "correct": 28,
+                "accuracy": 0.4375,
+                "full": 14,
+                "malformed": 0,
+                "false_accept": 23,
+                "false_reject": 13
+              },
+              {
+                "correct": 28,
+                "accuracy": 0.4375,
+                "full": 1,
+                "malformed": 0,
+                "false_accept": 7,
+                "false_reject": 29
+              }
+            ],
+            "fixed": 16,
+            "harmed": 16
+          },
+          "twins": {
+            "n": 32,
+            "visible": 0,
+            "masked": 0
+          }
+        },
+        "cost": {
+          "input_tokens": 189653,
+          "output_tokens": 5036,
+          "elapsed_seconds": 61.27399999968475,
+          "calls": 416,
+          "prompt_ms": 33400.687,
+          "generation_ms": 23479.053
+        },
+        "timing_seconds": 0.2032500000022992,
+        "audit": {
+          "calls": 416,
+          "matched_masked_outputs": 32,
+          "examples": {
+            "failed": {
+              "key": "0360e34dc98fec16268444b3951abf4b5a78f76c98630b472a6a26b8406c9539",
+              "expression": "(15 - 6) - 12",
+              "trace": "9,-2",
+              "first": "0,2,-2",
+              "reviews": [
+                "0,3,-3,0,2,-3",
+                "0,3,-2,0,2,-3"
+              ],
+              "outputs": [
+                "1,0,-2,0,2,-3",
+                "1,0,-2,0,2,-3"
+              ],
+              "expected": [
+                "1,0,-3,0,2,-3",
+                "0,3,-3,0,2,-3"
+              ]
+            }
+          }
+        },
+        "gpu": {
+          "peak_dedicated_mib": 1261.5390625,
+          "engines": [
+            {
+              "engine": "Copy",
+              "seconds": 0.3915645
+            },
+            {
+              "engine": "3D",
+              "seconds": 39.153601
+            }
+          ],
+          "last_sample": "2026-11-27T06:30:14.0400598Z"
+        },
+        "key": "q25-1p5b"
       }
     ],
     "decision": {}

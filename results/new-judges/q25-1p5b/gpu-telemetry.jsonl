@@ -1,0 +1,15 @@
+{"time":"2026-11-27T06:28:55.0664923Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.1144597},{"engine":"3D","seconds":0.9686833}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:00.7269114Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.1339675},{"engine":"3D","seconds":3.6450437}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:06.3967371Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.1546375},{"engine":"3D","seconds":6.3757833}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:12.0174937Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.1736467},{"engine":"3D","seconds":9.0253945}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:17.6379861Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.1936203},{"engine":"3D","seconds":11.7970749}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:23.2864367Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.2143408},{"engine":"3D","seconds":14.6131901}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:28.9610425Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.2331567},{"engine":"3D","seconds":17.269803}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:34.6024175Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.2541062},{"engine":"3D","seconds":20.1308197}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:40.2325760Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.2752824},{"engine":"3D","seconds":22.9691402}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:45.8886620Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.2963457},{"engine":"3D","seconds":25.8348896}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:51.5662767Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.31794},{"engine":"3D","seconds":28.7558416}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:29:57.1992867Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.3385401},{"engine":"3D","seconds":31.5887917}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:30:02.7992397Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.3546372},{"engine":"3D","seconds":33.913316}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:30:08.4337249Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.3711195},{"engine":"3D","seconds":36.3065944}],"dedicated_bytes":1322819584,"shared_bytes":85983232}
+{"time":"2026-11-27T06:30:14.0400598Z","pid":50696,"engines":[{"engine":"Copy","seconds":0.3915645},{"engine":"3D","seconds":39.153601}],"dedicated_bytes":1322819584,"shared_bytes":85983232}

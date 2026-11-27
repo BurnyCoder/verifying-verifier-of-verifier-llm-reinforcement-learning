@@ -1,0 +1,88 @@
+{
+  "time": "2026-11-27T06:30:18.702+00:00",
+  "phase": "screen",
+  "model": "Qwen2.5-1.5B-Instruct",
+  "status": "Complete",
+  "result": "J3 verdict 28/64, twins 0/32, masked 0/32",
+  "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+  "metrics": {
+    "natural": {
+      "n": 32,
+      "valid": 20,
+      "depths": [
+        {
+          "correct": 23,
+          "accuracy": 0.71875,
+          "full": 16,
+          "malformed": 0,
+          "false_accept": 8,
+          "false_reject": 1
+        },
+        {
+          "correct": 19,
+          "accuracy": 0.59375,
+          "full": 11,
+          "malformed": 0,
+          "false_accept": 6,
+          "false_reject": 7
+        },
+        {
+          "correct": 13,
+          "accuracy": 0.40625,
+          "full": 2,
+          "malformed": 0,
+          "false_accept": 2,
+          "false_reject": 17
+        }
+      ],
+      "fixed": 4,
+      "harmed": 10
+    },
+    "balanced": {
+      "n": 64,
+      "valid": 32,
+      "depths": [
+        {
+          "correct": 32,
+          "accuracy": 0.5,
+          "full": 18,
+          "malformed": 0,
+          "false_accept": 30,
+          "false_reject": 2
+        },
+        {
+          "correct": 28,
+          "accuracy": 0.4375,
+          "full": 14,
+          "malformed": 0,
+          "false_accept": 23,
+          "false_reject": 13
+        },
+        {
+          "correct": 28,
+          "accuracy": 0.4375,
+          "full": 1,
+          "malformed": 0,
+          "false_accept": 7,
+          "false_reject": 29
+        }
+      ],
+      "fixed": 16,
+      "harmed": 16
+    },
+    "twins": {
+      "n": 32,
+      "visible": 0,
+      "masked": 0
+    }
+  },
+  "cost": {
+    "input_tokens": 189653,
+    "output_tokens": 5036,
+    "elapsed_seconds": 61.27399999968475,
+    "calls": 416,
+    "prompt_ms": 33400.687,
+    "generation_ms": 23479.053
+  },
+  "timing_seconds": 0.2032500000022992
+}
