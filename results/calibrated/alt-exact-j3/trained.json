@@ -1,0 +1,33 @@
+{
+  "time": "2026-11-27T03:08:58.033+00:00",
+  "run": {
+    "name": "alt-exact-j3",
+    "seed": 17,
+    "role": "j3",
+    "reward": "exact",
+    "judges": [
+      null,
+      null,
+      null
+    ],
+    "initial": "exact-j3",
+    "teacher": null,
+    "corpus": "exact-prefix3",
+    "family": "two-add",
+    "prompt_style": "demonstrated"
+  },
+  "updates": 256,
+  "elapsed_seconds": 1532.686999999998,
+  "resumed_at": 0,
+  "frozen_checksum": "0af13f955fb4f569585a0adda19737d18484b3d7bc14c314b318da9d812d5375",
+  "usage": {
+    "j3": {
+      "calls": 1024,
+      "input_tokens": 549256,
+      "output_tokens": 14052,
+      "gpu_seconds": 547.0004642333986,
+      "wall_seconds": 547.5009999999529
+    }
+  },
+  "unfinished_generation_batches": 0
+}
